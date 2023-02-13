@@ -51,6 +51,63 @@ function delete_po($po) {
 	commit_transaction();
 }
 
+// start
+// Anees Ghazanfar 10/2/2023
+// Description: later
+
+// Old Code start
+
+//function add_po(&$po_obj) {
+//	global $Refs;
+
+//	begin_transaction();
+//	hook_db_prewrite($po_obj, ST_PURCHORDER);
+//
+	/*Insert to purchase order header record */
+//	$sql = "INSERT INTO ".TB_PREF."purch_orders (supplier_id, Comments, ord_date, reference, requisition_no, into_stock_location, delivery_address, total, tax_included, prep_amount) VALUES(";
+//	$sql .= db_escape($po_obj->supplier_id) . "," .
+//		db_escape($po_obj->Comments) . ",'" .
+//		date2sql($po_obj->orig_order_date) . "', " .
+//		db_escape($po_obj->reference) . ", " .
+//		db_escape($po_obj->supp_ref) . ", " .
+//		db_escape($po_obj->Location) . ", " .
+//		db_escape($po_obj->delivery_address) . ", " .
+//		db_escape($po_obj->get_trans_total()). ", " .
+//		db_escape($po_obj->tax_included). ", " .
+//		db_escape($po_obj->prep_amount). ")";
+
+//	db_query($sql, 'The purchase order header record could not be inserted');
+
+	/*Get the auto increment value of the order number created from the sql above */
+//	$po_obj->order_no = db_insert_id();
+
+	/*Insert the purchase order detail records */
+//	foreach ($po_obj->line_items as $line_no => $po_line) {
+//		$sql = "INSERT INTO ".TB_PREF."purch_order_details (order_no, item_code, description, delivery_date,	unit_price,	quantity_ordered) 
+//		VALUES (".
+//			db_escape($po_obj->order_no).", ".
+//			db_escape($po_line->stock_id).",".
+//			db_escape($po_line->item_description).",'".
+//			date2sql($po_line->req_del_date) . "'," .
+//			db_escape($po_line->price) . ", " .
+//			db_escape($po_line->quantity). ")";
+
+//		db_query($sql, 'One of the purchase order detail records could not be inserted');
+//		$po_obj->line_items[$line_no]->po_detail_rec = db_insert_id();
+//	}
+
+//	$Refs->save(ST_PURCHORDER, $po_obj->order_no, $po_obj->reference);
+
+//	add_audit_trail(ST_PURCHORDER, $po_obj->order_no, $po_obj->orig_order_date);
+//	hook_db_postwrite($po_obj, ST_PURCHORDER);
+//	commit_transaction();
+
+//	return $po_obj->order_no;
+//}
+
+// Old Code end
+// New Code start
+
 function add_po(&$po_obj) {
 	global $Refs;
 
@@ -77,10 +134,11 @@ function add_po(&$po_obj) {
 
 	/*Insert the purchase order detail records */
 	foreach ($po_obj->line_items as $line_no => $po_line) {
-		$sql = "INSERT INTO ".TB_PREF."purch_order_details (order_no, item_code, description, delivery_date,	unit_price,	quantity_ordered) 
+		$sql = "INSERT INTO ".TB_PREF."purch_order_details (order_no, item_code, sale_ord_no, description, delivery_date,	unit_price,	quantity_ordered) 
 		VALUES (".
 			db_escape($po_obj->order_no).", ".
 			db_escape($po_line->stock_id).",".
+			db_escape($po_line->sale_order_no).",".
 			db_escape($po_line->item_description).",'".
 			date2sql($po_line->req_del_date) . "'," .
 			db_escape($po_line->price) . ", " .
@@ -98,6 +156,11 @@ function add_po(&$po_obj) {
 
 	return $po_obj->order_no;
 }
+
+// New Code end
+// end
+
+
 
 function update_po(&$po_obj) {
 	begin_transaction();

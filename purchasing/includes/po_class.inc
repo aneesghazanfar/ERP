@@ -60,7 +60,12 @@ class purch_order {
 		$this->tax_included = $tax_included;
 		$this->tax_group_array = get_tax_group_items_as_array($tax_group_id);
 	}
-	
+	// Start 
+	// Anees Ghazanfar 10/2/2023
+	// Description: Add new variable($$sale_ord_id) to set the value of sales order id in purchase order
+
+	// old code start
+	/*
 	function add_to_order($line_no, $stock_id, $qty, $item_descr, $price, $uom, $req_del_date, $qty_inv, $qty_recd) {
 		if (isset($qty) && $qty != 0) {
 			$this->line_items[$line_no] = new po_line_details($line_no, $stock_id, $item_descr, $qty, $price, $uom, 
@@ -70,6 +75,21 @@ class purch_order {
 		}
 		return 0;
 	}
+	*/
+	// old code end
+	// new code start
+
+	function add_to_order($line_no,$sale_order_no, $stock_id, $qty, $item_descr, $price, $uom, $req_del_date, $qty_inv, $qty_recd) {
+		if (isset($qty) && $qty != 0) {
+			$this->line_items[$line_no] = new po_line_details($line_no,$sale_order_no, $stock_id, $item_descr, $qty, $price, $uom, 
+				$req_del_date, $qty_inv, $qty_recd);
+			$this->lines_on_order++;
+			return 1;
+		}
+		return 0;
+	}
+	// new code end
+	// End
 
 	function update_order_item($line_no, $qty, $price, $req_del_date, $description="") {
 		if ($description != "")
@@ -172,11 +192,77 @@ class purch_order {
 
 } /* end of class defintion */
 
+// start
+// Anees Ghazanfar 10/2/2023
+// Description: add new variable $sale_ord_id in po_line_details class
+
+// old code start
+
+// class po_line_details {
+
+// var $line_no;
+// var $po_detail_rec;
+// var $grn_item_id;
+// var $stock_id;
+// var $item_description;
+// var $price;
+// var $units;
+// var $req_del_date;
+// var $tax_type;
+// var $tax_type_name;
+
+// var $quantity; // current/entry quantity of PO line
+// var $qty_inv; // quantity already invoiced against this line
+// var $receive_qty; // current/entry GRN quantity
+// var $qty_received; // quantity already received against this line
+
+// var $standard_cost;
+// var $descr_editable;
+
+// function __construct($line_no, $stock_item, $item_descr, $qty, $prc, $uom, $req_del_date, $qty_inv, $qty_recd, $grn_item_id=0) {
+
+// /* Constructor function to add a new LineDetail object with passed params */
+// $this->line_no = $line_no;
+// $this->stock_id = $stock_item;
+// $item_row = get_item($stock_item);
+// if (!$item_row)
+// return;
+
+// $this->descr_editable = $item_row["editable"];
+// if ($item_descr == null || !$this->descr_editable)
+// $this->item_description = $item_row["description"];
+// else
+// $this->item_description = $item_descr;
+// $this->quantity = $qty;
+// $this->req_del_date = $req_del_date;
+// $this->price = $prc;
+// // $this->units = $uom;
+// $this->tax_type = $item_row["tax_type_id"];
+// $this->tax_type_name = $item_row["tax_type_name"];
+// $this->units = $item_row["units"];
+// $this->qty_received = $qty_recd;
+// $this->qty_inv = $qty_inv;
+// $this->receive_qty = 0; /*initialise these last two only */
+// $this->standard_cost =0;
+// $this->grn_item_id = $grn_item_id;
+// }
+
+// // Deprecated, use with care. If you need line value as it is calculated in invoice, use taxfree_charge_value below.
+// function taxfree_charge_price($po) {
+//			return get_tax_free_price_for_item($this->stock_id, $this->receive_qty*$this->price, $po->tax_group_id, $po->tax_included, $po->tax_group_array);
+//	}
+//}
+
+
+// old code end
+// new code start
+
 class po_line_details {
 
 	var $line_no;
 	var $po_detail_rec;
 	var $grn_item_id;
+	var $sale_order_no;
 	var $stock_id;
 	var $item_description;
 	var $price;
@@ -193,10 +279,11 @@ class po_line_details {
 	var $standard_cost;
 	var $descr_editable;
 
-	function __construct($line_no, $stock_item, $item_descr, $qty, $prc, $uom, $req_del_date, $qty_inv, $qty_recd, $grn_item_id=0) {
+	function __construct($line_no,$sale_order_no, $stock_item, $item_descr, $qty, $prc, $uom, $req_del_date, $qty_inv, $qty_recd, $grn_item_id=0) {
 
 		/* Constructor function to add a new LineDetail object with passed params */
 		$this->line_no = $line_no;
+		$this->sale_order_no = $sale_order_no;
 		$this->stock_id = $stock_item;
 		$item_row = get_item($stock_item);
 		if (!$item_row) 
@@ -233,3 +320,6 @@ class po_line_details {
 		return get_tax_free_price_for_item($this->stock_id, $this->receive_qty*$this->price, $po->tax_group_id, $po->tax_included, $po->tax_group_array);
 	}
 }
+
+// new code end
+// End

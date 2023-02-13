@@ -324,6 +324,44 @@ function combo_input($name, $selected_id, $sql, $valfield, $namefield, $options=
 	return $str;
 }
 
+// start
+//Anees Ghazanfar 9/2/2023
+
+// description: generate a drop-down list of sales order no from a database and display the list, respectively.
+
+
+function get_sale_ord_list($name , $selected_id=null, $spec_option=false, $submit_on_change=true,
+	$all=true)
+{
+	
+	$sql = "SELECT DISTINCT order_no, order_no FROM ".TB_PREF."sales_order_details ";
+
+
+	$ret = combo_input($name, $selected_id, $sql, 'description', '',
+	array(
+	'spec_option'=>$spec_option,
+	'spec_id'=>'',
+	'select_submit'=>true,
+	'async'=>false));
+
+	return $ret;
+
+	}
+	
+
+
+function get_sale_ord_datail($name)
+{
+	echo "<td>";
+	echo get_sale_ord_list($name, null, null, true,
+		null);
+	echo "</td>";
+}
+
+
+//end
+
+
 /*
 	Helper function.
 	Returns true if selector $name is subject to update.
@@ -732,6 +770,16 @@ function dimensions_list_row($label, $name, $selected_id=null, $no_option=false,
 
 //---------------------------------------------------------------------------------------------------
 
+// start
+// Anees Ghazanfar 9/2/2023
+
+// description: the SQL query is modified to display only the items associated with a specific sales order number
+
+
+
+/*
+old function start
+
 function stock_items_list($name, $selected_id=null, $all_option=false, $submit_on_change=false, $opts=array(), $editkey=false, $type='stock') {
 	$sql = "SELECT stock_id, s.description, c.description, s.inactive, s.editable
 			FROM ".TB_PREF."stock_master s,".TB_PREF."stock_category c WHERE s.category_id=c.category_id";
@@ -782,6 +830,81 @@ function stock_items_list_cells($label, $name, $selected_id=null, $all_option=fa
 		array_merge(array('cells'=>true, 'show_inactive'=>$all), $opts), $editkey);
 
 }
+
+old function end
+*/
+
+// new function start
+
+function stock_items_list($name, $sale_ord_detail, $selected_id=null, $all_option=false, $submit_on_change=false, $opts=array(), $editkey=false, $type='stock') {
+	
+	$sql_for_sale_ord_descrition = "SELECT description FROM ".TB_PREF."sales_order_details WHERE order_no = ".db_escape($sale_ord_detail);
+	$result = db_query($sql_for_sale_ord_descrition, "could not get sales order description");
+	if($sale_ord_detail != null){
+		$sql = "SELECT stock_id, s.description, c.description, s.inactive, s.editable FROM ".TB_PREF."stock_master s,".TB_PREF."stock_category c WHERE s.category_id=c.category_id AND (";
+	while ($row = db_fetch_row($result)) {
+  		$sql .= "s.description = '$row[0]' OR ";
+	}
+	$sql .= " s.description = 'no description')";
+
+	
+}
+else{
+	$sql = "SELECT stock_id, s.description, c.description, s.inactive, s.editable FROM ".TB_PREF."stock_master s,".TB_PREF."stock_category c WHERE s.category_id=c.category_id";
+}
+
+	if (isset($opts['fixed_asset']) && $opts['fixed_asset'])
+		$sql .= " AND mb_flag='F'";
+	else
+		$sql .= " AND mb_flag!='F'";
+
+	if ($editkey)
+		set_editor('item', $name, $editkey);
+
+	$ret = combo_input($name, $selected_id, $sql, 'stock_id', 's.description',
+		array_merge(
+		  array(
+			'format' => '_format_stock_items',
+			'spec_option' => $all_option === true ?  _('All Items') : $all_option,
+			'spec_id' => ALL_TEXT,
+			'search_box' => true,
+			'search' => array("stock_id", "c.description","s.description"),
+			'search_submit' => !isset($opts['fixed_asset']) || !$opts['fixed_asset'],
+			'size'=>10,
+			'select_submit'=> $submit_on_change,
+			'category' => 2,
+			'order' => array('c.description','stock_id'),
+			'editlink' => $editkey ? add_edit_combo('item', $name) : false,
+			'editable' => false,
+			'max' => 255
+		  ), $opts), $type );
+
+	return $ret;
+}
+
+function _format_stock_items($row) {
+	return (user_show_codes() ? ($row[0] . "&nbsp;-&nbsp;") : '') . $row[1];
+}
+
+function stock_items_list_cells($label, $sale_ord_detail, $name, $selected_id=null, $all_option=false, $submit_on_change=false, $all=false, $editkey=false, $opts=array()) {
+	if (isset($opts['fixed_asset']) && $opts['fixed_asset'])
+		$editor_item = 'fa_item';
+	else
+		$editor_item = 'item';
+
+	if ($label != null)
+		echo "<td>".$label."</td>\n";
+
+
+	echo stock_items_list($name,$sale_ord_detail,  $selected_id, $all_option, $submit_on_change,
+		array_merge(array('cells'=>true, 'show_inactive'=>$all), $opts), $editkey );
+
+}
+
+// new function end
+
+// end
+
 
 //---------------------------------------------------------------------------------------------------
 //

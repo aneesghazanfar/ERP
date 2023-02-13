@@ -290,6 +290,12 @@ function handle_add_new_item() {
 			if (db_num_rows($result) == 0)
 				$allow_update = false;
 
+			// start
+			// Anees Ghazanfar 10/2/2023
+			// Description: Add new variable to store sale order no
+
+			// old code start
+			/*
 			if ($allow_update) {
 				$_SESSION['PO']->add_to_order (count($_SESSION['PO']->line_items), $_POST['stock_id'], input_num('qty'), 
 					get_post('stock_id_text'), //$myrow['description'], 
@@ -299,6 +305,21 @@ function handle_add_new_item() {
 				unset_form_variables();
 				$_POST['stock_id']	= '';
 			} 
+			*/
+			// old code end
+			// new code start
+
+			if ($allow_update) {
+				$_SESSION['PO']->add_to_order (count($_SESSION['PO']->line_items),$_POST['sale_ord_id'], $_POST['stock_id'], input_num('qty'), 
+					get_post('stock_id_text'), //$myrow['description'], 
+					input_num('price'), '', // $myrow['units'], (retrived in cart)
+					$_SESSION['PO']->trans_type == ST_PURCHORDER ? $_POST['req_del_date'] : '', 0, 0);
+
+				unset_form_variables();
+				$_POST['stock_id']	= '';
+			} 
+			// new code end
+			// end
 			else 
 				 display_error(_('The selected item does not exist or it is a kit part and therefore cannot be purchased.'));
 

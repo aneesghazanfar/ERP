@@ -191,8 +191,18 @@ function display_po_items(&$order, $editable=true) {
 
 	$new = $order->order_no == 0;
 
-	$th = array(_('Item Code'), _('Item Description'), _('Quantity'), _('Received'),
+	//start
+	//Anees Ghazanfar 9/2/2023
+	//Description: Add Sale Order No in header
+	//Old Code
+	//$th = array(_('Item Code'), _('Item Description'), _('Quantity'), _('Received'),
+	//	_('Unit'), _('Required Delivery Date'), $order->tax_included ? _('Price after Tax') : _('Price before Tax'), _('Line Total'), '');
+
+	//New Code
+	$th = array(_("Sale Order No"),_('Item Code'), _('Item Description'), _('Quantity'), _('Received'),
 		_('Unit'), _('Required Delivery Date'), $order->tax_included ? _('Price after Tax') : _('Price before Tax'), _('Line Total'), '');
+
+	//end
 
 	if ($order->trans_type != ST_PURCHORDER)
 		array_remove($th, 5);
@@ -219,6 +229,13 @@ function display_po_items(&$order, $editable=true) {
 		$line_total =	round($po_line->quantity * $po_line->price,  user_price_dec());
 		if (!$editable || ($id != $line_no)) {
 			alt_table_row_color($k);
+			//start
+			//Anees Ghazanfar 9/2/2023
+			//Description: Add Sale Order No in header
+
+			label_cell($po_line->sale_order_no);
+			
+			//end
 			label_cell($po_line->stock_id);
 			label_cell($po_line->item_description);
 			if ($order->fixed_asset)
@@ -354,12 +371,31 @@ function po_item_controls(&$order, &$rowcounter, $line_no=-1) {
 	}
 	else {
 
+		// start 
+		//Anees Ghazanfar 9/2/2023
+		//description: get sale order detail
+
+		$sale_ord_detail = get_sale_ord_datail('sale_ord_id');
+		
+		$sale_ord_detail = $_POST['sale_ord_id'];
+		
+		//end
+				 
+
+
 		// Manufactured item can be purchased
 		if ($order->fixed_asset)
 			stock_purchasable_fa_list_cells(null, 'stock_id', null, false, true, false, true, $order->line_items);
 		else
-			stock_items_list_cells(null, 'stock_id', null, false, true, false, true, array('editable' => 30, 'where'=>array('NOT no_purchase')));
 
+		//start
+		//Anees Ghazanfar 9/2/2023
+		//description: filter stock item list w.r.t sale order detail
+
+		//old code
+		//	stock_items_list_cells(null, 'stock_id', null, false, true, false, true, array('editable' => 30, 'where'=>array('NOT no_purchase')));
+		//new code
+			stock_items_list_cells(null, $sale_ord_detail,'stock_id', null, false, true, false, true, array('editable' => 30, 'where'=>array('NOT no_purchase')));
 		if (list_updated('stock_id')) {
 			$Ajax->activate('price');
 			$Ajax->activate('units');
