@@ -9,6 +9,20 @@
 	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
 	See the License here <http://www.gnu.org/licenses/gpl-3.0.html>.
 ***********************************************************************/
+
+// start 
+// Anees Ghazanfar 13/2/2023
+// Description: count number of items in based on category
+
+function get_next_item_number($category_id){
+	$sql = "SELECT COUNT(*) FROM ".TB_PREF."item_codes WHERE category_id=".db_escape($category_id);
+	$result = db_query($sql, "could not get next item number");
+	$row = db_fetch_row($result);
+	return $row[0] + 1;
+}
+
+// end
+
 function update_item($stock_id, $description, $long_description, $category_id, $tax_type_id, $units, $mb_flag, $sales_account, $inventory_account, $cogs_account, $adjustment_account, $wip_account, $dimension_id, $dimension2_id, $no_sale, $editable, $no_purchase, $depreciation_method = 'D', $depreciation_rate=100, $depreciation_factor=1, $depreciation_start=null, $fa_class_id=null) {
 	$sql = "UPDATE ".TB_PREF."stock_master SET long_description=".db_escape($long_description).",
 		description=".db_escape($description).",

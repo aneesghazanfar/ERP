@@ -1669,6 +1669,155 @@ function stock_categories_list_row($label, $name, $selected_id=null, $spec_opt=f
 
 //-----------------------------------------------------------------------------------------------
 
+// start
+// Anees Ghazanfar 13/2/2023
+// Description: dropdown list for stock style
+
+function stock_style_list($name, $selected_id=null, $spec_opt=false, $submit_on_change=false, $fixed_asset=false) {
+
+	
+
+	$sql = "SELECT id, own_style FROM ".TB_PREF."stock_style";
+
+	return combo_input($name, $selected_id, $sql, 'id', 'own_style',
+		array(
+			'spec_option'=>$spec_option,
+			'spec_id'=>'',
+			'select_submit'=>true,
+			'async'=>false,
+	));
+}
+
+function stock_style_list_cells($label, $name, $selected_id=null, $spec_opt=false, $submit_on_change=false, $fixed_asset=false) {
+	if ($label != null)
+		echo "<td>".$label."</td>\n";
+	echo "<td>";
+	echo stock_style_list($name, $selected_id, $spec_opt, $submit_on_change, $fixed_asset);
+	echo "</td>\n";
+}
+
+function stock_style_list_row($label, $name, $selected_id=null, $spec_opt=false, $submit_on_change=false, $fixed_asset=false) {
+	echo "<tr><td class='label'>".$label."</td>";
+	stock_style_list_cells(null, $name, $selected_id, $spec_opt, $submit_on_change, $fixed_asset);
+	echo "</tr>\n";
+}
+
+
+
+//-----------------------------------------------------------------------------------------------
+
+// Description: dropdown list for main category
+
+function stock_main_categories_list($name, $selected_id=null, $spec_opt=false, $submit_on_change=false, $fixed_asset=false) {
+
+	
+
+	$sql = "SELECT maincat_id, description FROM ".TB_PREF."stock_main_category";
+
+	return combo_input($name, $selected_id, $sql, 'maincat_id', 'description',
+		array('order'=>'maincat_id',
+			'spec_option' => $spec_opt,
+			'spec_id' => -1,
+			'select_submit'=> $submit_on_change,
+			'async' => true,
+		));
+}
+
+
+function stock_main_categories_list_cells($label, $name, $selected_id=null, $spec_opt=false, $submit_on_change=false, $fixed_asset=false) {
+	if ($label != null)
+		echo "<td>".$label."</td>\n";
+	echo "<td>";
+	echo stock_main_categories_list($name, $selected_id, $spec_opt, $submit_on_change, $fixed_asset);
+	echo "</td>\n";
+}
+
+
+function stock_main_categories_list_row($label, $name, $selected_id=null, $spec_opt=false, $submit_on_change=false, $fixed_asset=false) {
+	echo "<tr><td class='label'>".$label."</td>";
+	stock_main_categories_list_cells(null, $name, $selected_id, $spec_opt, $submit_on_change, $fixed_asset);
+	echo "</tr>\n";
+}
+
+
+//-----------------------------------------------------------------------------------------------
+
+
+// Description: dropdown list for color
+
+function stock_color_list($name, $selected_id=null, $spec_opt=false, $submit_on_change=false, $fixed_asset=false) {
+
+	
+
+	$sql = "SELECT color_id, description FROM ".TB_PREF."stock_colour";
+
+	return combo_input($name, $selected_id, $sql, 'color_id', 'description',
+		array('order'=>'color_id',
+			'spec_option' => $spec_opt,
+			'spec_id' => -1,
+			'select_submit'=> $submit_on_change,
+			'async' => true,
+		));
+}
+
+
+function stock_color_list_cells($label, $name, $selected_id=null, $spec_opt=false, $submit_on_change=false, $fixed_asset=false) {
+	if ($label != null)
+		echo "<td>".$label."</td>\n";
+	echo "<td>";
+	echo stock_color_list($name, $selected_id, $spec_opt, $submit_on_change, $fixed_asset);
+	echo "</td>\n";
+}
+
+
+function stock_color_list_row($label, $name, $selected_id=null, $spec_opt=false, $submit_on_change=false, $fixed_asset=false) {
+	echo "<tr><td class='label'>".$label."</td>";
+	stock_color_list_cells(null, $name, $selected_id, $spec_opt, $submit_on_change, $fixed_asset);
+	echo "</tr>\n";
+}
+
+// end
+
+//-----------------------------------------------------------------------------------------------
+
+
+// Description: dropdown list for size
+
+function stock_size_list($name, $selected_id=null, $spec_opt=false, $submit_on_change=false, $fixed_asset=false) {
+
+	
+
+	$sql = "SELECT size_id, description FROM ".TB_PREF."stock_size";
+
+	return combo_input($name, $selected_id, $sql, 'size_id', 'description',
+		array('order'=>'size_id',
+			'spec_option' => $spec_opt,
+			'spec_id' => -1,
+			'select_submit'=> $submit_on_change,
+			'async' => true,
+		));
+}
+
+
+function stock_size_list_cells($label, $name, $selected_id=null, $spec_opt=false, $submit_on_change=false, $fixed_asset=false) {
+	if ($label != null)
+		echo "<td>".$label."</td>\n";
+	echo "<td>";
+	echo stock_size_list($name, $selected_id, $spec_opt, $submit_on_change, $fixed_asset);
+	echo "</td>\n";
+}
+
+
+function stock_size_list_row($label, $name, $selected_id=null, $spec_opt=false, $submit_on_change=false, $fixed_asset=false) {
+	echo "<tr><td class='label'>".$label."</td>";
+	stock_size_list_cells(null, $name, $selected_id, $spec_opt, $submit_on_change, $fixed_asset);
+	echo "</tr>\n";
+}
+
+// end
+
+//-----------------------------------------------------------------------------------------------
+
 function fixed_asset_classes_list($name, $selected_id=null, $spec_opt=false, $submit_on_change=false) {
 	$sql = "SELECT c.fa_class_id, CONCAT(c.fa_class_id,' - ',c.description) `desc`, CONCAT(p.fa_class_id,' - ',p.description) `class`, c.inactive FROM "
 		.TB_PREF."stock_fa_class c LEFT JOIN ".TB_PREF."stock_fa_class p ON c.parent_id=p.fa_class_id";
