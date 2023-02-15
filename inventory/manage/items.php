@@ -338,7 +338,76 @@ function item_settings(&$stock_id, $new_item) {
 				$_POST['NewStockID'] = $tmpCodeID;
 			}
 		}	
-		text_row(_('Item Code:'), 'NewStockID', $tmpCodeID, 21, 20, null, '', $post_label);
+		// start 
+		// Anees Ghazanfar 14/2/2023
+		// Description: Add new field in item according to instruction
+		check_row(_('Is Finished:'), 'finished',null,true);
+
+		if(isset($_POST['finished']) && $_POST['finished'] == 1)
+		text_row(_('Conversion:'), null, null, 52, 200);
+
+		stock_style_list_row(_('Style:'), 'style_id', null, false, $new_item, $fixed_asset);
+
+
+		if(isset($_POST['style_id'])  && $_POST['style_id'] == null){
+
+			stock_main_categories_list_row(_('Main Category:'), 'main_category_id', null, false, $new_item, $fixed_asset);
+			stock_categories_list_row(_('Category:'), 'category_id', null, false, $new_item, $fixed_asset);
+			if(isset($_REQUEST['main_category_id']) || isset($_REQUEST['category_id'])){
+				$itemCode_autoName = $_REQUEST['main_category_id'] ."-". $_REQUEST['category_id'];
+			}
+			else{
+				$maincat_id = "SELECT maincat_id FROM ".TB_PREF."stock_main_category WHERE maincat_id";
+				$category_id = "SELECT category_id FROM ".TB_PREF."stock_category WHERE category_id";
+				$category_id = db_query($category_id, "could not get main category");
+				$category_id = db_fetch_row($category_id);
+
+				$maincat_id = db_query($maincat_id, "could not get main category");
+				$maincat_id = db_fetch_row($maincat_id);
+				$itemCode_autoName = $maincat_id[0] ."-". $category_id[0];
+
+			}
+
+		}
+		else{
+			$itemCode_autoName = $_REQUEST['style_id'];
+		}
+
+		stock_color_list_row(_('Color:'), 'color_id', null, false, $new_item, $fixed_asset);
+		stock_size_list_row(_('Size:'), 'size_id', null, false, $new_item, $fixed_asset);
+		if(isset($_REQUEST['color_id']) || isset($_REQUEST['size_id'])){
+			$itemCode_1stPart = $itemCode_autoName ."-". $_REQUEST['color_id'] . "-" . $_REQUEST['size_id'] . "-" ;
+		}
+		else{
+			$size_id = "SELECT size_id FROM ".TB_PREF."stock_size WHERE size_id";
+			$color_id = "SELECT color_id FROM ".TB_PREF."stock_colour WHERE color_id";
+			$size_id = db_query($size_id, "could not get main category");
+			$size_id = db_fetch_row($size_id);
+
+			$color_id = db_query($color_id, "could not get main category");
+			$color_id = db_fetch_row($color_id);
+			$itemCode_1stPart = $itemCode_autoName ."-". $color_id[0] . "-" . $size_id[0] . "-" ;
+		}
+
+		$item_number = get_next_item_number($_POST['category_id']);	
+		$item_number =  "-" . $item_number;
+
+		// old line 
+		// text_row(_('Item Code:'), 'NewStockID', $tmpCodeID, 21, 20, null, '', $post_label);
+
+		// new line
+
+		$name = substr($_REQUEST['description'], 0, 7);
+
+		$space_check = strpos($name, " ");
+		if ($space_check === false) {
+			$name = $name;
+		} else {
+			$name = substr($name, 0, $space_check);
+		}
+
+		text_row_itemCode(_('Item Code:'), 'NewStockID', $itemCode_1stPart, $name ,$item_number, 12, 20, null, '', $post_label);
+		
 		$_POST['inactive'] = 0;
 	} 
 	else { // Must be modifying an existing item
@@ -353,11 +422,21 @@ function item_settings(&$stock_id, $new_item) {
 	}
 	$fixed_asset = get_post('fixed_asset');
 
-	text_row(_('Name:'), 'description', null, 52, 200);
+	
+	// old line
+	// text_row(_('Name:'), 'description', null, 52, 200);
+
+	// new line
+	text_row_ex(_('Name:'), 'description', null, 52, 200 ,'','','',true);
 
 	textarea_row(_('Description:'), 'long_description', null, 42, 3);
 
-	stock_categories_list_row(_('Category:'), 'category_id', null, false, $new_item, $fixed_asset);
+	// old line shift to above on line no 354
+
+	// stock_categories_list_row(_('Category:'), 'category_id', null, false, $new_item, $fixed_asset);
+
+	// end
+
 
 	if ($new_item && (list_updated('category_id') || !isset($_POST['sales_account']))) { // changed category for new item or first page view
 

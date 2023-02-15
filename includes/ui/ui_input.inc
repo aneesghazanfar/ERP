@@ -484,6 +484,51 @@ function text_input($name, $value=null, $size='', $max='', $title='', $params=''
 	return "<input ".$params." type='text' name='".$name."' size='".$size."' maxlength='".$max."' value='".$value."'".($title ? " title='".$title."'" : '').">";
 }
 
+// start
+// Anees Ghazanfar 14/2/2023
+// Description: This function is used to disable the text input field for item code
+
+function disable_text_cells($label, $name, $itemCode_1stPart, $description, $itemNumber, $size='', $max='', $title=false, $labparams='', $post_label='', $inparams='') {
+	global $Ajax;
+
+
+	default_focus($name);
+	if ($label != null)
+		label_cell($label, $labparams);
+
+	
+	
+	
+
+	echo "<td>";
+	
+	echo text_input($name, $itemCode_1stPart, $size, $max, $title, disabled);
+	
+	echo text_input($name, $description, $size, $max=7, $title, $inparams);
+	
+	echo text_input($name, $itemNumber, $size, $max, $title, disabled);
+
+	echo '</td>';
+	
+	
+	
+	
+	
+	
+	
+	$Ajax->addUpdate($name, $name, $value);
+}
+
+function text_row_itemCode($label, $name, $itemCode_1stPart,$description,$itemNumber, $size, $max, $title=null, $params='', $post_label='') {
+	echo "<tr'><td class='label'>".$label."</td>";
+	disable_text_cells(null, $name, $itemCode_1stPart, $description, $itemNumber, $size, $max, $title, $params, $post_label);
+
+	echo "</tr>\n";
+}
+
+
+// end
+
 //-----------------------------------------------------------------------------------
 
 function text_cells($label, $name, $value=null, $size='', $max='', $title=false, $labparams='', $post_label='', $inparams='') {
@@ -538,10 +583,21 @@ function text_row($label, $name, $value, $size, $max, $title=null, $params='', $
 }
 
 //-----------------------------------------------------------------------------------
+// Start 
+// Anees Ghazanfar 14/2/2023
+// Description: Ajax on name change
+// old line 
+// function text_row_ex($label, $name, $size, $max=null, $title=null, $value=null, $params=null, $post_label=null) {
 
-function text_row_ex($label, $name, $size, $max=null, $title=null, $value=null, $params=null, $post_label=null) {
+//new line
+function text_row_ex($label, $name, $size, $max=null, $title=null, $value=null, $params=null, $post_label=null , $submit_on_change=false) {
 	echo "<tr><td class='label'>".$label."</td>";
-	text_cells_ex(null, $name, $size, $max, $value, $title, $params, $post_label);
+	// old line
+	// text_cells_ex(null, $name, $size, $max, $value, $title, $params, $post_label);
+
+	// new line
+	text_cells_ex(null, $name, $size, $max, $value, $title, $params, $post_label, $submit_on_change);
+
 
 	echo "</tr>\n";
 }
