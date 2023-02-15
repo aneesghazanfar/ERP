@@ -275,8 +275,25 @@ function button($name, $value, $title=false, $icon=false,  $aspect='') {
 		$value = _('Select');
 	}
 	if (user_graphic_links() && $icon) {
+		// start
+		// Anees Ghazanfar 15/2/2023
+		// Description: confirm delete message before deleting
+		// Old code
+		/*
 		if ($value == _('Delete')) // Helper during implementation
 			$icon = ICON_DELETE;
+		*/
+
+		// New code
+		if ($value == _('Delete')) // Helper during implementation
+			{
+				$icon = ICON_DELETE;
+				$confirm_msg = 'Are you sure you want to delete?'; // set the confirmation message
+				submit_js_confirm(strtr($name, array('.'=>'=2E', '='=>'=3D', '['=>'=5B')), $confirm_msg); // call submit_js_confirm() to set the confirmation function
+			}
+
+		// end
+		
 		return "<button type='submit' class='editbutton' name='"
 			.html_specials_encode(strtr($name, array('.'=>'=2E', '='=>'=3D',// ' '=>'=20','['=>'=5B'
 			)))
