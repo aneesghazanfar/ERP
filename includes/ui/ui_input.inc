@@ -484,8 +484,16 @@ function text_input($name, $value=null, $size='', $max='', $title='', $params=''
 	return "<input ".$params." type='text' name='".$name."' size='".$size."' maxlength='".$max."' value='".$value."'".($title ? " title='".$title."'" : '').">";
 }
 
+function hidden_text_input($name, $value=null, $size='', $max='', $title='', $params='') {
+	if ($value === null)
+		$value = get_post($name);
+
+	return "<input ".$params." type='hidden' name='".$name."' size='".$size."' maxlength='".$max."' value='".$value."'".($title ? " title='".$title."'" : '').">";
+}
+
+
 // start
-// Anees Ghazanfar 14/2/2023
+// Anees Ghazanfar 15/2/2023
 // Description: This function is used to disable the text input field for item code
 
 function disable_text_cells($label, $name, $itemCode_1stPart, $description, $itemNumber, $size='', $max='', $title=false, $labparams='', $post_label='', $inparams='') {
@@ -495,27 +503,23 @@ function disable_text_cells($label, $name, $itemCode_1stPart, $description, $ite
 	default_focus($name);
 	if ($label != null)
 		label_cell($label, $labparams);
-
-	
-	
-	
-
+		
 	echo "<td>";
 	
-	echo text_input($name, $itemCode_1stPart, $size, $max, $title, disabled);
-	
-	echo text_input($name, $description, $size, $max=7, $title, $inparams);
-	
-	echo text_input($name, $itemNumber, $size, $max, $title, disabled);
+	echo '<div style="display:flex;">';
+    echo '<div style="flex:1;">' . text_input($itemCode_1stPart, $itemCode_1stPart, $size, $max, $title, disabled) .'</div> ';
+	$value = $itemCode_1stPart . $description . $itemNumber;
+    echo '<div style="flex:1;">' . text_input($description, $description, $size, $max=7, $title, $inparams). '</div> ';
+    echo '<div style="flex:1;">' . text_input($itemNumber, $itemNumber, $size, $max, $title, disabled) . '</div> ';
+	echo hidden_text_input($name, $value, $size, $max=7, $title, $inparams);
 
-	echo '</td>';
-	
-	
-	
-	
-	
-	
-	
+	echo '</div>';
+
+	if ($post_label != '')
+		echo ' ' . $post_label;
+
+	echo "</td>\n";
+
 	$Ajax->addUpdate($name, $name, $value);
 }
 

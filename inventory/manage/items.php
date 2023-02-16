@@ -392,11 +392,6 @@ function item_settings(&$stock_id, $new_item) {
 		$item_number = get_next_item_number($_POST['category_id']);	
 		$item_number =  "-" . $item_number;
 
-		// old line 
-		// text_row(_('Item Code:'), 'NewStockID', $tmpCodeID, 21, 20, null, '', $post_label);
-
-		// new line
-
 		$name = substr($_REQUEST['description'], 0, 7);
 
 		$space_check = strpos($name, " ");
@@ -406,9 +401,16 @@ function item_settings(&$stock_id, $new_item) {
 			$name = substr($name, 0, $space_check);
 		}
 
-		text_row_itemCode(_('Item Code:'), 'NewStockID', $itemCode_1stPart, $name ,$item_number, 12, 20, null, '', $post_label);
+		// old line 
+		// text_row(_('Item Code:'), 'NewStockID', $tmpCodeID, 21, 20, null, '', $post_label);
+
+		// new line
+
+		text_row_itemCode(_('Item Code:'), 'NewStockID', $itemCode_1stPart, $name ,$item_number, 12, 20, null, '', $post_label);	
+		
 		
 		$_POST['inactive'] = 0;
+
 	} 
 	else { // Must be modifying an existing item
 		if (get_post('NewStockID') != get_post('stock_id') || get_post('addupdate')) { // first item display
