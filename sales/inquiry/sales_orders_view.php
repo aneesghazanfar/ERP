@@ -119,6 +119,14 @@ function dispatch_link($row) {
 		return pager_link( _('Sales Order'), '/sales/sales_order_entry.php?OrderNumber='.$row['order_no'], ICON_DOC);
 }
 
+function edit_detail_link($row){
+	global $trans_type, $page_nested;
+
+			return pager_link( _('Dispatch'), '/sales/customer_delivery_plan.php?OrderNumber='.$row['order_no'], ICON_EDIT);
+
+	}		
+
+
 function invoice_link($row) {
 	global $trans_type;
 	if ($trans_type == ST_SALESORDER)
@@ -272,6 +280,7 @@ if ($_POST['order_view_mode'] == 'OutstandingOnly') {
 	array_append($cols, array(
 		array('insert'=>true, 'fun'=>'edit_link'),
 		array('insert'=>true, 'fun'=>'dispatch_link'),
+		array('insert'=>true, 'fun'=>'edit_detail_link'),
 		array('insert'=>true, 'fun'=>'prt_link')));
 
 }
@@ -304,6 +313,7 @@ elseif ($trans_type == ST_SALESORDER) {
 			_('Tmpl') => array('insert'=>true, 'fun'=>'tmpl_checkbox'),
 					array('insert'=>true, 'fun'=>'edit_link'),
 					array('insert'=>true, 'fun'=>'dispatch_link'),
+					array('insert'=>true, 'fun'=>'edit_detail_link'),
 					array('insert'=>true, 'fun'=>'prt_link')));
 };
 
