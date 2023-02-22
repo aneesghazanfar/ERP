@@ -309,7 +309,7 @@ elseif ($trans_type == ST_SALESORDER) {
 
 
 $table =& new_db_pager('orders_tbl', $sql, $cols);
-$table->set_marker('check_overdue', _('Marked items are overdue.'));
+$table->set_marker('check_overdue', _('Marked items are.'));
 
 $table->width = '80%';
 

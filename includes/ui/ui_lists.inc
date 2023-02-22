@@ -1673,32 +1673,31 @@ function stock_categories_list_row($label, $name, $selected_id=null, $spec_opt=f
 // Anees Ghazanfar 13/2/2023
 // Description: dropdown list for stock style
 
-function stock_style_list($name, $selected_id=null, $spec_opt=false, $submit_on_change=false, $fixed_asset=false) {
-
-	
+function stock_style_list($name, $selected_id=null, $spec_opt=false, $submit_on_change=false, $fixed_asset=false, $all_option=false, $default=false) {
 
 	$sql = "SELECT id, own_style FROM ".TB_PREF."stock_style";
 
 	return combo_input($name, $selected_id, $sql, 'id', 'own_style',
 		array(
-			'spec_option'=>$spec_option,
+			'spec_option'=>$all_option ? _("Add New") : false,
+			'default'=>$default,
 			'spec_id'=>'',
 			'select_submit'=>true,
 			'async'=>false,
 	));
 }
 
-function stock_style_list_cells($label, $name, $selected_id=null, $spec_opt=false, $submit_on_change=false, $fixed_asset=false) {
+function stock_style_list_cells($label, $name, $selected_id=null, $spec_opt=false, $submit_on_change=false, $fixed_asset=false, $all_option=false, $default=false) {
 	if ($label != null)
 		echo "<td>".$label."</td>\n";
 	echo "<td>";
-	echo stock_style_list($name, $selected_id, $spec_opt, $submit_on_change, $fixed_asset);
+	echo stock_style_list($name, $selected_id, $spec_opt, $submit_on_change, $fixed_asset, $all_option, $default);
 	echo "</td>\n";
 }
 
-function stock_style_list_row($label, $name, $selected_id=null, $spec_opt=false, $submit_on_change=false, $fixed_asset=false) {
+function stock_style_list_row($label, $name, $selected_id=null, $spec_opt=false, $submit_on_change=false, $fixed_asset=false , $all_option=false, $default=false) {
 	echo "<tr><td class='label'>".$label."</td>";
-	stock_style_list_cells(null, $name, $selected_id, $spec_opt, $submit_on_change, $fixed_asset);
+	stock_style_list_cells(null, $name, $selected_id, $spec_opt, $submit_on_change, $fixed_asset , $all_option, $default);
 	echo "</tr>\n";
 }
 

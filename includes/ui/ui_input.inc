@@ -275,8 +275,25 @@ function button($name, $value, $title=false, $icon=false,  $aspect='') {
 		$value = _('Select');
 	}
 	if (user_graphic_links() && $icon) {
+		// start
+		// Anees Ghazanfar 15/2/2023
+		// Description: confirm delete message before deleting
+		// Old code
+		/*
 		if ($value == _('Delete')) // Helper during implementation
 			$icon = ICON_DELETE;
+		*/
+
+		// New code
+		if ($value == _('Delete')) // Helper during implementation
+			{
+				$icon = ICON_DELETE;
+				$confirm_msg = 'Are you sure you want to delete?'; // set the confirmation message
+				submit_js_confirm(strtr($name, array('.'=>'=2E', '='=>'=3D', '['=>'=5B')), $confirm_msg); // call submit_js_confirm() to set the confirmation function
+			}
+
+		// end
+		
 		return "<button type='submit' class='editbutton' name='"
 			.html_specials_encode(strtr($name, array('.'=>'=2E', '='=>'=3D',// ' '=>'=20','['=>'=5B'
 			)))
@@ -468,8 +485,15 @@ function text_input($name, $value=null, $size='', $max='', $title='', $params=''
 }
 
 // start
-// Anees Ghazanfar 14/2/2023
-// Description: This function is used to disable the text input field for item code
+// Anees Ghazanfar 22/2/2023
+// Description: created some new functions for text input fields for the auto Generated code of new item
+
+function hidden_text_input($name, $value=null, $size='', $max='', $title='', $params='') {
+	if ($value === null)
+		$value = get_post($name);
+
+	return "<input ".$params." type='hidden' name='".$name."' size='".$size."' maxlength='".$max."' value='".$value."'".($title ? " title='".$title."'" : '').">";
+}
 
 function disable_text_cells($label, $name, $itemCode_1stPart, $description, $itemNumber, $size='', $max='', $title=false, $labparams='', $post_label='', $inparams='') {
 	global $Ajax;
@@ -479,25 +503,25 @@ function disable_text_cells($label, $name, $itemCode_1stPart, $description, $ite
 	if ($label != null)
 		label_cell($label, $labparams);
 
-	
-	
-	
-
 	echo "<td>";
 	
-	echo text_input($name, $itemCode_1stPart, $size, $max, $title, disabled);
-	
-	echo text_input($name, $description, $size, $max=7, $title, $inparams);
-	
-	echo text_input($name, $itemNumber, $size, $max, $title, disabled);
+	echo '<div style="display:flex;">';
+    echo '<div style="flex:1;">' . text_input($itemCode_1stPart, $itemCode_1stPart, $size, $max, $title, disabled) .'</div> ';
+    echo '<div style="flex:1;">' . text_input($description, $description, $size, $max=7, $title, $inparams). '</div> ';
+    echo '<div style="flex:1;">' . text_input($itemNumber, $itemNumber, $size, $max, $title, disabled) . '</div> ';
 
-	echo '</td>';
-	
-	
-	
-	
-	
-	
+	$value = $itemCode_1stPart . "-" . $description . "-" . $itemNumber;
+
+	// value is combination of itemCode_1stPart, description and itemNumber and pass to hidden input field
+
+	echo hidden_text_input($name, $value, $size, $max=7, $title, $inparams);
+
+	echo '</div>';
+
+	if ($post_label != '')
+		echo ' ' . $post_label;
+
+	echo "</td>\n";
 	
 	$Ajax->addUpdate($name, $name, $value);
 }
@@ -508,9 +532,6 @@ function text_row_itemCode($label, $name, $itemCode_1stPart,$description,$itemNu
 
 	echo "</tr>\n";
 }
-
-
-
 
 // end
 
