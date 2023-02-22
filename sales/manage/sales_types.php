@@ -18,6 +18,14 @@ page(_($help_context = 'Sales Types'));
 include_once($path_to_root . '/includes/ui.inc');
 include_once($path_to_root . '/sales/includes/db/sales_types_db.inc');
 
+// start
+// Anees Ghazanfar 17/2/2023
+// Description: include sales_order_ui.inc
+include_once($path_to_root . '/sales/includes/ui/sales_order_ui.inc');
+
+// end
+
+
 simple_page_mode(true);
 
 //----------------------------------------------------------------------------------------------------
@@ -106,11 +114,37 @@ while ($myrow = db_fetch($result)) {
 	edit_button_cell('Edit'.$myrow['id'], _('Edit'));
 	delete_button_cell('Delete'.$myrow['id'], _('Delete'));
 	end_row();
+
+	// start
+	// Anees Ghazanfar 17/2/2023
+	// Description: make objact for the table rows
+
+	$rows = new stdClass();
+	$rows->_1 = $myrow['id'];
+	$rows->_2 = $myrow['sales_type'];
+	$rows->_3 = $myrow['tax_included'] ? _('Yes') : _('No');
+	$rows->_4 = number_format2($myrow['factor'], 4);
+	$data[] = $rows;
+
+	// end
 }
 inactive_control_row($th);
 end_table();
 
 display_note(_('Marked sales type is the company base pricelist for prices calculations.'), 0, 0, "class='overduefg'");
+
+// start
+// Anees Ghazanfar 17/2/2023
+// Description: call the function to create the table
+
+new_table_style(null, $th, $data, true);
+
+
+// end
+
+
+
+
 
 //----------------------------------------------------------------------------------------------------
 

@@ -108,6 +108,57 @@ function get_customer_details_to_order(&$order, $customer_id, $branch_id) {
 
 //---------------------------------------------------------------------------------
 
+// start 
+// Anees Ghazanfar 16/2/2023
+// Description: add new function for new table style which allow to edit on same row 
+
+function new_table_style($title= null, $table_Head, &$order, $editable = false) {
+
+	// var_dump($order);
+
+	display_heading($title);
+	div_start('edit_table');
+	start_table(TABLESTYLE, "width='30%'");
+	table_header($table_Head);
+	$k = 0;
+
+	$id = find_submit('Edit');
+
+
+
+	foreach ($order as $line=>$item) {
+
+		if (!$editable || $id != $line) {
+				start_row();
+				label_cell($item->_2);
+				label_cell($item->_3);
+				label_cell($item->_4);
+				edit_button_cell('Edit' . $line, _('Edit'), _('Edit document line'));
+				delete_button_cell('Delete' . $item->_1, _('Delete'), _('Remove line from document'));
+				end_row();
+	}
+	else{
+		start_row();
+			text_cells(null, $item->sales_type, $item->sales_type, 10, 10);
+			text_cells(null, $item->_3, $item->_3, 10, 10);
+			text_cells(null, $item->_4, $item->_4, 10, 10);
+			if ($id != -1) {
+
+				button_cell('UpdateItem', _('Update'), _('Confirm changes'), ICON_UPDATE);
+				button_cell('CancelItemChanges', _('Cancel'), _('Cancel changes'), ICON_CANCEL);
+				
+			}
+		end_row();
+	}
+
+	}
+	end_table();
+	div_end();
+	
+}
+
+// end
+
 function display_order_summary($title, &$order, $editable_items=false) {
 
 	display_heading($title);
