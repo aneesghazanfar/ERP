@@ -331,7 +331,7 @@ function item_settings(&$stock_id, $new_item) {
 	if ($new_item) {
 		$tmpCodeID=null;
 		$post_label = null;
-		if (!empty($SysPrefs->prefs['barcodes_on_stock'])) {
+		if (empty($SysPrefs->prefs['barcodes_on_stock'])) {
 			$post_label = '<button class="ajaxsubmit" type="submit" aspect=\'default\'  name="generateBarcode"  id="generateBarcode" value="Generate Barcode EAN8"> '._('Generate EAN-8 Barcode').' </button>';
 			if (isset($_POST['generateBarcode'])) {
 				$tmpCodeID=generateBarcode();
@@ -400,13 +400,27 @@ function item_settings(&$stock_id, $new_item) {
 		$name = substr($_REQUEST['description'], 0, 7);
 
 		$space_check = strpos($name, " ");
-		if ($space_check === false) {
-			$name = $name;
-		} else {
+		if ($space_check != false) {
 			$name = substr($name, 0, $space_check);
 		}
 
+		// old line 
+		// text_row(_('Item Code:'), 'NewStockID', $tmpCodeID, 21, 20, null, '', $post_label);
+
+		// new line
+
+		if($tmpCodeID != null)
+		{
+			text_row(_('Item Code:'), 'NewStockID', $tmpCodeID, 21, 20, null, '', $post_label);
+
+		}
+		else
+		{	
+
 		text_row_itemCode(_('Item Code:'), 'NewStockID', $itemCode_1stPart, $name ,$item_number, 12, 20, null, '', $post_label);
+		
+		}
+		
 		
 		$_POST['inactive'] = 0;
 	} 

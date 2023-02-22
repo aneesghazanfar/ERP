@@ -510,6 +510,8 @@ function text_row_itemCode($label, $name, $itemCode_1stPart,$description,$itemNu
 }
 
 
+
+
 // end
 
 //-----------------------------------------------------------------------------------
