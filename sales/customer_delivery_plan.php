@@ -24,6 +24,13 @@ include_once($path_to_root . '/sales/includes/sales_ui.inc');
 include_once($path_to_root . '/reporting/includes/reporting.inc');
 include_once($path_to_root . '/taxes/tax_calc.inc');
 
+// start
+// Anees Ghazanfar 22/2/2023
+// include library
+
+include_once($path_to_root . '/includes/ui/ui_lists.inc');
+// end
+
 $js = '';
 if ($SysPrefs->use_popup_windows)
 	$js .= get_js_open_window(900, 500);
@@ -408,6 +415,36 @@ $k = 0;
 
 
 end_table(1);
+// display_heading(_('Delivery Items'));
+// div_start('Items');
+// start_table(TABLESTYLE, "width='50%'");
+
+// $new = $_SESSION['Items']->trans_no==0;
+// $th = array(_('Style Id'), _('Quantity'), _('Qoh'));
+
+// table_header($th);
+
+// start_row();
+
+// $orderNO = $_SESSION['Items']->order_no;
+
+
+// style_list_cells( null, 'style_id', null, false, true, false, $orderNO);
+
+
+// label_cell('qtyCount',$orderNO, $_REQUEST['style_id']);
+
+// end_row();
+
+start_form();
+
+$title = "Delivery Items";
+
+new_table_style($title , $_SESSION['Items'] ,true);
+
+
+
+
 
 if ($has_marked)
 	display_note(_('Marked items have insufficient quantities in stock as on day of delivery.'), 0, 1, "class='stockmankofg'");

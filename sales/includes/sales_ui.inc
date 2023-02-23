@@ -48,3 +48,65 @@ function check_edit_conflicts($cart_id, $cartname='Items') {
 		display_footer_exit();
 	}
 }
+
+
+// start 
+// Anees Ghazanfar 23/2/2023
+// Description: later
+
+function new_table_style($title= null, &$order, $editable = false) {
+	
+
+	display_heading($title);
+
+	$th = array(_('Style Id'), _('Quantity'), _('Qoh'), _('Edit'));
+	
+	div_start('edit_table');
+	start_table(TABLESTYLE, "width='30%'");
+	table_header($th);
+	$orderNO = $_SESSION['Items']->order_no;
+
+	$k = 0;
+
+	$id = find_submit('Edit');
+	
+	foreach ($order->get_items() as $line_no=>$stock_item) {
+	//	var_dump($stock_item);
+
+		echo "id " . $id;
+		echo "line" . $line_no;
+
+
+	if ($id != $line_no) {
+		start_row();
+			style_list_label('style_id', $orderNO);
+			quantity_count('qtyCount',$orderNO, $_REQUEST['style_id']);
+			qoh_count('qohCount',$orderNO, $_REQUEST['style_id']);
+			edit_button_cell('Edit' . $line_no, _('Edit'), _('Edit line'));
+
+		end_row();
+	}
+	else{
+		start_row();
+		echo "naji";
+			style_list_cells( null, 'style_id', null, false, true, false, $orderNO);
+			qoh_count('qohCount',$orderNO, $_REQUEST['style_id']);
+			qoh_count('qohCount',$orderNO, $_REQUEST['style_id']);
+			if ($id != -1) {
+				button_cell('UpdateItem', _('Update'), _('Confirm changes'), ICON_UPDATE);
+				button_cell('CancelItemChanges', _('Cancel'), _('Cancel changes'), ICON_CANCEL);
+				
+			}
+		end_row();
+	}
+
+	}
+
+	
+	end_table();
+	div_end();
+
+	
+}
+
+// end

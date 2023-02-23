@@ -1706,6 +1706,74 @@ function stock_style_list_row($label, $name, $selected_id=null, $spec_opt=false,
 
 //-----------------------------------------------------------------------------------------------
 
+// start
+// Anees Ghazanfar 22/2/2023
+// Description: dropdown list for stock id
+
+function style_list($name, $selected_id=null, $spec_opt=false, $submit_on_change=false, $fixed_asset=false, $orderNO) {
+
+	
+
+	$sql = "SELECT style_id, style_id FROM ".TB_PREF."sales_order_details WHERE order_no = $orderNO";
+
+	return combo_input($name, $selected_id, $sql, 'style_id', 'style_id',
+		array(
+			'spec_id'=>'',
+			'select_submit'=>true,
+			'async'=>false,
+	));
+}
+
+function style_list_cells($label, $name, $selected_id=null, $spec_opt=false, $submit_on_change=false, $fixed_asset=false , $orderNO) {
+	echo "<td>";
+	echo style_list($name, $selected_id, $spec_opt, $submit_on_change, $fixed_asset , $orderNO);
+	echo "</td>\n";
+}
+
+//-----------------------------------------------------------------------------------------------
+
+function quantity_count($name, $orderNO , $style_id) {
+
+	$sql = "SELECT SUM(quantity) FROM ".TB_PREF."sales_order_details WHERE order_no = $orderNO";
+	$result = db_query($sql, "could not get quantity");
+	$row = db_fetch_row($result);
+	label_cell($row[0]);
+
+}
+
+//end
+
+//-----------------------------------------------------------------------------------------------
+
+
+// start
+// Anees Ghazanfar 23/2/2023
+// Description: dropdown list for style id
+
+function style_list_label($name, $orderNO) {
+
+	$sql = "SELECT style_id FROM ".TB_PREF."sales_order_details WHERE order_no = $orderNO";
+	$result = db_query($sql, "could not get qoh");
+	$row = db_fetch_row($result);
+	label_cell($row[0]);
+
+
+}
+
+//-----------------------------------------------------------------------------------------------
+
+// Description: dropdown list for qoh
+
+function qoh_count($name, $orderNO , $style_id){
+	$sql = "SELECT qoh FROM ".TB_PREF."sales_order_details WHERE order_no = $orderNO";
+	$result = db_query($sql, "could not get qoh");
+	$row = db_fetch_row($result);
+	label_cell($row[0]);
+
+}
+
+//-----------------------------------------------------------------------------------------------
+
 // Description: dropdown list for main category
 
 function stock_main_categories_list($name, $selected_id=null, $spec_opt=false, $submit_on_change=false, $fixed_asset=false) {
