@@ -447,16 +447,14 @@ function item_settings(&$stock_id, $new_item) {
 
 	// new code start
 
-	// $check = 1;
-	// if($check == 1){
-	// 	echo $_REQUEST['style_id'];
+	// start 
+	// Anees Ghazanfar 23/2/2023
+	// Description: Add datalist dropdown for style id
 
-	stock_style_list_row(_('Style:'), 'style_id',null, false, $new_item, $fixed_asset, _('Add New'), 1);
-	if(empty($_POST['style_id']))
-	{text_row(_('Style:'), 'style_id', null, 52, 200);
-	}
+	
+		stock_style_list_row(_('Style:'), 'style_id', null, false, $new_item, $fixed_asset, _('Add New'), 1);
 
-	echo $_REQUEST['style_id'];
+		// end
 
 
 

@@ -1695,11 +1695,31 @@ function stock_style_list_cells($label, $name, $selected_id=null, $spec_opt=fals
 	echo "</td>\n";
 }
 
+// start 
+// Anees Ghazanfar 23/2/2023
+// Description: dropdown list for stock style
+
+function stock_style_datalist($name){
+  $sql = "SELECT id FROM ".TB_PREF."stock_style";
+  $result = db_query($sql, "could not get stock style");
+
+  echo "<datalist id='".$name."'>";
+  while ($row = db_fetch_row($result)) {
+    echo "<option value='".$row[0]."'>";
+  }
+  echo "</datalist>";
+}
+
+
 function stock_style_list_row($label, $name, $selected_id=null, $spec_opt=false, $submit_on_change=false, $fixed_asset=false , $all_option=false, $default=false) {
 	echo "<tr><td class='label'>".$label."</td>";
-	stock_style_list_cells(null, $name, $selected_id, $spec_opt, $submit_on_change, $fixed_asset , $all_option, $default);
+	stock_style_datalist ($name);
+	echo "<td><input type='text' name='".$name."' value='".$selected_id."' list='".$name."'></td></tr>";
+
 	echo "</tr>\n";
 }
+
+// end
 
 
 
