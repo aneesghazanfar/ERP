@@ -54,7 +54,7 @@ function check_edit_conflicts($cart_id, $cartname='Items') {
 // Anees Ghazanfar 23/2/2023
 // Description: later
 
-function new_table_style($title= null, &$order, $editable = false) {
+function edit_table_style($title= null, &$order, $editable = false) {
 	
 
 	display_heading($title);
@@ -73,11 +73,10 @@ function new_table_style($title= null, &$order, $editable = false) {
 	foreach ($order->get_items() as $line_no=>$stock_item) {
 	//	var_dump($stock_item);
 
-		echo "id " . $id;
-		echo "line" . $line_no;
+	
 
 
-	if ($id != $line_no) {
+	if (!$editable || $id != $line_no) {
 		start_row();
 			style_list_label('style_id', $orderNO);
 			quantity_count('qtyCount',$orderNO, $_REQUEST['style_id']);
@@ -88,7 +87,6 @@ function new_table_style($title= null, &$order, $editable = false) {
 	}
 	else{
 		start_row();
-		echo "naji";
 			style_list_cells( null, 'style_id', null, false, true, false, $orderNO);
 			qoh_count('qohCount',$orderNO, $_REQUEST['style_id']);
 			qoh_count('qohCount',$orderNO, $_REQUEST['style_id']);

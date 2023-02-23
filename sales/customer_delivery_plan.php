@@ -398,23 +398,7 @@ if ($row['dissallow_invoices'] == 1) {
 	end_page();
 	exit();
 }	
-display_heading(_('Delivery Items'));
-div_start('Items');
-start_table(TABLESTYLE, "width='50%'");
 
-$new = $_SESSION['Items']->trans_no==0;
-$th = array(_('Style Id'), _('Quantity'), _('Qoh'));
-
-table_header($th);
-$k = 0;
-
-
-
-
-
-
-
-end_table(1);
 // display_heading(_('Delivery Items'));
 // div_start('Items');
 // start_table(TABLESTYLE, "width='50%'");
@@ -440,7 +424,7 @@ start_form();
 
 $title = "Delivery Items";
 
-new_table_style($title , $_SESSION['Items'] ,true);
+edit_table_style($title , $_SESSION['Items'] ,true);
 
 
 
