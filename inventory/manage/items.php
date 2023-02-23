@@ -255,8 +255,19 @@ if (isset($_POST['addupdate'])) {
 		} 
 		else {
 
+			// start
+			// Anees Ghazanfar 23/2/2023
+			// Description: Add variable to store the style id
+
 			add_item($_POST['NewStockID'], $_POST['description'],
-				$_POST['long_description'], $_POST['category_id'], $_POST['tax_type_id'],
+			// 	old line 
+			// 	$_POST['long_description'], $_POST['category_id'], $_POST['tax_type_id'],
+			// 	old line end
+			// 	new line
+				$_POST['long_description'], $_POST['category_id'], $_POST['style_id'], $_POST['tax_type_id'],
+				// new line end
+			// end
+
 				$_POST['units'], get_post('fixed_asset') ? 'F' : get_post('mb_flag'), $_POST['sales_account'],
 				$_POST['inventory_account'], $_POST['cogs_account'],
 				$_POST['adjustment_account'], $_POST['wip_account'], 

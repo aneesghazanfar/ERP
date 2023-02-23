@@ -59,14 +59,31 @@ function update_item($stock_id, $description, $long_description, $category_id, $
 	update_item_code(-1, $stock_id, $stock_id, $description, $category_id, 1, 0);
 }
 
-function add_item($stock_id, $description, $long_description, $category_id, $tax_type_id, $units, $mb_flag,	$sales_account, $inventory_account, $cogs_account, $adjustment_account,	$wip_account, $dimension_id, $dimension2_id, $no_sale, $editable, $no_purchase, $depreciation_method='D', $depreciation_rate=100,  $depreciation_factor=1, $depreciation_start=null, $fa_class_id=null) {
-	$sql = "INSERT INTO ".TB_PREF."stock_master (stock_id, description, long_description, category_id,
+// start 
+// Anees Ghazanfar 23/2/2023
+// Description: add style_id in stock_master table
+
+// below line was palced on line no 82 i make some changes so i past it here because it show error there.
+
+// ".db_escape($category_id).", ".db_escape($tax_type_id).", "
+
+// old line 
+//function add_item($stock_id, $description, $long_description, $category_id, $tax_type_id, $units, $mb_flag,	$sales_account, $inventory_account, $cogs_account, $adjustment_account,	$wip_account, $dimension_id, $dimension2_id, $no_sale, $editable, $no_purchase, $depreciation_method='D', $depreciation_rate=100,  $depreciation_factor=1, $depreciation_start=null, $fa_class_id=null) {
+// old line end
+// new line
+ function add_item($stock_id, $description, $long_description, $category_id, $style_id, $tax_type_id, $units, $mb_flag,	$sales_account, $inventory_account, $cogs_account, $adjustment_account,	$wip_account, $dimension_id, $dimension2_id, $no_sale, $editable, $no_purchase, $depreciation_method='D', $depreciation_rate=100,  $depreciation_factor=1, $depreciation_start=null, $fa_class_id=null) {
+	$sql = "INSERT INTO ".TB_PREF."stock_master (stock_id, description, long_description, category_id, style_id,
 		tax_type_id, units, mb_flag, sales_account, inventory_account, cogs_account,
 		adjustment_account, wip_account, dimension_id, dimension2_id, no_sale, no_purchase, editable,
 		depreciation_method, depreciation_rate, depreciation_factor"
 		.(isset($depreciation_start) ? ", depreciation_start, depreciation_date, fa_class_id" : "")
 		.") VALUES (".db_escape($stock_id).", ".db_escape($description).", ".db_escape($long_description).",
-		".db_escape($category_id).", ".db_escape($tax_type_id).", "
+		// old line
+			// old line is move to line no 66 because when i comment it here it show error
+		// old line end
+		// new line
+		".db_escape($category_id).", ".db_escape($style_id).", ".db_escape($tax_type_id).", "
+		// new line end
 		.db_escape($units).", ".db_escape($mb_flag).",
 		".db_escape($sales_account).", ".db_escape($inventory_account)
 		.", ".db_escape($cogs_account).",".db_escape($adjustment_account)
