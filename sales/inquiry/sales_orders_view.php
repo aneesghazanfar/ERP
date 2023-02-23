@@ -119,12 +119,18 @@ function dispatch_link($row) {
 		return pager_link( _('Sales Order'), '/sales/sales_order_entry.php?OrderNumber='.$row['order_no'], ICON_DOC);
 }
 
+// start 
+// Anees Ghazanfar
+// Description: Create new function to access new page created for edit
+
 function edit_detail_link($row){
 	global $trans_type, $page_nested;
 
-			return pager_link( _('Dispatch'), '/sales/customer_delivery_plan.php?OrderNumber='.$row['order_no'], ICON_EDIT);
+			return pager_link( _('Edit'), '/sales/customer_delivery_plan.php?OrderNumber='.$row['order_no'], ICON_EDIT);
 
 	}		
+
+// old code start
 
 
 function invoice_link($row) {
@@ -280,7 +286,9 @@ if ($_POST['order_view_mode'] == 'OutstandingOnly') {
 	array_append($cols, array(
 		array('insert'=>true, 'fun'=>'edit_link'),
 		array('insert'=>true, 'fun'=>'dispatch_link'),
+		// new line added
 		array('insert'=>true, 'fun'=>'edit_detail_link'),
+		// new line end
 		array('insert'=>true, 'fun'=>'prt_link')));
 
 }
@@ -313,7 +321,9 @@ elseif ($trans_type == ST_SALESORDER) {
 			_('Tmpl') => array('insert'=>true, 'fun'=>'tmpl_checkbox'),
 					array('insert'=>true, 'fun'=>'edit_link'),
 					array('insert'=>true, 'fun'=>'dispatch_link'),
+					// new line added
 					array('insert'=>true, 'fun'=>'edit_detail_link'),
+					// new line end
 					array('insert'=>true, 'fun'=>'prt_link')));
 };
 
