@@ -256,9 +256,14 @@ function get_sales_order_header($order_no, $trans_type) {
 	else
 		display_warning("You have missing or invalid sales document in database (type:$trans_type, number:$order_no).");
 }
+// start
+// Anees Ghazanfar 25/2/2023
+// Description: add new variable in query to get the style_id and qoh
 
 function get_sales_order_details($order_no, $trans_type) {
-	$sql = "SELECT id, stk_code, unit_price,
+	
+	// old query start
+	/* $sql = "SELECT id, stk_code, unit_price,
 				line.description,
 				line.quantity,
 				discount_percent,
@@ -272,8 +277,41 @@ function get_sales_order_details($order_no, $trans_type) {
 			WHERE line.stk_code = item.stock_id
 				AND order_no =".db_escape($order_no) 
 				." AND trans_type = ".db_escape($trans_type) . " ORDER BY id";
+	*/
+
+	// old query end
+	// new query start
+	$sql = "SELECT id, stk_code, unit_price,
+				line.description,
+				line.quantity,
+				line.style_id,
+				line.qoh,
+				discount_percent,
+				qty_sent as qty_done,
+				item.long_description,
+				item.units,
+				item.mb_flag,
+				item.material_cost
+			FROM ".TB_PREF."sales_order_details line,"
+				.TB_PREF."stock_master item
+			WHERE line.stk_code = item.stock_id
+				AND order_no =".db_escape($order_no) 
+				." AND trans_type = ".db_escape($trans_type) . " ORDER BY id";
+	// new query end
 
 	return db_query($sql, 'Retreive order Line Items');
+}
+
+// Description: new function to get the total quantity of the order
+
+function get_total_quantity($id){
+	$sql_for_geting_orderNo = "SELECT order_no FROM ".TB_PREF."sales_order_details WHERE id = ".db_escape($id);
+	$result = db_query($sql_for_geting_orderNo, 'Retreive order Line Items');
+	$row = db_fetch($result);
+	$sql = "SELECT SUM(quantity) AS total_quantity FROM ".TB_PREF."sales_order_details WHERE order_no = ".db_escape($row[0]);
+	$result = db_query($sql, 'Retreive order Line Items');
+	$row = db_fetch($result);
+	return $row[0];
 }
 
 function read_sales_order($order_no, &$order, $trans_type) {
@@ -311,9 +349,19 @@ function read_sales_order($order_no, &$order, $trans_type) {
 	if (db_num_rows($result) > 0) {
 		$line_no=0;
 		while ($myrow = db_fetch($result)) {
+			// start
+			// Anees Ghazanfar 25/2/2023
+			// Description: add new variable to cart to pass value of style_id and qoh
+			// old code start
+			/* $order->add_to_cart($line_no,$myrow['stk_code'],$myrow['quantity'],
+				$myrow['unit_price'], $myrow['discount_percent'],
+				$myrow['qty_done'], $myrow['material_cost'], $myrow['description'], $myrow['id'] ); */
+			// old code end
+			// new code start
+
 			$order->add_to_cart($line_no,$myrow['stk_code'],$myrow['quantity'],
 				$myrow['unit_price'], $myrow['discount_percent'],
-				$myrow['qty_done'], $myrow['material_cost'], $myrow['description'], $myrow['id'] );
+				$myrow['qty_done'], $myrow['material_cost'], $myrow['description'], $myrow['id'] , $myrow['style_id'], $myrow['qoh'] );
 			$line_no++;
 		}
 	}

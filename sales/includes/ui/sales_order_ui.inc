@@ -108,6 +108,105 @@ function get_customer_details_to_order(&$order, $customer_id, $branch_id) {
 
 //---------------------------------------------------------------------------------
 
+// start
+// Anees Ghazanfar 25/2/2023
+// Description: this function is used to display the table which cantain the items of the order and allow user to edit n the same line
+
+function display_order_detail($title, &$order, $editable_items=false) {
+	
+	//	var_dump($order->get_items());
+
+	display_heading($title);
+
+	div_start('items_table');
+	start_table(TABLESTYLE, "width='40%'");
+
+	$th = array(_('Style Id'), _('Quantity'), _('QOH'));
+
+	if ($order->trans_no == 0)
+		unset($th[3]);
+
+	if (count($order->items_edit_table))
+		$th[] = '';
+
+	table_header($th);
+
+	$total = 0;
+	$k = 0;  //row colour counter
+
+	$id = find_submit('Edit');
+
+	
+
+	foreach ($order->get_items() as $line_no=>$stock_item) {
+	
+
+		if (!$editable_items || $id != $line_no) {
+			
+			$stock_item->quantity = get_total_quantity($stock_item->id);
+
+			label_cell($stock_item->style_id);
+			label_cell($stock_item->quantity);
+			label_cell($stock_item->qoh);
+
+		
+
+			if ($editable_items) {
+				edit_button_cell('Edit'.$line_no, _('Edit'), _('Edit document line'));
+				delete_button_cell('Delete'.$line_no, _('Delete'), _('Remove line from document'));
+			}
+			end_row();
+		}
+		else
+			sales_order_plan_controls($order, $k,  $line_no);
+
+	}
+
+
+	end_table(1);
+	
+	div_end();
+}
+
+// this function is call when user click on edit button
+//--------------------------------------------------------------------------------
+
+function sales_order_plan_controls(&$order, &$rowcounter, $line_no=-1) {
+	global $Ajax;
+
+	alt_table_row_color($rowcounter);
+
+	$id = find_submit('Edit');
+	if ($line_no!=-1 && $line_no == $id) { // edit old line
+		$_POST['style_id'] = $order->line_items[$id]->style_id;
+		$_POST['qty'] = $order->line_items[$id]->quantity;
+		$_POST['qoh'] = $order->line_items[$id]->qoh;
+		
+		stock_style_list_cells(null, 'style_id', $_POST['style_id']);
+
+		$Ajax->activate('items_edit_table');
+	}
+	label_cell($_POST['qty']);
+	label_cell($_POST['qoh']);
+
+
+	if ($id != -1) {
+		button_cell('UpdateItem', _('Update'), _('Confirm changes'), ICON_UPDATE);
+		button_cell('CancelItemChanges', _('Cancel'), _('Cancel changes'), ICON_CANCEL);
+		hidden('LineNo', $line_no);
+		set_focus('qty');
+
+
+	}
+	
+	end_row();
+}
+
+// end
+
+
+//---------------------------------------------------------------------------------
+
 function display_order_summary($title, &$order, $editable_items=false) {
 
 	display_heading($title);

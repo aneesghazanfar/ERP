@@ -1499,3 +1499,20 @@ function trans_editor_link($type, $trans_no) {
 		(is_closed_trans($type, $trans_no) ? set_icon(ICON_CLOSED, _('Closed')) :
 			pager_link(_('Edit'), sprintf($editor_url[$type], $trans_no, $type), ICON_EDIT));
 }
+
+// start
+// Anees Ghazanfar 24/2/2023
+// Description: add new function to open sales_order_plan.php page_nested
+
+function trans_edit_table_link($type, $trans_no) {
+
+	global $path_to_root;
+	$editor_url = array(
+				ST_SALESORDER => "/sales/sales_order_plan.php?ModifyOrderNumber=%d",
+	);
+	return !isset($editor_url[$type]) ? '--' :
+			(is_closed_trans($type, $trans_no) ? set_icon(ICON_CLOSED, _('Closed')) :
+				pager_link(_('Edit'), sprintf($editor_url[$type], $trans_no, $type), ICON_EDIT));
+}
+
+// end

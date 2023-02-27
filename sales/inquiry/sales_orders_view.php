@@ -103,6 +103,20 @@ function edit_link($row) {
 	return $page_nested ? '' : trans_editor_link($row['trans_type'], $row['order_no']);
 }
 
+// start
+// Anees Ghazanfar 24/2/2023
+// Description: Add new function to open new page for editable sales order
+function edit_table_link($row) {
+	global $page_nested;
+
+	if (is_prepaid_order_open($row['order_no']))
+		return '';
+
+	return $page_nested ? '' : trans_edit_table_link($row['trans_type'], $row['order_no']);
+	}
+
+// end
+
 function dispatch_link($row) {
 	global $trans_type, $page_nested;
 
@@ -272,6 +286,11 @@ if ($_POST['order_view_mode'] == 'OutstandingOnly') {
 	array_append($cols, array(
 		array('insert'=>true, 'fun'=>'edit_link'),
 		array('insert'=>true, 'fun'=>'dispatch_link'),
+		// start
+		// Anees Ghazanfar 24/2/2023
+		// Description column added for new page
+		array('insert'=>true, 'fun'=>'edit_table_link'),
+		// end
 		array('insert'=>true, 'fun'=>'prt_link')));
 
 }

@@ -1683,7 +1683,7 @@ function stock_style_list($name, $selected_id=null, $spec_opt=false, $submit_on_
 		array(
 			'spec_option'=>$spec_option,
 			'spec_id'=>'',
-			'select_submit'=>true,
+			'select_submit'=>false,
 			'async'=>false,
 	));
 }

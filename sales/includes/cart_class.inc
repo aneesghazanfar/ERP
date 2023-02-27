@@ -377,11 +377,20 @@ class Cart {
 		if (isset($freight_cost))
 			$this->freight_cost = $freight_cost;
 	}
-
-	function add_to_cart($line_no, $stock_id, $qty, $price, $disc, $qty_done=0, $standard_cost=0, $description=null, $id=0, $src_no=0, $src_id=0) {
+	// start
+	// Anees Ghazanfar 25/2/2023
+	// Description: Add style_id and qoh to add_to_cart function.
+	// old code start
+	/*function add_to_cart($line_no, $stock_id, $qty, $price, $disc, $qty_done=0, $standard_cost=0, $description=null, $id=0, $src_no=0, $src_id=0) {
 		$line = new line_details($stock_id, $qty, $price, $disc,
-			$qty_done,  $standard_cost, $description, $id, $src_no, $src_id);
-
+			$qty_done,  $standard_cost, $description, $id, $src_no, $src_id);*/
+	// old code end
+	// new code
+	function add_to_cart($line_no, $stock_id, $qty, $price, $disc, $qty_done=0, $standard_cost=0, $description=null, $id=0, $style_id=0, $qoh=0, $src_no=0, $src_id=0) {
+		$line = new line_details($stock_id, $qty, $price, $disc,
+			$qty_done,  $standard_cost, $description, $id, $style_id, $qoh, $src_no, $src_id);
+	// new code end
+	// end
 		if ($line->valid) {
 			$this->line_items[$line_no] = $line;
 			return 1;
@@ -399,6 +408,13 @@ class Cart {
 		$this->line_items[$line_no]->price = $price;
 		$this->line_items[$line_no]->discount_percent = $disc;
 	}
+	// start
+	// Anees Ghazanfar 25/2/2023
+	// Description: create update_edited_cart_item function for update style_id.
+	function update_edited_cart_item($line_no, $style_id='') {
+		$this->line_items[$line_no]->style_id = $style_id;	
+	}
+	// end
 
 	function update_add_cart_item_qty($line_no, $qty) {
 		$this->line_items[$line_no]->quantity += $qty;
@@ -618,6 +634,11 @@ class Cart {
 class line_details {
 	var $id;
 	var $stock_id;
+	// start
+	// Description:add two new variable for the new field
+	var $style_id;
+	var $qoh;
+	// end
 	var $item_description;
 	var $units;
 	var $mb_flag;
@@ -658,8 +679,12 @@ class line_details {
 	var $qty_dispatched;
 	var $qty_old = 0;
 
-
-	function __construct($stock_id, $qty, $prc, $disc_percent, $qty_done, $standard_cost, $description, $id=0, $src_no=0, $src_id=0) {
+	// old code
+	//function __construct($stock_id, $qty, $prc, $disc_percent, $qty_done, $standard_cost, $description, $id=0, $src_no=0, $src_id=0) {
+	// new code start
+	// Description: add two new variable for the new field
+	function __construct($stock_id, $qty, $prc, $disc_percent, $qty_done, $standard_cost, $description, $id=0, $style_id=0, $qoh=0, $src_no=0, $src_id=0) {
+	// new code end
 	/* Constructor function to add a new LineDetail object with passed params */
 
 		$this->id = $id;
@@ -680,6 +705,12 @@ class line_details {
 		$this->tax_type = $item_row['tax_type_id'];
 		$this->tax_type_name = $item_row['tax_type_name'];
 		$this->stock_id = $stock_id;
+		// new code start
+		// Description: store value of two new variable
+		$this->style_id = $style_id;
+		$this->qoh = $qoh;
+		// new code end
+		// end
 		$this->quantity = $qty;
 		$this->qty_dispatched = $qty;
 		$this->price = $prc;
