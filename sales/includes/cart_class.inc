@@ -378,19 +378,15 @@ class Cart {
 			$this->freight_cost = $freight_cost;
 	}
 	// start
-	// Anees Ghazanfar 25/2/2023
+	// Anees Ghazanfar 1/3/2023
 	// Description: Add style_id and qoh to add_to_cart function.
 	// old code start
-	/*function add_to_cart($line_no, $stock_id, $qty, $price, $disc, $qty_done=0, $standard_cost=0, $description=null, $id=0, $src_no=0, $src_id=0) {
+
+	function add_to_cart($line_no, $stock_id, $qty, $price, $disc, $qty_done=0, $standard_cost=0, $description=null, $id=0, $src_no=0, $src_id=0) {
 		$line = new line_details($stock_id, $qty, $price, $disc,
-			$qty_done,  $standard_cost, $description, $id, $src_no, $src_id);*/
+			$qty_done,  $standard_cost, $description, $id, $src_no, $src_id);
 	// old code end
-	// new code
-	function add_to_cart($line_no, $stock_id, $qty, $price, $disc, $qty_done=0, $standard_cost=0, $description=null, $id=0, $style_id=0, $qoh=0, $src_no=0, $src_id=0) {
-		$line = new line_details($stock_id, $qty, $price, $disc,
-			$qty_done,  $standard_cost, $description, $id, $style_id, $qoh, $src_no, $src_id);
-	// new code end
-	// end
+
 		if ($line->valid) {
 			$this->line_items[$line_no] = $line;
 			return 1;
@@ -409,10 +405,14 @@ class Cart {
 		$this->line_items[$line_no]->discount_percent = $disc;
 	}
 	// start
-	// Anees Ghazanfar 25/2/2023
+	// Anees Ghazanfar 1/3/2023
 	// Description: create update_edited_cart_item function for update style_id.
-	function update_edited_cart_item($line_no, $style_id='') {
-		$this->line_items[$line_no]->style_id = $style_id;	
+	function update_edited_cart_item($line_no, $style_id='' ,$stock_id='', $perpc='' , $stk_extra='' , $req_date='') {
+		$this->line_items[$line_no]->style_id = $style_id;
+		$this->line_items[$line_no]->stock_id = $stock_id;
+		$this->line_items[$line_no]->perpc = $perpc;	
+		$this->line_items[$line_no]->stk_extra = $stk_extra;
+		$this->line_items[$line_no]->req_date = $req_date;
 	}
 	// end
 
@@ -639,6 +639,19 @@ class line_details {
 	var $style_id;
 	var $qoh;
 	// end
+
+	// start
+	// Anees Ghazanfar 1/3/2023
+	// Description: add new variable for the new field
+	var $stk_type;
+	var $perpc;
+	var $stk_extra;
+	var $stk_total;
+	var $unique_name;
+	var $req_date;
+	var $style_wise_tquantity;
+	
+	// end
 	var $item_description;
 	var $units;
 	var $mb_flag;
@@ -683,7 +696,7 @@ class line_details {
 	//function __construct($stock_id, $qty, $prc, $disc_percent, $qty_done, $standard_cost, $description, $id=0, $src_no=0, $src_id=0) {
 	// new code start
 	// Description: add two new variable for the new field
-	function __construct($stock_id, $qty, $prc, $disc_percent, $qty_done, $standard_cost, $description, $id=0, $style_id=0, $qoh=0, $src_no=0, $src_id=0) {
+	function __construct($stock_id, $qty, $prc, $disc_percent, $qty_done, $standard_cost, $description, $id=0, $style_id=0, $qoh=0, $src_no=0, $src_id=0, $stk_type = 0, $perpc = 1, $stk_extra = 0, $stk_total = 0, $unique_name = 0, $req_date = '', $style_wise_tquantity = 0) {
 	// new code end
 	/* Constructor function to add a new LineDetail object with passed params */
 
@@ -710,6 +723,17 @@ class line_details {
 		$this->style_id = $style_id;
 		$this->qoh = $qoh;
 		// new code end
+		// end
+		// start
+		// Anees Ghazanfar 1/3/2023
+		// Description: store value of new variables
+		$this->stk_type = $stk_type;
+		$this->perpc = $perpc;
+		$this->stk_extra = $stk_extra;
+		$this->stk_total = $stk_total;
+		$this->unique_name = $unique_name;
+		$this->req_date = $req_date;
+		$this->style_wise_tquantity = $style_wise_tquantity;
 		// end
 		$this->quantity = $qty;
 		$this->qty_dispatched = $qty;

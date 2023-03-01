@@ -402,6 +402,21 @@ function radio($label, $name, $value, $selected=null, $submit_on_change=false) {
 
 //-----------------------------------------------------------------------------------
 
+// start
+// Anees Ghazanfar 25/2/2023
+//Description: add New function for Total Required	formula
+function total_required($t_style_qty , $perpc , $stk_extra){
+	if($stk_extra != 0)
+		return $t_style_qty * ( $perpc + (($perpc / $stk_extra)));
+	else
+		return 0;
+
+
+
+}
+//end
+
+//-----------------------------------------------------------------------------------
 function labelheader_cell($label, $params='') {
 	echo "<td class='tableheader' ".$params.">".$label."</td>\n";
 }

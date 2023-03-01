@@ -535,17 +535,29 @@ function check_item_data() {
 
 //--------------------------------------------------------------------------------
 // start
-// Anees Ghazanfar 25/2/2023
+// Anees Ghazanfar 1/3/2023
 // Description: this function is used to update item data when user click on update button
 function handle_update_item() {
 	if ($_POST['UpdateItem'])
-		$_SESSION['Items']->update_edited_cart_item($_POST['LineNo'], $_POST['style_id'] );
+		$_SESSION['Items']->update_edited_cart_item($_POST['LineNo'], $_POST['style_id'], $_POST['stock_id'],input_num('perpc') ,input_num('stk_extra'), $_POST['req_date']);
 	
 	page_modified();
 	line_start_focus();
 }
 
+
+//--------------------------------------------------------------------------------
+function handle_new_item() {
+
+	add_to_order($_SESSION['Items'], get_post('stock_id') ,input_num('qty'), input_num('price'), input_num('Disc') / 100, get_post('stock_id_text'), $_POST['stock_id']);
+
+	unset($_POST['_stock_id_edit'], $_POST['stock_id']);
+	page_modified();
+	line_start_focus();
+}
+
 // end
+
 //--------------------------------------------------------------------------------
 
 function handle_delete_item($line_no) {
@@ -660,6 +672,8 @@ if (isset($_POST['UpdateItem']))
 if (isset($_POST['CancelItemChanges']))
 	line_start_focus();
 
+if (isset($_POST['AddItem']))
+	handle_new_item();
 //--------------------------------------------------------------------------------
 
 if ($_SESSION['Items']->fixed_asset)
@@ -699,8 +713,17 @@ else {
 	$porder = _('Place Order');
 	$corder = _('Commit Order Changes');
 }
-start_form();
 
+// Start 
+//Anees Ghazanfar 27/2/2023
+// Descripition: pass true parameter for file upload
+// old code
+//start_form();
+// old code end 
+// new code start
+start_form(true);
+// new code end
+// end 
 hidden('cart_id');
 $customer_error = display_order_header($_SESSION['Items'], !$_SESSION['Items']->is_started(), $idate);
 
@@ -709,26 +732,29 @@ if ($customer_error == '') {
 	// start
 	// Anees Ghazanfar 25/2/2023
 	// Description: call new function to display order items in table copy the code of this file from "sales/sales_order_entry.php".
+	// Anees Ghazanfar 28/2/2023
+	// Description: add new variable to allow check w.r.t main category.
 
-	display_order_detail($orderitems, $_SESSION['Items'], true);
+	$maincat_id = 4;
+	display_order_detail($orderitems, $_SESSION['Items'], $maincat_id, true);
 
 	// end
-	display_delivery_details($_SESSION['Items']);
+	// display_delivery_details($_SESSION['Items']);
 
-	if ($_SESSION['Items']->trans_no == 0) {
+	// if ($_SESSION['Items']->trans_no == 0) {
 
-		submit_center_first('ProcessOrder', $porder,  _('Check entered data and save document'), 'default');
-		submit_center_last('CancelOrder', $cancelorder, _('Cancels document entry or removes sales order when editing an old document'));
-		submit_js_confirm('CancelOrder', _('You are about to void this Document.\nDo you want to continue?'));
-	}
-	else {
-		submit_center_first('ProcessOrder', $corder, _('Validate changes and update document'), 'default');
-		submit_center_last('CancelOrder', $cancelorder, _('Cancels document entry or removes sales order when editing an old document'));
-		if ($_SESSION['Items']->trans_type==ST_SALESORDER)
-			submit_js_confirm('CancelOrder', _('You are about to cancel undelivered part of this order.\nDo you want to continue?'));
-		else
-			submit_js_confirm('CancelOrder', _('You are about to void this Document.\nDo you want to continue?'));
-	}
+	// 	submit_center_first('ProcessOrder', $porder,  _('Check entered data and save document'), 'default');
+	// 	submit_center_last('CancelOrder', $cancelorder, _('Cancels document entry or removes sales order when editing an old document'));
+	// 	submit_js_confirm('CancelOrder', _('You are about to void this Document.\nDo you want to continue?'));
+	// }
+	// else {
+	// 	submit_center_first('ProcessOrder', $corder, _('Validate changes and update document'), 'default');
+	// 	submit_center_last('CancelOrder', $cancelorder, _('Cancels document entry or removes sales order when editing an old document'));
+	// 	if ($_SESSION['Items']->trans_type==ST_SALESORDER)
+	// 		submit_js_confirm('CancelOrder', _('You are about to cancel undelivered part of this order.\nDo you want to continue?'));
+	// 	else
+	// 		submit_js_confirm('CancelOrder', _('You are about to void this Document.\nDo you want to continue?'));
+	// }
 }
 else
 	display_error($customer_error);

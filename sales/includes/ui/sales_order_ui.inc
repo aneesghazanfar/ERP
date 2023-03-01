@@ -109,47 +109,55 @@ function get_customer_details_to_order(&$order, $customer_id, $branch_id) {
 //---------------------------------------------------------------------------------
 
 // start
-// Anees Ghazanfar 25/2/2023
+// Anees Ghazanfar 1/3/2023
 // Description: this function is used to display the table which cantain the items of the order and allow user to edit n the same line
 
-function display_order_detail($title, &$order, $editable_items=false) {
+function display_order_detail($title, &$order, $maincat_id, $editable_items=false) {
 	
-	//	var_dump($order->get_items());
 
 	display_heading($title);
 
 	div_start('items_table');
-	start_table(TABLESTYLE, "width='40%'");
+	start_table(TABLESTYLE, "width='80%'");
 
-	$th = array(_('Style Id'), _('Quantity'), _('QOH'));
-
-	if ($order->trans_no == 0)
-		unset($th[3]);
-
-	if (count($order->items_edit_table))
-		$th[] = '';
+	$th = array(_('Style No.'), _('Total Quantity'), _('Accessory Code'), _('Accessory Description'),_('UoM'), _('Qty Per Piece'), _('Extra Quantity'), _('Total Required'), _('Required by Date'), _('Image'));
 
 	table_header($th);
-
 	$total = 0;
 	$k = 0;  //row colour counter
 
 	$id = find_submit('Edit');
 
-	
-
+	if ($id == -1 && $editable_items)
+		sales_order_plan_controls($order, $k, '', $maincat_id);
+	else {
+		start_row();
+		label_cell('&nbsp;', "colspan=".count($th));
+		end_row();
+	}
 	foreach ($order->get_items() as $line_no=>$stock_item) {
+
 	
-
-		if (!$editable_items || $id != $line_no) {
-			
-			$stock_item->quantity = get_total_quantity($stock_item->id);
-
+			if (!$editable_items || $id != $line_no) {
+			$stock_item->style_wise_tquantity = get_total_quantity($stock_item->id, $stock_item->style_id);
 			label_cell($stock_item->style_id);
-			label_cell($stock_item->quantity);
-			label_cell($stock_item->qoh);
+			
+			qty_cell($stock_item->style_wise_tquantity,false);
 
-		
+			view_stock_status_cell($stock_item->stock_id);
+			label_cell($stock_item->item_description );
+
+			label_cell($stock_item->units);
+
+			
+			qty_cell($stock_item->perpc);
+			qty_cell($stock_item->stk_extra);
+
+			qty_cell(total_required($stock_item->style_wise_tquantity, $stock_item->perpc, $stock_item->stk_extra));
+
+			label_cell($stock_item->req_date);
+
+			file_cells(null, 'image','image');
 
 			if ($editable_items) {
 				edit_button_cell('Edit'.$line_no, _('Edit'), _('Edit document line'));
@@ -158,46 +166,84 @@ function display_order_detail($title, &$order, $editable_items=false) {
 			end_row();
 		}
 		else
-			sales_order_plan_controls($order, $k,  $line_no);
-
+			sales_order_plan_controls($order, $k,  $line_no , $maincat_id);
+			
 	}
-
-
+// end 1/3/2023
 	end_table(1);
 	
 	div_end();
+	
 }
-
+// end
 // this function is call when user click on edit button
 //--------------------------------------------------------------------------------
 
-function sales_order_plan_controls(&$order, &$rowcounter, $line_no=-1) {
+function sales_order_plan_controls(&$order, &$rowcounter, $line_no=-1 , $maincat_id=null) {
+	
 	global $Ajax;
 
 	alt_table_row_color($rowcounter);
 
 	$id = find_submit('Edit');
 	if ($line_no!=-1 && $line_no == $id) { // edit old line
+
 		$_POST['style_id'] = $order->line_items[$id]->style_id;
-		$_POST['qty'] = $order->line_items[$id]->quantity;
-		$_POST['qoh'] = $order->line_items[$id]->qoh;
+
+		$_POST['t_style_qty'] = get_total_quantity($order->line_items[$id]->id , $order->line_items[$id]->style_id);
 		
-		stock_style_list_cells(null, 'style_id', $_POST['style_id']);
+		stock_style_list_cells_oderWise(null,$order->line_items[$id]->id, 'style_id', null, false, false, false);
 
-		$Ajax->activate('items_edit_table');
+		label_cell($_POST['t_style_qty']);
+
+		sales_items_list_cells(null,'stock_id', $_POST['stock_id'], $maincat_id);
+
+		label_cell($order->line_items[$id]->units);
+
+
+		text_cells(null, 'perpc', null, null, 200);
+		text_cells(null, 'stk_extra', null, null, 200);
+
+	
+
+		qty_cell(total_required($_POST['t_style_qty'], $_POST['perpc'], $_POST['stk_extra']));
+
+		date_cells(null, 'req_date', null, null, 0, 0, 0, null, false);
+				file_cells(null, 'image','image');
 	}
-	label_cell($_POST['qty']);
-	label_cell($_POST['qoh']);
+	else{ 
+		// prepare new line
+		stock_style_list_cells_oderWise(null,$order->line_items[0]->id, 'style_id', null, false, true, false);
+
+		$_POST['t_style_qty'] = get_total_quantity($order->line_items[0]->id, $_POST['style_id']);
+
+		qty_cell($_POST['t_style_qty']);
+
+		sales_items_list_cells(null,'stock_id', $_POST['stock_id'], $maincat_id, false, true, true);
+
+		label_cell($order->line_items[0]->units);
+
+		text_cells_ex(null, 'perpc', null, 52, null , null, null, null, true);
+		text_cells_ex(null, 'stk_extra', null, 52, null , null, null, null, true);
+
+		qty_cell(total_required($_POST['t_style_qty'], $_POST['perpc'], $_POST['stk_extra']));
+
+		date_cells(null, 'req_date', null, null, 0, 0, 0, null, true);
+		file_cells(null, 'image','image');
 
 
+	}
+	
 	if ($id != -1) {
-		button_cell('UpdateItem', _('Update'), _('Confirm changes'), ICON_UPDATE);
-		button_cell('CancelItemChanges', _('Cancel'), _('Cancel changes'), ICON_CANCEL);
-		hidden('LineNo', $line_no);
-		set_focus('qty');
+			button_cell('UpdateItem', _('Update'), _('Confirm changes'), ICON_UPDATE);
+			button_cell('CancelItemChanges', _('Cancel'), _('Cancel changes'), ICON_CANCEL);
+			hidden('LineNo', $line_no);
+			set_focus('qty');
+		}
+	else
+		submit_cells('AddItem', _('Add Item'), "colspan=2 align='center'", _('Add new item to document'), true);
+		$Ajax->activate('items_table');
 
-
-	}
 	
 	end_row();
 }

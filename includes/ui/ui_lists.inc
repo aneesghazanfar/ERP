@@ -910,8 +910,31 @@ function stock_items_list_cells($label, $sale_ord_detail, $name, $selected_id=nu
 //
 // Select item via foreign code.
 //
-function sales_items_list($name, $selected_id=null, $all_option=false, $submit_on_change=false, $type='', $opts=array(), $editkey=false) {
+
+// start 
+// anees Ghazanfar 25/2/2023
+// Description: add new variable "maincat_id" to check w.r.t to main category
+// old line start
+	//function sales_items_list($name, $selected_id=null, $all_option=false, $submit_on_change=false, $type='', $opts=array(), $editkey=false) {
+// old line end
+// new line start
+function sales_items_list($name, $selected_id=null, $maincat_id, $all_option=false, $submit_on_change=false, $type='', $opts=array(), $editkey=false) {
+// apply condition if maincat_id is not null
 	// all sales codes
+	if($maincat_id){
+		$sql = "SELECT i.item_code, i.description, c.description, count(*)>1 as kit,
+			 i.inactive, if(count(*)>1, '0', s.editable) as editable
+			FROM
+			".TB_PREF."stock_master s,
+			".TB_PREF."item_codes i
+			LEFT JOIN
+			".TB_PREF."stock_category c
+			ON i.category_id=c.category_id
+			WHERE i.stock_id=s.stock_id
+	  AND mb_flag != 'F' AND s.maincat_id = ".db_escape($maincat_id);
+	}
+	else{
+// new line end
 	$sql = "SELECT i.item_code, i.description, c.description, count(*)>1 as kit,
 			 i.inactive, if(count(*)>1, '0', s.editable) as editable
 			FROM
@@ -922,7 +945,7 @@ function sales_items_list($name, $selected_id=null, $all_option=false, $submit_o
 			ON i.category_id=c.category_id
 			WHERE i.stock_id=s.stock_id
 	  AND mb_flag != 'F'";
-
+}
 	
 	if ($type == 'local') // exclude foreign codes
 		$sql .=	" AND !i.is_foreign"; 
@@ -950,15 +973,26 @@ function sales_items_list($name, $selected_id=null, $all_option=false, $submit_o
 			'max' => 255
 		  ), $opts), $type == 'kits' ? $type : "stock_sales" );
 }
-
-function sales_items_list_cells($label, $name, $selected_id=null, $all_option=false, $submit_on_change=false, $editkey=false) {
+// old line start
+//function sales_items_list_cells($label, $name, $selected_id=null, $all_option=false, $submit_on_change=false, $editkey=false) {
+// old line end
+// new line start
+function sales_items_list_cells($label, $name, $selected_id=null, $maincat_id = null, $all_option=false, $submit_on_change=false, $editkey=false) {
+// new line end
 	if ($editkey)
 		set_editor('item', $name, $editkey);
 
 	if ($label != null)
 		echo "<td>".$label."</td>\n";
-	echo sales_items_list($name, $selected_id, $all_option, $submit_on_change,
+	// old line start
+	/*echo sales_items_list($name, $selected_id, $all_option, $submit_on_change,
+		'', array('cells'=>true, 'max'=>50), $editkey); // maximum is set to 50 and not default 255.*/
+	// old line end
+	// new line start
+	echo sales_items_list($name, $selected_id, $maincat_id, $all_option, $submit_on_change,
 		'', array('cells'=>true, 'max'=>50), $editkey); // maximum is set to 50 and not default 255.
+	// new line end
+	//end
 }
 
 function sales_kits_list($name, $selected_id=null, $all_option=false, $submit_on_change=false) {
@@ -1669,6 +1703,46 @@ function stock_categories_list_row($label, $name, $selected_id=null, $spec_opt=f
 
 //-----------------------------------------------------------------------------------------------
 
+
+// start
+// Anees Ghazanfar 25/2/2023
+// Description: dropdown list for stock style oder wo_issue_view
+// 28/2/2023
+//Description: some changes in this function because yesterday its not working properly.
+function stock_style_list_oderWise($name,$id, $selected_id=null, $spec_opt=false, $submit_on_change=false, $fixed_asset=false) {
+
+	$sql_for_geting_orderNo = "SELECT order_no, style_id FROM ".TB_PREF."sales_order_details WHERE id = ".db_escape($id);
+	$result = db_query($sql_for_geting_orderNo, 'Retreive order Line Items');
+	$row = db_fetch($result);
+	$order_no = $row[0];
+
+	$sql = "SELECT style_id, style_id FROM ".TB_PREF."sales_order_details where order_no =".db_escape($order_no);
+	return combo_input($name, $selected_id, $sql, 'style_id', 'style_id',
+		array(
+			'spec_option' => $spec_opt,
+			'spec_id' => -1,
+			'select_submit'=> $submit_on_change,
+			'async' => false,
+	));
+}
+
+function stock_style_list_cells_oderWise($label,$id, $name, $selected_id=null, $spec_opt=false, $submit_on_change=false, $fixed_asset=false) {
+	if ($label != null)
+		echo "<td>".$label."</td>\n";
+	echo "<td>";
+	echo stock_style_list_oderWise($name,$id, $selected_id, $spec_opt, $submit_on_change, $fixed_asset);
+	echo "</td>\n";
+}
+
+
+// end
+
+
+
+
+
+//-----------------------------------------------------------------------------------------------
+
 // start
 // Anees Ghazanfar 13/2/2023
 // Description: dropdown list for stock style
@@ -1683,7 +1757,7 @@ function stock_style_list($name, $selected_id=null, $spec_opt=false, $submit_on_
 		array(
 			'spec_option'=>$spec_option,
 			'spec_id'=>'',
-			'select_submit'=>false,
+			'select_submit'=>submit_on_change,
 			'async'=>false,
 	));
 }
@@ -1696,11 +1770,32 @@ function stock_style_list_cells($label, $name, $selected_id=null, $spec_opt=fals
 	echo "</td>\n";
 }
 
-function stock_style_list_row($label, $name, $selected_id=null, $spec_opt=false, $submit_on_change=false, $fixed_asset=false) {
+// start 
+// Anees Ghazanfar 1/3/2023
+// Description: dropdown list for stock style
+
+function stock_style_datalist($list_id){
+  $sql = "SELECT DISTINCT style_id FROM ".TB_PREF."stock_master";
+  $result = db_query($sql, "could not get stock style");
+
+  echo "<datalist id='".$list_id."'>";
+  while ($row = db_fetch_row($result)) {
+    echo "<option value='".$row[0]."'>";
+  }
+  echo "</datalist>";
+}
+
+
+function stock_style_list_row($label, $name, $selected_id=null, $submit_on_change=false) {
 	echo "<tr><td class='label'>".$label."</td>";
-	stock_style_list_cells(null, $name, $selected_id, $spec_opt, $submit_on_change, $fixed_asset);
+	$list_id = "stock_style_datalist";
+	stock_style_datalist ($list_id);
+	echo "<td><input type='text' name='".$name."' value='".$selected_id."' list='".$list_id."'></td></tr>";
+
 	echo "</tr>\n";
 }
+
+// end
 
 
 
