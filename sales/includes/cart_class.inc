@@ -377,16 +377,27 @@ class Cart {
 		if (isset($freight_cost))
 			$this->freight_cost = $freight_cost;
 	}
-	// start
-	// Anees Ghazanfar 1/3/2023
-	// Description: Add style_id and qoh to add_to_cart function.
-	// old code start
+	// Stert
+	// Anees Ghazanfar 2/3/2023
+	// Descripition: add new function for add_plan_items
 
+	function add_plan_items($line_no, $stock_id) {
+		$line = new line_details($stock_id);
+		var_dump($line);
+		if ($line->valid) {
+			$this->line_items[$line_no] = $line;
+			return 1;
+		}
+		else
+			display_error(_('You have to enter valid stock code or nonempty description'));
+		return 0;
+	}
+
+	// End
 	function add_to_cart($line_no, $stock_id, $qty, $price, $disc, $qty_done=0, $standard_cost=0, $description=null, $id=0, $src_no=0, $src_id=0) {
+		var_dump($style_id);
 		$line = new line_details($stock_id, $qty, $price, $disc,
-			$qty_done,  $standard_cost, $description, $id, $src_no, $src_id);
-	// old code end
-
+			$qty_done,  $standard_cost, $description, $id, $src_no, $src_id );
 		if ($line->valid) {
 			$this->line_items[$line_no] = $line;
 			return 1;
@@ -407,9 +418,8 @@ class Cart {
 	// start
 	// Anees Ghazanfar 1/3/2023
 	// Description: create update_edited_cart_item function for update style_id.
-	function update_edited_cart_item($line_no, $style_id='' ,$stock_id='', $perpc='' , $stk_extra='' , $req_date='') {
+	function update_edited_cart_item($line_no, $style_id='' , $perpc='' , $stk_extra='' , $req_date='') {
 		$this->line_items[$line_no]->style_id = $style_id;
-		$this->line_items[$line_no]->stock_id = $stock_id;
 		$this->line_items[$line_no]->perpc = $perpc;	
 		$this->line_items[$line_no]->stk_extra = $stk_extra;
 		$this->line_items[$line_no]->req_date = $req_date;
@@ -637,7 +647,7 @@ class line_details {
 	// start
 	// Description:add two new variable for the new field
 	var $style_id;
-	var $qoh;
+	var $style_wise_tquantity;
 	// end
 
 	// start
@@ -649,7 +659,6 @@ class line_details {
 	var $stk_total;
 	var $unique_name;
 	var $req_date;
-	var $style_wise_tquantity;
 	
 	// end
 	var $item_description;
@@ -696,7 +705,7 @@ class line_details {
 	//function __construct($stock_id, $qty, $prc, $disc_percent, $qty_done, $standard_cost, $description, $id=0, $src_no=0, $src_id=0) {
 	// new code start
 	// Description: add two new variable for the new field
-	function __construct($stock_id, $qty, $prc, $disc_percent, $qty_done, $standard_cost, $description, $id=0, $style_id=0, $qoh=0, $src_no=0, $src_id=0, $stk_type = 0, $perpc = 1, $stk_extra = 0, $stk_total = 0, $unique_name = 0, $req_date = '', $style_wise_tquantity = 0) {
+	function __construct($stock_id, $qty, $prc, $disc_percent, $qty_done, $standard_cost, $description, $id=0, $style_id=0, $style_wise_tquantity=0, $src_no=0, $src_id=0, $stk_type = 0, $perpc = 1, $stk_extra = 0, $stk_total = 0, $unique_name = 0, $req_date = '') {
 	// new code end
 	/* Constructor function to add a new LineDetail object with passed params */
 
@@ -718,22 +727,20 @@ class line_details {
 		$this->tax_type = $item_row['tax_type_id'];
 		$this->tax_type_name = $item_row['tax_type_name'];
 		$this->stock_id = $stock_id;
-		// new code start
-		// Description: store value of two new variable
-		$this->style_id = $style_id;
-		$this->qoh = $qoh;
 		// new code end
 		// end
 		// start
 		// Anees Ghazanfar 1/3/2023
 		// Description: store value of new variables
+
+		$this->style_id = $style_id;
+		$this->style_wise_tquantity = $style_wise_tquantity;
 		$this->stk_type = $stk_type;
 		$this->perpc = $perpc;
 		$this->stk_extra = $stk_extra;
 		$this->stk_total = $stk_total;
 		$this->unique_name = $unique_name;
 		$this->req_date = $req_date;
-		$this->style_wise_tquantity = $style_wise_tquantity;
 		// end
 		$this->quantity = $qty;
 		$this->qty_dispatched = $qty;

@@ -257,21 +257,6 @@ function get_sales_order_header($order_no, $trans_type) {
 		display_warning("You have missing or invalid sales document in database (type:$trans_type, number:$order_no).");
 }
 //-------------------------------------------------------------
-
-// start
-// Anees Ghazanfar 25/2/2023
-// Description: sql query to get the style description
-
-function stock_style_description_cells($id){
-	$sql = "SELECT own_style FROM ".TB_PREF."stock_style WHERE id = ".db_escape($id);
-	$result = db_query($sql, 'could not get style description');
-	$row = db_fetch($result);
-	return $row[0];
-}
-
-//end
-
-//-------------------------------------------------------------
 // start
 // Anees Ghazanfar 25/2/2023
 // Description: add new variable in query to get the style_id and qoh
@@ -317,20 +302,19 @@ function get_sales_order_details($order_no, $trans_type) {
 
 	return db_query($sql, 'Retreive order Line Items');
 }
-
+// end
+// Anees Ghazanfar 3/3/2023
 // Description: new function to get the total quantity of the order
 
-function get_total_quantity($id , $style_id){
+function get_total_quantity($order_no , $style_id){
 	
-	$sql_for_geting_orderNo = "SELECT order_no FROM ".TB_PREF."sales_order_details WHERE id = ".db_escape($id);
-	$result = db_query($sql_for_geting_orderNo, 'Retreive order Line Items');
-	$row = db_fetch($result);
-	$sql = "SELECT SUM(quantity) AS total_quantity FROM ".TB_PREF."sales_order_details WHERE order_no = ".db_escape($row[0] )." AND style_id = ".db_escape($style_id);
+	$sql = "SELECT SUM(quantity) AS total_quantity FROM ".TB_PREF."sales_order_details WHERE order_no = ".db_escape($order_no)." AND style_id = ".db_escape($style_id);
 	$result = db_query($sql, 'Retreive order Line Items');
 	$row = db_fetch($result);
 	return $row[0];
 }
 //end
+
 function read_sales_order($order_no, &$order, $trans_type) {
 
 	$myrow = get_sales_order_header($order_no, $trans_type);

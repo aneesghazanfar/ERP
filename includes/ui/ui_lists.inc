@@ -1109,6 +1109,7 @@ function stock_units_list_row($label, $name, $value=null, $enabled=true) {
 	echo "</td></tr>\n";
 }
 
+
 //------------------------------------------------------------------------------------
 
 function stock_purchasable_fa_list_cells($label, $name, $selected_id=null, $all_option=false, $submit_on_change=false, $all=false, $editkey=false, $exclude_items=array()) {
@@ -1707,16 +1708,12 @@ function stock_categories_list_row($label, $name, $selected_id=null, $spec_opt=f
 // start
 // Anees Ghazanfar 25/2/2023
 // Description: dropdown list for stock style oder wo_issue_view
-// 28/2/2023
+// 3/3/2023
 //Description: some changes in this function because yesterday its not working properly.
-function stock_style_list_oderWise($name,$id, $selected_id=null, $spec_opt=false, $submit_on_change=false, $fixed_asset=false) {
+function stock_style_list_oderWise($name,$order_no, $selected_id=null, $spec_opt=false, $submit_on_change=false, $fixed_asset=false) {
 
-	$sql_for_geting_orderNo = "SELECT order_no, style_id FROM ".TB_PREF."sales_order_details WHERE id = ".db_escape($id);
-	$result = db_query($sql_for_geting_orderNo, 'Retreive order Line Items');
-	$row = db_fetch($result);
-	$order_no = $row[0];
 
-	$sql = "SELECT style_id, style_id FROM ".TB_PREF."sales_order_details where order_no =".db_escape($order_no);
+$sql = "SELECT DISTINCT style_id, style_id FROM ".TB_PREF."sales_order_details WHERE order_no = ".db_escape($order_no);
 	return combo_input($name, $selected_id, $sql, 'style_id', 'style_id',
 		array(
 			'spec_option' => $spec_opt,
@@ -1726,11 +1723,11 @@ function stock_style_list_oderWise($name,$id, $selected_id=null, $spec_opt=false
 	));
 }
 
-function stock_style_list_cells_oderWise($label,$id, $name, $selected_id=null, $spec_opt=false, $submit_on_change=false, $fixed_asset=false) {
+function stock_style_list_cells_oderWise($label,$order_no, $name, $selected_id=null, $spec_opt=false, $submit_on_change=false, $fixed_asset=false) {
 	if ($label != null)
 		echo "<td>".$label."</td>\n";
 	echo "<td>";
-	echo stock_style_list_oderWise($name,$id, $selected_id, $spec_opt, $submit_on_change, $fixed_asset);
+	echo stock_style_list_oderWise($name,$order_no, $selected_id, $spec_opt, $submit_on_change, $fixed_asset);
 	echo "</td>\n";
 }
 
@@ -1807,7 +1804,7 @@ function stock_main_categories_list($name, $selected_id=null, $spec_opt=false, $
 
 	
 
-	$sql = "SELECT maincat_id, description FROM ".TB_PREF."stock_main_category";
+	$sql = "SELECT maincat_id, description FROM ".TB_PREF."stock_master";
 
 	return combo_input($name, $selected_id, $sql, 'maincat_id', 'description',
 		array('order'=>'maincat_id',

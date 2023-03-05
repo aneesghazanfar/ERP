@@ -1508,7 +1508,7 @@ function trans_edit_table_link($type, $trans_no) {
 
 	global $path_to_root;
 	$editor_url = array(
-				ST_SALESORDER => "/sales/sales_order_plan.php?ModifyOrderNumber=%d",
+				ST_SALESORDER => "/sales/sales_order_plan.php?OrderNumber=%d",
 	);
 	return !isset($editor_url[$type]) ? '--' :
 			(is_closed_trans($type, $trans_no) ? set_icon(ICON_CLOSED, _('Closed')) :

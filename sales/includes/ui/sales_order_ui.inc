@@ -11,7 +11,7 @@
 ***********************************************************************/
 include_once($path_to_root.'/sales/includes/cart_class.inc');
 
-function add_to_order(&$order, $new_item, $new_item_qty, $price, $discount, $description='') {
+function add_to_order(&$order, $new_item, $new_item_qty, $price, $discount, $description='' , $style_id) {
 	// calculate item price to sum of kit element prices factor for value distribution over all exploded kit items
 	$std_price = get_kit_price($new_item, $order->customer_currency, $order->sales_type, $order->price_factor, get_post('OrderDate'), true);
 
@@ -48,7 +48,7 @@ function add_to_order(&$order, $new_item, $new_item_qty, $price, $discount, $des
 					break;
 				}
 			}
-			$order->add_to_cart(count($order->line_items), $item['stock_id'], $new_item_qty*$item['quantity'], $item_price, $discount, 0, 0, $description);
+			$order->add_to_cart(count($order->line_items), $item['stock_id'], $new_item_qty*$item['quantity'], $item_price, $discount, 0, 0, $description , $style_id);
 		}
 	}
 }
@@ -107,7 +107,7 @@ function get_customer_details_to_order(&$order, $customer_id, $branch_id) {
 }
 
 //---------------------------------------------------------------------------------
-
+// have to delete that code
 // start
 // Anees Ghazanfar 1/3/2023
 // Description: this function is used to display the table which cantain the items of the order and allow user to edit n the same line
@@ -137,12 +137,12 @@ function display_order_detail($title, &$order, $maincat_id, $editable_items=fals
 	}
 	foreach ($order->get_items() as $line_no=>$stock_item) {
 
-	
+	var_dump($stock_item);
 			if (!$editable_items || $id != $line_no) {
 			$stock_item->style_wise_tquantity = get_total_quantity($stock_item->id, $stock_item->style_id);
 			label_cell($stock_item->style_id);
 			
-			qty_cell($stock_item->style_wise_tquantity,false);
+			qty_cell($stock_item->style_wise_tquantity);
 
 			view_stock_status_cell($stock_item->stock_id);
 			label_cell($stock_item->item_description );
@@ -157,7 +157,7 @@ function display_order_detail($title, &$order, $maincat_id, $editable_items=fals
 
 			label_cell($stock_item->req_date);
 
-			file_cells(null, 'image','image');
+			label_cell($order->line_items[$id]->unique_name);
 
 			if ($editable_items) {
 				edit_button_cell('Edit'.$line_no, _('Edit'), _('Edit document line'));
@@ -196,7 +196,8 @@ function sales_order_plan_controls(&$order, &$rowcounter, $line_no=-1 , $maincat
 
 		label_cell($_POST['t_style_qty']);
 
-		sales_items_list_cells(null,'stock_id', $_POST['stock_id'], $maincat_id);
+		view_stock_status_cell($order->line_items[$id]->stock_id);
+		label_cell($order->line_items[$id]->item_description );
 
 		label_cell($order->line_items[$id]->units);
 
@@ -215,9 +216,9 @@ function sales_order_plan_controls(&$order, &$rowcounter, $line_no=-1 , $maincat
 		// prepare new line
 		stock_style_list_cells_oderWise(null,$order->line_items[0]->id, 'style_id', null, false, true, false);
 
-		$_POST['t_style_qty'] = get_total_quantity($order->line_items[0]->id, $_POST['style_id']);
+		$t_style_qty = get_total_quantity($order->line_items[0]->id, $_POST['style_id']);
 
-		qty_cell($_POST['t_style_qty']);
+		qty_cell($t_style_qty);
 
 		sales_items_list_cells(null,'stock_id', $_POST['stock_id'], $maincat_id, false, true, true);
 
@@ -274,6 +275,7 @@ function display_order_summary($title, &$order, $editable_items=false) {
 	$k = 0;  //row colour counter
 
 	$id = find_submit('Edit');
+
 
 	if ($id == -1 && $editable_items)
 		sales_order_item_controls($order, $k);
