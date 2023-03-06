@@ -16,6 +16,7 @@
 //and null or -1 otherwise.
 //
 function find_submit($prefix, $numeric=true) {
+	var_dump($_POST);
 
 	foreach($_POST as $postkey=>$postval ) {
 		if (strpos($postkey, $prefix) === 0) {

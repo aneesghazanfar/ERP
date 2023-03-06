@@ -5,7 +5,7 @@
 // this function is used to store data in database
 
 
-function add_to_database (&$data , $order_no){
+function add_to_database (&$data , $order_no , $Comments){
 
 	
 
@@ -23,6 +23,10 @@ foreach($data as $key => $row) {
     	db_query($sql, 'order Cannot be Added');
 
 }
+$sql = "INSERT INTO ".TB_PREF."purch_plan (sorder_no, dyed_comments)
+        VALUES (".db_escape($order_no).", ".db_escape($Comments).")
+        ON DUPLICATE KEY UPDATE dyed_comments = ".db_escape($Comments);
+	    	db_query($sql, 'order Cannot be Added');
 
 
 
