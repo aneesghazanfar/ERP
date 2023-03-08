@@ -383,7 +383,6 @@ class Cart {
 
 	function add_plan_items($line_no, $stock_id) {
 		$line = new line_details($stock_id);
-		var_dump($line);
 		if ($line->valid) {
 			$this->line_items[$line_no] = $line;
 			return 1;
@@ -395,7 +394,6 @@ class Cart {
 
 	// End
 	function add_to_cart($line_no, $stock_id, $qty, $price, $disc, $qty_done=0, $standard_cost=0, $description=null, $id=0, $src_no=0, $src_id=0) {
-		var_dump($style_id);
 		$line = new line_details($stock_id, $qty, $price, $disc,
 			$qty_done,  $standard_cost, $description, $id, $src_no, $src_id );
 		if ($line->valid) {

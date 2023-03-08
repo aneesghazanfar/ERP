@@ -41,11 +41,7 @@ hidden('order_no', $order_no);
 $maincat_id = 4;
 hidden('maincat_id', $maincat_id);
 
-// start
-// Anees Ghazanfar 25/2/2023
-//Description: add New function for Total Required	formula
 
-//end.
 if (isset($_GET['OrderNumber']) && is_numeric($_GET['OrderNumber'])) {
 	$help_context = 'Plan Sales Order';
 	$_SESSION['page_title'] = sprintf( _('Plan Sales Order # %d'), $_GET['OrderNumber']);
@@ -53,29 +49,26 @@ if (isset($_GET['OrderNumber']) && is_numeric($_GET['OrderNumber'])) {
 	unset($_SESSION['form_data']);
 
 $result = get_all_detail($order_no);
-$line_no = 0;
+$line_no = 1;
 while($myrow = db_fetch($result)) {
 	$form_data['line_no'] =$line_no++;
 	$form_data['id'] = $myrow['id'];
 	$form_data['style_id'] = $myrow['style_id'];
     $form_data['stock_id'] = $myrow['stk_code'];
-	$form_data['stk_type'] = $myrow['stk_type'];
-	$form_data['t_style_qty']  = get_total_quantity($order_no, $myrow['style_id']);
+	$form_data['maincat_id'] = $myrow['maincat_id'];
+	$form_data['t_style_qty']  = get_order_qty($order_no, $myrow['style_id']);
 	$form_data['description'] = get_description($myrow['stk_code']);
 	$form_data['units'] = get_unit($myrow['stk_code']);
     $form_data['perpc'] = $myrow['perpc'];
     $form_data['stk_extra'] = $myrow['stk_extra'];
 	$form_data['stk_total'] = $myrow['stk_total'];
-	$form_data['filename'] = $myrow['filename'];	
-	$form_data['unique_name'] = $myrow['unique_name'];
+	$form_data['ufilename'] = $myrow['ufilename'];
 	$form_data['req_date'] = $myrow['req_date'];
 
 	$existing_data = isset($_SESSION['form_data']) ? $_SESSION['form_data'] : array();
 
-    // Add the new form data to the existing array
     $existing_data[] = $form_data;
 
-    // Store the updated array data in the session variable
     $_SESSION['form_data'] = $existing_data;
 
 }
@@ -85,20 +78,19 @@ while($myrow = db_fetch($result)) {
 page($_SESSION['page_title'], false, false, '', $js);
 
 function total_required($t_style_qty , $perpc , $stk_extra){
-	if($stk_extra != 0)
-		return  $t_style_qty * ( $perpc + (($perpc / $stk_extra)));
-	else
-		return  0;
-
-
+	global $Ajax;
+	if($stk_extra != 0){
+		$_POST['stk_total'] =  ceil($t_style_qty * ( $perpc + (($perpc / $stk_extra))));
+		$Ajax->activate('items_table');
+	}
+	else{
+		$_POST['stk_total'] =  0;
+		$Ajax->activate('items_table');
+	}
 
 }
 
-// function add_new_item() {
-// 	add_plan($_POST['order_no'], $_POST['style_id'], $_POST['maincat_id'],$_POST['stock_id'], $_POST['perpc'], $_POST['stk_extra'],date2sql($_POST['req_date']));
-// 	display_notification(_('New order plan has been added'));
-// }
-$unique_name = $order_no."-".$_POST['style_id']."-".$_POST['stock_id']."-".get_description($_POST['stock_id']);
+
 
 if (isset($_FILES['image']) && $_FILES['image']['name'] != '') {
 	$order_no = $_POST['order_no'];
@@ -110,7 +102,7 @@ if (isset($_FILES['image']) && $_FILES['image']['name'] != '') {
 		mkdir($filename);
 	
 
-	$filename .= '/'. item_img_name($unique_name).(substr(trim($_FILES['image']['name']), strrpos($_FILES['image']['name'], '.')));
+	$filename .= '/'. item_img_name($_POST['ufilename']).(substr(trim($_FILES['image']['name']), strrpos($_FILES['image']['name'], '.')));
 
 
 	if ($_FILES['image']['error'] == UPLOAD_ERR_INI_SIZE) {
@@ -151,43 +143,42 @@ if (isset($_FILES['image']) && $_FILES['image']['name'] != '') {
 		
 	}
 	$Ajax->activate('items_table');
-	$Ajax->activate('edit_items_table');
+	
+}
+if(isset($_POST['Delete'])){
+	$Delete_key = $_POST['Delete_key'];
+	unset($_SESSION['form_data'][$Delete_key]);
+	$Ajax->activate('items_table');
+
 }
 
-if(isset($_POST['update'])) {
-	
-
+if(isset($_POST['update_item'])) {
     $edit_id = $_POST['edit_id'];
-    // Loop through $_SESSION['form_data'] to find the row to update
+
+
     foreach($_SESSION['form_data'] as $key => $value) {
-        if($value['id'] == $edit_id) {
+        if($key == $edit_id) {
+
             // Update the relevant fields with the values from the form
             $_SESSION['form_data'][$key]['style_id'] = $_POST['style_id'];
             $_SESSION['form_data'][$key]['stock_id'] = $_POST['stock_id'];
             $_SESSION['form_data'][$key]['perpc'] = $_POST['perpc'];
-			$_SESSION['form_data'][$key]['stk_total'] = $_POST['stk_total'];
+			// $_SESSION['form_data'][$key]['stk_total'] = $_POST['stk_total'];
             $_SESSION['form_data'][$key]['stk_extra'] = $_POST['stk_extra'];
-			$_SESSION['form_data'][$key]['filename'] = $_POST['unique_name'];
-			$_SESSION['form_data'][$key]['unique_name'] = $_POST['unique_name'];
+			$_SESSION['stk_total'][$key]['stk_total'] = total_required($_POST['t_style_qty'], $_POST['perpc'], $_POST['stk_extra']);
+			$_SESSION['form_data'][$key]['ufilename'] = $_POST['ufilename'];
             $_SESSION['form_data'][$key]['req_date'] = $_POST['req_date'];
 			display_notification(_('Order plan has been updated'));
 
-			$Ajax->activate('items_table');
-			$Ajax->activate('edit_items_table');
-
-
-            // Add any other fields that need to be updated
-            // ...
-
-            // Break out of the loop since we have found and updated the row
             break;
         }
     }
 
     // Unset the edit_id field to reset the form
     unset($_POST['edit_id']);
-	$_REQUEST['edit_id']=null;
+	// $_REQUEST['edit_id']=null;
 
+	$Ajax->activate('items_table');
 
 
 }
@@ -210,15 +201,14 @@ $form_data['id'] =null;
 $form_data['line_no'] = $next_line_no;
 $form_data['style_id'] = $_POST['style_id'];
 $form_data['stock_id'] = $_POST['stock_id'];
-$form_data['stk_type'] = $_POST['maincat_id'];
+$form_data['maincat_id'] = $_POST['maincat_id'];
 $form_data['perpc'] = $_POST['perpc'];
 $form_data['stk_extra'] = $_POST['stk_extra'];
 $form_data['req_date'] = $_POST['req_date'];
 $form_data['t_style_qty']  = $_POST['t_style_qty'];
 $form_data['description'] = get_description($_POST['stock_id']);
 $form_data['units'] = get_unit($_POST['stock_id']);
-$form_data['filename'] = $_POST['unique_name'];	
-$form_data['unique_name'] = $_POST['unique_name'];
+$form_data['ufilename'] = $_POST['ufilename'];
 $form_data['stk_extra'] = $_POST['stk_extra'];
 $form_data['stk_total'] = $_POST['stk_total'];
 $form_data['req_date'] = $_POST['req_date'];
@@ -230,30 +220,71 @@ $existing_data[] = $form_data;
 $_SESSION['form_data'] = $existing_data;
 display_notification(_('New order plan has been added'));
 
+$Ajax->activate('items_table');
 
-	$Ajax->activate('edit_items_table');
+
+}
+
+if(isset($_POST['addplan'])){
+
+	add_to_database($_SESSION['form_data'], $_POST['order_no'],$_POST['Comments'], $_POST['maincat_id']);
+	display_notification(_('New order plan has been added'));
+
+
+}
+
+function line_start_focus() {
+	global 	$Ajax;
 
 	$Ajax->activate('items_table');
-
-
 }
 
-if(isset($_POST['add'])){
+if (isset($_POST['CancelItemChanges']))
+	line_start_focus();
 
-	add_to_database($_SESSION['form_data'], $_POST['order_no'],$_POST['Comments']);
+function edit(&$order, $order_no, $line , $maincat_id) {
+	// global $Ajax;
 
-}
+	$id = find_row('Edit');
+	// var_dump($id);
+
+	if ($id == $line && $line != -1) {
+
+		foreach($order as $key=>$value){
+			if($key == $line){
+				hidden('edit_id', $key);
+				$_POST['stock_id'] = $value['stock_id'];
+				$_POST['perpc'] = $value['perpc'];
+				$_POST['stk_extra'] = $value['stk_extra'];
+				$_POST['stk_total'] = $value['stk_total'];
+				$_POST['req_date'] = $value['req_date'];
+				$_POST['ufilename'] = $value['ufilename'];
+				// $Ajax->activate('items_table');
+
+			}}
+			stock_style_list_cells_orderWise( 'style_id', $_POST['style_id'],  false,$order_no);	
+			$t_style_qty = get_order_qty($order_no, $_POST['style_id']);
+			hidden('t_style_qty',$t_style_qty);
+			qty_cell($t_style_qty);
+			sales_items_list_cells(null,'stock_id',$value['stock_id'], $maincat_id,'',false);
+			$unit = get_unit($_POST['stock_id']);
+			label_cell($unit);	
+			text_cells_ex(null, 'perpc',null, 52, null ,'','','',false);
+			text_cells_ex(null, 'stk_extra', null, 52, null ,'','','',false);
+			$stk_total = total_required($_POST['t_style_qty'], $_POST['perpc'], $_POST['stk_extra']);
+			hidden('stk_total', $stk_total);
+			qty_cell($_POST['stk_total'], );
+			date_cells(null, 'req_date', null, null, 0, 0, 0, null, true);
+			file_cells(null, 'image','image');
+		
 
 
-$result = get_all_detail($order_no);
-div_start('items_table');
+	}
 
-function detail(&$order, $order_no ,$id, $key=-1, $maincat_id){
-	var_dump($_POST['id']);
-	echo "<br>";
-	if ($key!=-1 && $key == $id) {
-			stock_style_list_cells_oderWise(null,$order_no, 'style_id', null, false, true);
-			$t_style_qty = get_total_quantity($order_no, $_POST['style_id']);
+else{
+	stock_style_list_cells_orderWise( 'style_id', $_POST['style_id'],  true,$order_no);	
+			
+			$t_style_qty = get_order_qty($order_no, $_POST['style_id']);
 			hidden('t_style_qty',$t_style_qty);
 			qty_cell($t_style_qty);
 			sales_items_list_cells(null,'stock_id',$_POST['stock_id'], $maincat_id, false, true, true);
@@ -262,17 +293,37 @@ function detail(&$order, $order_no ,$id, $key=-1, $maincat_id){
 			text_cells_ex(null, 'perpc',null, 52, null ,'','','',true);
 			text_cells_ex(null, 'stk_extra', null, 52, null ,'','','',true);
 			$stk_total = total_required($_POST['t_style_qty'], $_POST['perpc'], $_POST['stk_extra']);
+			// if (list_updated('stk_extra') || list_updated('perpc') || list_updated('t_style_qty')) {
+			// 	$Ajax->activate('items_table');
+			// }
 			hidden('stk_total', $stk_total);
 			qty_cell($_POST['stk_total']);
 			date_cells(null, 'req_date', null, null, 0, 0, 0, null, true);
 			file_cells(null, 'image','image');
-	}
+		
+		
 }
+if ($id != -1) {
+	button_cell('update_item', _('Update'), _('Confirm changes'), ICON_UPDATE);
+	button_cell('CancelItemChanges', _('Cancel'), _('Cancel changes'), ICON_CANCEL);
+	
+}
+else
+	submit_cells('AddItem', _('Add Item'), "colspan=2 align='center'", _('Add new item to document'), true);
+	$ufilename = $order_no."-".$_POST['style_id']."-".$_POST['stock_id'];
+
+hidden('ufilename', $ufilename);
+}
+
+
 
 start_form(true);
 
 
-// var_dump($_POST['style_id']);
+div_start('items_table');
+
+
+
 display_heading("Plan Sales Order");
 
 start_table(TABLESTYLE, "width='80%'");
@@ -280,103 +331,65 @@ start_table(TABLESTYLE, "width='80%'");
 			$th = array(_('Style No.'), _('Total Quantity'), _('Accessory Code'), _('Accessory Description'),_('UoM'), _('Qty Per Piece'), _('Extra Quantity%'), _('Total Required'), _('Required by Date'), _('Image') , _('Action'));
 
 			table_header($th);
-			global $Ajax;
+			start_row();
 			global $SysPrefs;
-			// global $id;
-			// $id = -1;
-			// hidden('id', $id);
-			$id = find_submit('Edit');
-			var_dump($id);
-			// if($id == -1)
-				detail($_SESSION['form_data'],$order_no, $_POST['id'], $key, $maincat_id);
+			$editable_items = true;
+			$id = find_row('Edit');
+			if ($id == -1 && $editable_items)
+				edit($_SESSION['form_data'], $order_no, -1, $maincat_id);
 
-			
 			foreach ($_SESSION['form_data'] as $key => $value) {
-				foreach ($_SESSION['form_data'] as $key => $value) {
-					if (isset($_POST['Edit'.$value['line_no']])) { // check if edit button was clicked
-						// display an editable form with existing data pre-filled in the form fields
-						echo "<form method='POST'>";
-						detail($value, $order_no, $key, $maincat_id);
-						submit_cells('update', _('Update'));
-						echo "</form>";
-					} else {
-						// display the regular table row
-						start_row();
-						label_cell($value['style_id']);
-						$t_style_qty = get_total_quantity($order_no, $value['style_id']);
-						qty_cell($t_style_qty);
-						view_stock_status_cell($value['stock_id']);
-						$des = get_description($value['stock_id']);
-						$unit = get_unit($value['stock_id']);
-						label_cell($des);
-						label_cell($unit);
-						qty_cell($value['perpc']);
-						qty_cell($value['stk_extra']);
-						qty_cell($value['stk_total']);
-						label_cell($value['req_date']);
-						$file = null;
-						$unique_name = $order_no."-".$value['style_id']."-".$value['stock_id']."-".get_description($value['stock_id']);
-						$unique_name = str_replace(" ", "_", $unique_name);
-						foreach (array('jpg', 'png', 'gif') as $ext) {
-							$file = company_path().'/images/'. $unique_name .'.'.$ext;
-							if (file_exists($file)) {
-								$stock_img_link = "<img id='item_img' alt = 'no image found' src='".$file."?nocache=".rand()."'"." height='".$SysPrefs->pic_height."' border='0'>";
-								break;
-							}
-						}
-						label_cell( $stock_img_link);
-						edit_button_cell('Edit'.$value['line_no'], _('Edit'), _('Edit document line'));
-						// delete_button_cell('Delete'.$value['line_no'], _('Delete'), _('Remove document line'));
-						end_row();
+				start_row();
+				if($id != $key || !$editable_items){
+
+				label_cell($value['style_id']);
+				$t_style_qty = get_order_qty($order_no, $value['style_id']);
+				qty_cell($t_style_qty);
+				view_stock_status_cell($value['stock_id']);
+				$des = get_description($value['stock_id']);
+				$unit = get_unit($value['stock_id']);
+				label_cell($des);
+				label_cell($unit);
+				qty_cell($value['perpc']);
+				qty_cell($value['stk_extra']);
+				qty_cell($value['stk_total']);
+				label_cell($value['req_date']);
+				$ufilename = $value['ufilename'];
+				$ufilename = str_replace(' ', '_', $ufilename);
+				$stock_img_link = null;
+				foreach (array('jpg', 'png', 'gif') as $ext) {
+					$file = company_path().'/images/'. $ufilename .'.'.$ext;
+
+					if (file_exists($file)) {
+						$stock_img_link = "<img id='item_img' alt = 'no image found' src='".$file."?nocache=".rand()."'"." height='".$SysPrefs->pic_height."' border='0'>";
+						break;
 					}
 				}
+				label_cell( $stock_img_link);
+				edit_button_cell('Edit'.$value['line_no'], _('Edit'), _('Edit document line'));
+				delete_button_cell('Delete'.$value['line_no'], _('Delete'), _('Remove line from document'));
+				hidden('Delete_key', $key);			
+				end_row();
+
 				
 
+			}
+			else{
+				edit($_SESSION['form_data'], $order_no, $key, $maincat_id);
+			}
+	
+	}
 
 			
 
 
 end_table(1);
-
-// div_start('edit_items_table');
-// start_table(TABLESTYLE, "width='80%'");
-// $th = array(_('Style No.'), _('Total Quantity'), _('Accessory Code'), _('Accessory Description'),_('UoM'), _('Qty Per Piece'), _('Extra Quantity%'), _('Total Required'), _('Required by Date'), _('Image') , _('Action'));
-
-// 			table_header($th);
-// 			start_row();
-// 			stock_style_list_cells_oderWise(null,$order_no, 'style_id', null, false, true);
-// 			$t_style_qty = get_total_quantity($order_no, $_POST['style_id']);
-// 			hidden('t_style_qty',$t_style_qty);
-// 			qty_cell($t_style_qty);
-// 			sales_items_list_cells(null,'stock_id',$_POST['stock_id'], $maincat_id, false, true, true);
-// 			$unit = get_unit($_POST['stock_id']);
-// 			label_cell($unit);
-// 			text_cells_ex(null, 'perpc',null, 52, null ,'','','',true);
-// 			text_cells_ex(null, 'stk_extra', null, 52, null ,'','','',true);
-// 			$stk_total = total_required($_POST['t_style_qty'], $_POST['perpc'], $_POST['stk_extra']);
-// 			hidden('stk_total', $stk_total);
-// 			qty_cell($_POST['stk_total']);
-// 			date_cells(null, 'req_date', null, null, 0, 0, 0, null, true);
-// 			file_cells(null, 'image','image');
-// 			if($_REQUEST['edit_id']!=null || $edit)
-// 			submit_cells('update', _('Update'), "colspan=2 align='center'", _('Update item to document'), true);
-// 			else
-// 			submit_cells('AddItem', _('Add Item'), "colspan=2 align='center'", _('Add new item to document'), true);
-// 			hidden('unique_name', $unique_name);
-// 			$Ajax->activate('edit_items_table');
-
-
-			}
-
-
-// 			end_row();
-
-// end_table(1);
-// div_end();
+div_end();
+$old_comments = get_plan_comments($order_no,$maincat_id);
 start_table(TABLESTYLE2);
-textarea_row(_('Remarks:'), 'Comments', null, 70, 4);
+textarea_row(_('Remarks:'), 'Comments', $old_comments, 70, 4);
 end_table(1);
-submit_center_first('add',_('add'),  _('Check entered data and save document'), 'default');
+submit_center_first('addplan',_('addplan'),  _('Check entered data and save document'), 'default');
 div_end();
 end_form();
 end_page();

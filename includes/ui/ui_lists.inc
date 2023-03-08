@@ -1710,27 +1710,24 @@ function stock_categories_list_row($label, $name, $selected_id=null, $spec_opt=f
 // Description: dropdown list for stock style oder wo_issue_view
 // 3/3/2023
 //Description: some changes in this function because yesterday its not working properly.
-function stock_style_list_oderWise($name,$order_no, $selected_id=null, $spec_opt=false, $submit_on_change=false) {
 
+function stock_style_list_orderWise($name, $selected_id=null, $submit_on_change=false,$order_no) {
 
-$sql = "SELECT DISTINCT style_id, style_id FROM ".TB_PREF."sales_order_details WHERE order_no = ".db_escape($order_no);
+$sql = "SELECT DISTINCT s.style_id, s.style_id FROM ".TB_PREF."stock_master s,".TB_PREF."sales_order_details c WHERE s.stock_id=c.stk_code AND c.order_no=".db_escape($order_no);
 	return combo_input($name, $selected_id, $sql, 'style_id', 'style_id',
 		array(
-			'spec_option' => $spec_opt,
 			'spec_id' => -1,
 			'select_submit'=> $submit_on_change,
 			'async' => false,
 	));
 }
 
-function stock_style_list_cells_oderWise($label,$order_no, $name, $selected_id=null, $spec_opt=false, $submit_on_change=false) {
-	if ($label != null)
-		echo "<td>".$label."</td>\n";
+function stock_style_list_cells_orderWise( $name, $selected_id=null, $submit_on_change=false,$order_no) {
+
 	echo "<td>";
-	echo stock_style_list_oderWise($name,$order_no, $selected_id, $spec_opt, $submit_on_change);
+	echo stock_style_list_orderWise($name, $selected_id,  $submit_on_change,$order_no);
 	echo "</td>\n";
 }
-
 
 // end
 

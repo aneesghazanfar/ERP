@@ -11,7 +11,7 @@
 ***********************************************************************/
 include_once($path_to_root.'/sales/includes/cart_class.inc');
 
-function add_to_order(&$order, $new_item, $new_item_qty, $price, $discount, $description='' , $style_id) {
+function add_to_order(&$order, $new_item, $new_item_qty, $price, $discount, $description='' ) {
 	// calculate item price to sum of kit element prices factor for value distribution over all exploded kit items
 	$std_price = get_kit_price($new_item, $order->customer_currency, $order->sales_type, $order->price_factor, get_post('OrderDate'), true);
 
@@ -48,7 +48,7 @@ function add_to_order(&$order, $new_item, $new_item_qty, $price, $discount, $des
 					break;
 				}
 			}
-			$order->add_to_cart(count($order->line_items), $item['stock_id'], $new_item_qty*$item['quantity'], $item_price, $discount, 0, 0, $description , $style_id);
+			$order->add_to_cart(count($order->line_items), $item['stock_id'], $new_item_qty*$item['quantity'], $item_price, $discount, 0, 0, $description );
 		}
 	}
 }
@@ -137,7 +137,6 @@ function display_order_detail($title, &$order, $maincat_id, $editable_items=fals
 	}
 	foreach ($order->get_items() as $line_no=>$stock_item) {
 
-	var_dump($stock_item);
 			if (!$editable_items || $id != $line_no) {
 			$stock_item->style_wise_tquantity = get_total_quantity($stock_item->id, $stock_item->style_id);
 			label_cell($stock_item->style_id);
@@ -192,7 +191,7 @@ function sales_order_plan_controls(&$order, &$rowcounter, $line_no=-1 , $maincat
 
 		$_POST['t_style_qty'] = get_total_quantity($order->line_items[$id]->id , $order->line_items[$id]->style_id);
 		
-		stock_style_list_cells_oderWise(null,$order->line_items[$id]->id, 'style_id', null, false, false, false);
+		stock_style_list_cells_orderWise(null,$order->line_items[$id]->id, 'style_id', null, false, false, false);
 
 		label_cell($_POST['t_style_qty']);
 
@@ -214,7 +213,7 @@ function sales_order_plan_controls(&$order, &$rowcounter, $line_no=-1 , $maincat
 	}
 	else{ 
 		// prepare new line
-		stock_style_list_cells_oderWise(null,$order->line_items[0]->id, 'style_id', null, false, true, false);
+		stock_style_list_cells_orderWise(null,$order->line_items[0]->id, 'style_id', null, false, true, false);
 
 		$t_style_qty = get_total_quantity($order->line_items[0]->id, $_POST['style_id']);
 
@@ -284,10 +283,11 @@ function display_order_summary($title, &$order, $editable_items=false) {
 		label_cell('&nbsp;', "colspan=".count($th));
 		end_row();
 	}
+			//var_dump($order);
 
 	$low_stock = $order->check_qoh($_POST['OrderDate'], $_POST['Location']);
 	foreach ($order->get_items() as $line_no=>$stock_item) {
-
+		
 		$line_total = round($stock_item->qty_dispatched * $stock_item->price * (1 - $stock_item->discount_percent), user_price_dec());
 		$qoh_msg = '';
 
@@ -560,7 +560,6 @@ function sales_order_item_controls(&$order, &$rowcounter, $line_no=-1) {
 	global $Ajax;
 
 	alt_table_row_color($rowcounter);
-
 	$id = find_submit('Edit');
 	if ($line_no!=-1 && $line_no == $id) { // edit old line
 		$_POST['stock_id'] = $order->line_items[$id]->stock_id;

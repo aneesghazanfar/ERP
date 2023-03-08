@@ -285,8 +285,6 @@ function get_sales_order_details($order_no, $trans_type) {
 	$sql = "SELECT id, stk_code, unit_price,
 				line.description,
 				line.quantity,
-				line.style_id,
-				line.qoh,
 				discount_percent,
 				qty_sent as qty_done,
 				item.long_description,
@@ -302,18 +300,7 @@ function get_sales_order_details($order_no, $trans_type) {
 
 	return db_query($sql, 'Retreive order Line Items');
 }
-// end
-// Anees Ghazanfar 3/3/2023
-// Description: new function to get the total quantity of the order
 
-function get_total_quantity($order_no , $style_id){
-	
-	$sql = "SELECT SUM(quantity) AS total_quantity FROM ".TB_PREF."sales_order_details WHERE order_no = ".db_escape($order_no)." AND style_id = ".db_escape($style_id);
-	$result = db_query($sql, 'Retreive order Line Items');
-	$row = db_fetch($result);
-	return $row[0];
-}
-//end
 
 function read_sales_order($order_no, &$order, $trans_type) {
 
