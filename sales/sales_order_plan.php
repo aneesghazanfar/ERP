@@ -274,7 +274,7 @@ function edit(&$order, $order_no, $line , $maincat_id) {
 			$stk_total = total_required($_POST['t_style_qty'], $_POST['perpc'], $_POST['stk_extra']);
 			hidden('stk_total', $stk_total);
 			qty_cell($_POST['stk_total'], );
-			date_cells(null, 'req_date', null, null, 0, 0, 0, null, true);
+			date_cells(null, 'req_date', null, null, 0, 0, 0, null, false);
 			file_cells(null, 'image','image');
 		
 
