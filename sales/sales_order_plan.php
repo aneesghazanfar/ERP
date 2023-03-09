@@ -266,7 +266,7 @@ function edit(&$order, $order_no, $line , $maincat_id) {
 			$t_style_qty = get_order_qty($order_no, $_POST['style_id']);
 			hidden('t_style_qty',$t_style_qty);
 			qty_cell($t_style_qty);
-			sales_items_list_cells(null,'stock_id',$value['stock_id'], $maincat_id,'',false);
+			sales_items_list_cells(null,'stock_id',$_POST['stock_id'], false, true, true, $maincat_id);
 			$unit = get_unit($_POST['stock_id']);
 			label_cell($unit);	
 			text_cells_ex(null, 'perpc',null, 52, null ,'','','',false);
@@ -287,7 +287,7 @@ else{
 			$t_style_qty = get_order_qty($order_no, $_POST['style_id']);
 			hidden('t_style_qty',$t_style_qty);
 			qty_cell($t_style_qty);
-			sales_items_list_cells(null,'stock_id',$_POST['stock_id'], $maincat_id, false, true, true);
+			sales_items_list_cells(null,'stock_id',$_POST['stock_id'], false, true, true, $maincat_id);
 			$unit = get_unit($_POST['stock_id']);
 			label_cell($unit);
 			text_cells_ex(null, 'perpc',null, 52, null ,'','','',true);
