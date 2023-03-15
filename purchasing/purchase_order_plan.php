@@ -33,33 +33,33 @@ hidden('order_no', $order_no);
 	$ordrow = db_fetch($o_result);
 // }
 // $ordrow = get_order($order_no);
-// start_table(TABLESTYLE2, "width='95%'", 5);
-// echo '<tr><td>'; // outer table
-// start_table(TABLESTYLE, "width='100%'");
-// start_row();
-// label_cells(_('Customer'), get_customer_name($ordrow['debtor_no']), "class='tableheader2'");
-// label_cells(_('Ordering Branch'), get_branch_name($ordrow['branch_code']), "class='tableheader2'");
-// label_cells(_('Customer Reference'), $ordrow['customer_ref'], "class='tableheader2'");
-// label_cells(_('Reference'), $ordrow['reference'], "class='tableheader2'");
-// end_row();
-// start_row();
-// label_cells(_('For Sales Order'), get_customer_trans_view_str(ST_SALESORDER, $order_no), "class='tableheader2'");
-// if ($ordrow['repeat_of'] != 0)
-// label_cells(_('Repeat of'), get_customer_trans_view_str(ST_SALESORDER, $ordrow['repeat_of']), "class='tableheader2'");
-// else
-// label_cells(_('Repeat of'), 'New', "class='tableheader2'");
-// label_cells(_('Total Quantity'), $ordrow['qty_total'], "class='tableheader2'");
-// label_cells(_('Total Value'), $ordrow['total'].' '.$ordrow['ord_curr'], "class='tableheader2'");
-// end_row();
-// start_row();
-// label_cells(_('Order Date'), $ordrow['ord_date'], "class='tableheader2'");
-// label_cells(_('Delivery Date'), $ordrow['delivery_date'], "class='tableheader2'");
-// label_cells(_('Delivery From'), $ordrow['from_stk_loc'], "class='tableheader2'");
-// label_cells(_('Merchandizer'), get_salesman_name($ordrow['salesman']), "class='tableheader2'");
-// end_row();
-// end_table();
-// echo '</td></tr>';
-// end_table(1); // outer table
+start_table(TABLESTYLE2, "width='95%'", 5);
+echo '<tr><td>'; // outer table
+start_table(TABLESTYLE, "width='100%'");
+start_row();
+label_cells(_('Customer'), get_customer_name($ordrow['debtor_no']), "class='tableheader2'");
+label_cells(_('Ordering Branch'), get_branch_name($ordrow['branch_code']), "class='tableheader2'");
+label_cells(_('Customer Reference'), $ordrow['customer_ref'], "class='tableheader2'");
+label_cells(_('Reference'), $ordrow['reference'], "class='tableheader2'");
+end_row();
+start_row();
+label_cells(_('For Sales Order'), get_customer_trans_view_str(ST_SALESORDER, $order_no), "class='tableheader2'");
+if ($ordrow['repeat_of'] != 0)
+label_cells(_('Repeat of'), get_customer_trans_view_str(ST_SALESORDER, $ordrow['repeat_of']), "class='tableheader2'");
+else
+label_cells(_('Repeat of'), 'New', "class='tableheader2'");
+label_cells(_('Total Quantity'), $ordrow['qty_total'], "class='tableheader2'");
+label_cells(_('Total Value'), $ordrow['total'].' '.$ordrow['ord_curr'], "class='tableheader2'");
+end_row();
+start_row();
+label_cells(_('Order Date'), $ordrow['ord_date'], "class='tableheader2'");
+label_cells(_('Delivery Date'), $ordrow['delivery_date'], "class='tableheader2'");
+label_cells(_('Delivery From'), $ordrow['from_stk_loc'], "class='tableheader2'");
+label_cells(_('Merchandizer'), get_salesman_name($ordrow['salesman']), "class='tableheader2'");
+end_row();
+end_table();
+echo '</td></tr>';
+end_table(1); // outer table
 //----------------------------------------------------------------------------------------------
 start_form(true);
 tabbed_content_start('tabs', array(
