@@ -86,9 +86,18 @@ function check_overdue($row) {
 
 function view_link($dummy, $order_no) {
 	global $trans_type;
+	// echo $order_no;
 	return  get_customer_trans_view_str($trans_type, $order_no);
 }
 
+// start
+// anees Ghazanfar 8/3/2023
+// Descprition: this function is used to open new pop up page using another function "view_sales_order_plan" in "ui_list.inc"
+function view_plan($row) {
+	global $trans_type;
+	return  view_sales_order_plan($trans_type, $row['order_no']);
+}
+// end
 function prt_link($row) {
 	global $trans_type;
 	return print_document_link($row['order_no'], _('Print'), $trans_type, ICON_PRINT);
@@ -290,8 +299,11 @@ if ($_POST['order_view_mode'] == 'OutstandingOnly') {
 		// Anees Ghazanfar 24/2/2023
 		// Description column added for new page
 		array('insert'=>true, 'fun'=>'edit_table_link'),
+		// 8/3/2023
+		// Description column added for new page
+		array('insert'=>true, 'fun'=>'view_plan'),
 		// end
-		array('insert'=>true, 'fun'=>'prt_link')));
+		array('insert'=>true,'insert'=>true, 'fun'=>'prt_link')));
 
 }
 elseif ($_POST['order_view_mode'] == 'InvoiceTemplates') {

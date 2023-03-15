@@ -95,6 +95,32 @@ function get_customer_trans_view_str($type, $trans_no, $label='', $icon=false, $
 
 //--------------------------------------------------------------------------------------
 
+// start
+// Anees Ghazanfar 8/3/2023
+// Description: add new to show the view of the sales order plan 
+
+function view_sales_order_plan($type, $trans_no, $label='', $icon=false, $class='', $id=''){
+	$viewer = 'sales/view/';
+	$viewer .= 'view_sales_order_plan.php';
+	if(!is_array($trans_no)) $trans_no = array($trans_no);
+
+	$lbl = $label;
+	$preview_str = '';
+
+	foreach($trans_no as $trans) {
+		if ($label == '')
+			$lbl = $trans;
+		if($preview_str!='') $preview_str .= ',';
+
+		$preview_str .= viewer_link($lbl, $viewer.'?trans_no='.$trans.'&trans_type='.$type, $class, $id, $icon);
+	}
+	return $preview_str;
+	}
+
+// end
+
+//------------------------------------------------------------------------------------------
+
 function get_banking_trans_view_str($type, $trans_no, $label='', $icon=false, $class='', $id='') {
 	if ($label == '')
 		$label = $trans_no;
@@ -1502,13 +1528,14 @@ function trans_editor_link($type, $trans_no) {
 
 // start
 // Anees Ghazanfar 24/2/2023
-// Description: add new function to open sales_order_plan.php page_nested
+// Description: add new function to open purchase_order_plan.php page_nested
 
 function trans_edit_table_link($type, $trans_no) {
 
 	global $path_to_root;
 	$editor_url = array(
-				ST_SALESORDER => "/sales/sales_order_plan.php?OrderNumber=%d",
+				ST_SALESORDER => "/purchasing/purchase_order_plan.php?OrderNumber=%d",
+				
 	);
 	return !isset($editor_url[$type]) ? '--' :
 			(is_closed_trans($type, $trans_no) ? set_icon(ICON_CLOSED, _('Closed')) :

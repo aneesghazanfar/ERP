@@ -349,7 +349,7 @@ function read_sales_order($order_no, &$order, $trans_type) {
 
 			$order->add_to_cart($line_no,$myrow['stk_code'],$myrow['quantity'],
 				$myrow['unit_price'], $myrow['discount_percent'],
-				$myrow['qty_done'], $myrow['material_cost'], $myrow['description'], $myrow['id'] , $myrow['style_id'], $myrow['qoh'] );
+				$myrow['qty_done'], $myrow['material_cost'], $myrow['description'], $myrow['id'] );
 			$line_no++;
 		}
 	}

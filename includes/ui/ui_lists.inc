@@ -353,8 +353,7 @@ function get_sale_ord_list($name , $selected_id=null, $spec_option=false, $submi
 function get_sale_ord_datail($name)
 {
 	echo "<td>";
-	echo get_sale_ord_list($name, null, null, true,
-		null);
+	echo get_sale_ord_list($name, null, null, true,null);
 	echo "</td>";
 }
 
@@ -918,23 +917,9 @@ function stock_items_list_cells($label, $sale_ord_detail, $name, $selected_id=nu
 	//function sales_items_list($name, $selected_id=null, $all_option=false, $submit_on_change=false, $type='', $opts=array(), $editkey=false) {
 // old line end
 // new line start
-function sales_items_list($name, $selected_id=null, $maincat_id, $all_option=false, $submit_on_change=false, $type='', $opts=array(), $editkey=false) {
+function sales_items_list($name, $selected_id=null, $all_option=false, $submit_on_change=false, $type='', $opts=array(), $editkey=false, $maincat_id ) {
 // apply condition if maincat_id is not null
-	// all sales codes
-	if($maincat_id){
-		$sql = "SELECT i.item_code, i.description, c.description, count(*)>1 as kit,
-			 i.inactive, if(count(*)>1, '0', s.editable) as editable
-			FROM
-			".TB_PREF."stock_master s,
-			".TB_PREF."item_codes i
-			LEFT JOIN
-			".TB_PREF."stock_category c
-			ON i.category_id=c.category_id
-			WHERE i.stock_id=s.stock_id
-	  AND mb_flag != 'F' AND s.maincat_id = ".db_escape($maincat_id);
-	}
-	else{
-// new line end
+
 	$sql = "SELECT i.item_code, i.description, c.description, count(*)>1 as kit,
 			 i.inactive, if(count(*)>1, '0', s.editable) as editable
 			FROM
@@ -945,7 +930,9 @@ function sales_items_list($name, $selected_id=null, $maincat_id, $all_option=fal
 			ON i.category_id=c.category_id
 			WHERE i.stock_id=s.stock_id
 	  AND mb_flag != 'F'";
-}
+
+ 	if ($maincat_id) 
+		$sql .= " AND s.maincat_id = ".db_escape($maincat_id);
 	
 	if ($type == 'local') // exclude foreign codes
 		$sql .=	" AND !i.is_foreign"; 
@@ -977,7 +964,7 @@ function sales_items_list($name, $selected_id=null, $maincat_id, $all_option=fal
 //function sales_items_list_cells($label, $name, $selected_id=null, $all_option=false, $submit_on_change=false, $editkey=false) {
 // old line end
 // new line start
-function sales_items_list_cells($label, $name, $selected_id=null, $maincat_id = null, $all_option=false, $submit_on_change=false, $editkey=false) {
+function sales_items_list_cells($label, $name, $selected_id=null, $all_option=false, $submit_on_change=false, $editkey=false , $maincat_id = null) {
 // new line end
 	if ($editkey)
 		set_editor('item', $name, $editkey);
@@ -988,10 +975,12 @@ function sales_items_list_cells($label, $name, $selected_id=null, $maincat_id = 
 	/*echo sales_items_list($name, $selected_id, $all_option, $submit_on_change,
 		'', array('cells'=>true, 'max'=>50), $editkey); // maximum is set to 50 and not default 255.*/
 	// old line end
+
 	// new line start
-	echo sales_items_list($name, $selected_id, $maincat_id, $all_option, $submit_on_change,
-		'', array('cells'=>true, 'max'=>50), $editkey); // maximum is set to 50 and not default 255.
+	echo sales_items_list($name, $selected_id, $all_option, $submit_on_change,
+		'', array('cells'=>true, 'max'=>50), $editkey, $maincat_id); // maximum is set to 50 and not default 255.
 	// new line end
+
 	//end
 }
 
@@ -1705,31 +1694,7 @@ function stock_categories_list_row($label, $name, $selected_id=null, $spec_opt=f
 //-----------------------------------------------------------------------------------------------
 
 
-// start
-// Anees Ghazanfar 25/2/2023
-// Description: dropdown list for stock style oder wo_issue_view
-// 3/3/2023
-//Description: some changes in this function because yesterday its not working properly.
 
-function stock_style_list_orderWise($name, $selected_id=null, $submit_on_change=false,$order_no) {
-
-$sql = "SELECT DISTINCT s.style_id, s.style_id FROM ".TB_PREF."stock_master s,".TB_PREF."sales_order_details c WHERE s.stock_id=c.stk_code AND c.order_no=".db_escape($order_no);
-	return combo_input($name, $selected_id, $sql, 'style_id', 'style_id',
-		array(
-			'spec_id' => -1,
-			'select_submit'=> $submit_on_change,
-			'async' => false,
-	));
-}
-
-function stock_style_list_cells_orderWise( $name, $selected_id=null, $submit_on_change=false,$order_no) {
-
-	echo "<td>";
-	echo stock_style_list_orderWise($name, $selected_id,  $submit_on_change,$order_no);
-	echo "</td>\n";
-}
-
-// end
 
 
 
@@ -1737,32 +1702,7 @@ function stock_style_list_cells_orderWise( $name, $selected_id=null, $submit_on_
 
 //-----------------------------------------------------------------------------------------------
 
-// start
-// Anees Ghazanfar 13/2/2023
-// Description: dropdown list for stock style
 
-function stock_style_list($name, $selected_id=null, $spec_opt=false, $submit_on_change=false, $fixed_asset=false) {
-
-	
-
-	$sql = "SELECT id, own_style FROM ".TB_PREF."stock_style";
-
-	return combo_input($name, $selected_id, $sql, 'id', 'own_style',
-		array(
-			'spec_option'=>$spec_option,
-			'spec_id'=>'',
-			'select_submit'=>submit_on_change,
-			'async'=>false,
-	));
-}
-
-function stock_style_list_cells($label, $name, $selected_id=null, $spec_opt=false, $submit_on_change=false, $fixed_asset=false) {
-	if ($label != null)
-		echo "<td>".$label."</td>\n";
-	echo "<td>";
-	echo stock_style_list($name, $selected_id, $spec_opt, $submit_on_change, $fixed_asset);
-	echo "</td>\n";
-}
 
 // start 
 // Anees Ghazanfar 1/3/2023

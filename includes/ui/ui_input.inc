@@ -491,6 +491,9 @@ function hidden_text_input($name, $value=null, $size='', $max='', $title='', $pa
 }
 
 
+
+
+
 // start
 // Anees Ghazanfar 15/2/2023
 // Description: This function is used to disable the text input field for item code
