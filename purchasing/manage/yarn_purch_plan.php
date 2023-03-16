@@ -24,7 +24,8 @@ if(isset($_POST['update_item'])) {
 
     foreach($_SESSION['yarn_data'] as $key => $value) {
         if($key == $edit_id) {
-      $_SESSION['yarn_data'][$key]['stk_extra'] = $_POST['yan_stk_extra'];
+      		$_SESSION['yarn_data'][$key]['stk_extra'] = $_POST['yan_stk_extra'];
+			$_SESSION['yarn_data'][$key]['waste'] = $_POST['yan_waste'];
 			$get_total_net_qty= get_total_net_qty($order_no, 3);
 			$_SESSION['yarn_data'][$key]['stk_total'] = total_required_yarn($get_total_net_qty,$_POST['yan_waste'], $_POST['yan_stk_extra']);
 			$_SESSION['yarn_data'][$key]['req_date'] = $_POST['req_date'];
@@ -111,15 +112,15 @@ function edit(&$order,  $order_no, $line , $maincat_id, $maincat_id_2) {
 			}
 		}
 			label_cells( null, $_POST['style_id']);
-			$_POST['t_style_qty'] = get_order_qty($order_no, $_POST['style_id']);
-			qty_cell($_POST['t_style_qty']);
+			// $_POST['t_style_qty'] = get_order_qty($order_no, $_POST['style_id']);
+			// qty_cell($_POST['t_style_qty']);
+			$get_total_net_qty= get_total_net_qty($order_no, 3);
+			qty_cell($get_total_net_qty);
 			label_cells(null, $_POST['stock_id']);
 			label_cells(null, get_description($_POST['stock_id']));
 			$unit = get_unit($_POST['stock_id']);
-			$get_total_net_qty= get_total_net_qty($order_no, 3);
 			$total_yarn = total_required_yarn($get_total_net_qty,$_POST['yan_waste'], $_POST['yan_stk_extra']);
 			label_cell($unit);
-			qty_cell($get_total_net_qty);
 			small_qty_cells_ex(null, 'yan_waste', 0,false);
 			qty_cell($total_yarn);
 			small_qty_cells_ex(null, 'yan_stk_extra', 0,false);
@@ -130,14 +131,14 @@ function edit(&$order,  $order_no, $line , $maincat_id, $maincat_id_2) {
 	}
 	else{
 			stock_style_list_cells( 'style_id', $_POST['style_id'],  true,$order_no);
-			$_POST['t_style_qty'] = get_order_qty($order_no, $_POST['style_id']);
-			qty_cell($_POST['t_style_qty']);
+			// $_POST['t_style_qty'] = get_order_qty($order_no, $_POST['style_id']);
+			// qty_cell($_POST['t_style_qty']);
+			$get_total_net_qty= get_total_net_qty($order_no, 3);
+			qty_cell($get_total_net_qty);
 			sales_items_list_cells(null,'stock_id', $_POST['stock_id'], false, true, true , $maincat_id	,$maincat_id_2);
 			$unit = get_unit($_POST['stock_id']);
-			$get_total_net_qty= get_total_net_qty($order_no, 3);
 			$total_yarn = total_required_yarn($get_total_net_qty,$_POST['yan_waste'], $_POST['yan_stk_extra']);
 			label_cell($unit);
-			qty_cell($get_total_net_qty);
 			small_qty_cells_ex(null, 'yan_waste', 0,true);
 			qty_cell($total_yarn);
 			small_qty_cells_ex(null, 'yan_stk_extra', 0,true);
@@ -162,7 +163,7 @@ start_form(true);
 div_start('items_table');
 display_heading("Plan Yarn Against Sales Order");
 start_table(TABLESTYLE, "width='90%'");
-			$th = array(_('Style Id'),_('Total Qty'), _('Yarn Code'), _('Yarn Desc'), _('UoM'), _('Net Qty'), _('Knit Waste %'), _('Tot Qty %'), _('Extra Qty %'), _('Req Qty'), _('Req by'), '', '');
+			$th = array(_('Style Id'),_('Total Qty'), _('Yarn Code'), _('Yarn Desc'), _('UoM'), _('Knit Waste %'), _('Tot Qty %'), _('Extra Qty %'), _('Req Qty'), _('Req by'), '', '');
 			table_header($th);
 			start_row();
 			global $SysPrefs;
@@ -179,13 +180,13 @@ start_table(TABLESTYLE, "width='90%'");
 					$unit = get_unit($value['stock_id']);
 					$get_total_net_qty= get_total_net_qty($order_no, 3);
 					$total_yarn = total_required_yarn($get_total_net_qty,$value['waste'], $value['stk_extra']);
-					$t_style_qty = get_order_qty($order_no, $value['style_id']);
+					// $t_style_qty = get_order_qty($order_no, $value['style_id']);
 					label_cell($value['style_id']);
-					qty_cell($t_style_qty);
+					qty_cell($get_total_net_qty);
+					// qty_cell($t_style_qty);
 					view_stock_status_cell($value['stock_id']);
 					label_cell($des);
 					label_cell($unit);
-					qty_cell($get_total_net_qty);
 					qty_cell($value['waste']);
 					qty_cell($total_yarn);
 					qty_cell($value['stk_extra']);

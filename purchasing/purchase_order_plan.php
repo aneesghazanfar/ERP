@@ -27,12 +27,11 @@ get_collection_data($order_no,5);
 }
 else $order_no = $_POST['order_no'];
 hidden('order_no', $order_no);
-// function get_order($order_no) {
+
 	$sql = "SELECT * FROM ".TB_PREF."sales_orders WHERE order_no=".db_escape($order_no);
 	$o_result = db_query($sql, 'could not get item print');
 	$ordrow = db_fetch($o_result);
-// }
-// $ordrow = get_order($order_no);
+
 start_table(TABLESTYLE2, "width='95%'", 5);
 echo '<tr><td>'; // outer table
 start_table(TABLESTYLE, "width='100%'");

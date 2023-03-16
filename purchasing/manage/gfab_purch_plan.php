@@ -126,9 +126,9 @@ function edit(&$order,  $order_no, $line , $maincat_id) {
 	else{
 		stock_style_list_cells( 'style_id', null,  true,$order_no);
 		// $_POST['t_style_qty'] = get_order_qty($order_no, $_POST['style_id']);
-		$get_cat_qty= get_cat_qty($order_no,$_POST['stock_id'] );
+		$get_cat_qty= get_cat_qty($order_no,$_POST['stock_id'] ,'qlty_id');
 		qty_cell($get_cat_qty);
-		sales_items_list_cells(null,'stock_id', $_POST['stock_id'], false, true, true, $maincat_id);
+		sales_items_list_cells(null,'stock_id', null, false, true, true, $maincat_id);
 		// qty_cell($_POST['t_style_qty']);
 		$unit = get_unit($_POST['stock_id']);
 		label_cell($unit);

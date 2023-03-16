@@ -79,6 +79,12 @@ function line_start_focus() {
 }
 if (isset($_POST['CancelItemChanges']))
 	line_start_focus();
+
+function delete($key) {
+	global $Ajax;
+	unset($_SESSION['dyed_data'][$key]);
+	$Ajax->activate('items_table');
+}
 function edit_dyed(&$order,  $order_no, $line , $maincat_id) {
 	global $Ajax;
 	global $id;
@@ -104,8 +110,8 @@ function edit_dyed(&$order,  $order_no, $line , $maincat_id) {
 		label_cells(null,get_description($_POST['stock_id']));
 		$unit = get_unit($_POST['stock_id']);
 		label_cell($unit);
-		small_qty_cells_ex(null, 'dfperpc', 1, true);
-		small_qty_cells_ex(null, 'dfwaste', 0, true);
+		small_qty_cells_ex(null, 'dfperpc', 1, false);
+		small_qty_cells_ex(null, 'dfwaste', 0, false);
 
 		$dyedperpc = get_dyedperpc($_POST['t_style_qty'], $_POST['dfperpc'], $_POST['dfwaste']);
 		qty_cell($dyedperpc);
@@ -177,16 +183,14 @@ start_table(TABLESTYLE, "width='90%'");
 					label_cell($value['req_date']);
 					edit_button_cell('Edit'.$value['line_no'], _('Edit'), _('Edit document line'));
 					delete_button_cell('Delete'.$value['line_no'], _('Delete'), _('Remove line from document'));
-					if(isset($_POST['Delete'.$value['line_no']])){
-						unset($_SESSION['dyed_data'][$key]);
-						$Ajax->activate('items_table');
-					}
+					if(isset($_POST['Delete'.$value['line_no']]))
+						delete($key);
 					end_row();
+				}
+				else
+					edit_dyed($_SESSION['dyed_data'], $order_no, $key, $maincat_id);
+				
 			}
-			else{
-				edit_dyed($_SESSION['dyed_data'], $order_no, $key, $maincat_id);
-			}
-	}
 end_table(1);
 $old_comments = get_plan_comments($order_no,$maincat_id);
 start_table(TABLESTYLE2);

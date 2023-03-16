@@ -156,7 +156,7 @@ return $row[0];
 }
 //--------------------------------------------------------------------------------------
 function get_order_qty($order_no , $style_id){
-$sql = "SELECT SUM(quantity) AS style_qty FROM ".TB_PREF."sales_order_details s,".TB_PREF."stock_master c WHERE s.order_no = ".db_escape($order_no)." AND c.style_id = ".db_escape($style_id)." AND s.stk_code=c.stock_id";
+$sql = "SELECT SUM(quantity) AS style_qty FROM ".TB_PREF."sales_order_details s,".TB_PREF."stock_master c WHERE s.order_no = ".db_escape($order_no)." AND c.clt_style = ".db_escape($style_id)." AND s.stk_code=c.stock_id";
 $result = db_query($sql, 'Could not retreive style quantity');
 $row = db_fetch($result);
 return $row[0];

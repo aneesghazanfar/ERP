@@ -13,6 +13,8 @@ $maincat_id = 5;
 hidden('maincat_id', $maincat_id);
 
 if (isset($_FILES['image']) && $_FILES['image']['name'] != '') {
+	hidden('ufilename', uniqid());
+
 	$order_no = $_POST['order_no'];
 	$result = $_FILES['image']['error'];
 	$upload_file = 'Yes'; //Assume all is well to start off with
@@ -72,7 +74,7 @@ if(isset($_POST['update_item'])) {
     foreach($_SESSION['accessory_data'] as $key => $value) {
         if($key == $edit_id) {
             $_SESSION['accessory_data'][$key]['perpc'] = $_POST['acc_perpc'];
-			$_SESSION['accessory_data'][$key]['waste'] = $_POST['waste'];
+			$_SESSION['accessory_data'][$key]['waste'] = $_POST['acc_waste'];
             $_SESSION['accessory_data'][$key]['stk_extra'] = $_POST['acc_stk_extra'];
 			$t_style_qty = get_order_qty($order_no, $value['style_id']);
 			$_SESSION['accessory_data'][$key]['stk_total'] = total_required($t_style_qty, $_POST['acc_perpc'], $_POST['acc_stk_extra']);
@@ -101,7 +103,7 @@ $accessory_data['style_id'] = $_POST['style_id'];
 $accessory_data['stock_id'] = $_POST['stock_id'];
 $accessory_data['maincat_id'] = $_POST['maincat_id'];
 $accessory_data['perpc'] = $_POST['acc_perpc'];
-$accessory_data['waste'] = 0;
+$accessory_data['waste'] = $_POST['acc_waste'];
 $accessory_data['stk_extra'] = $_POST['acc_stk_extra'];
 $accessory_data['t_style_qty']  = $_POST['t_style_qty'];
 $accessory_data['description'] = get_description($_POST['stock_id']);
@@ -144,6 +146,7 @@ function edit(&$order,  $order_no, $line , $maincat_id) {
 				$_POST['style_id'] = $value['style_id'];
 				$_POST['stock_id'] = $value['stock_id'];
 				$_POST['acc_perpc'] = $value['perpc'];
+				$_POST['acc_waste'] = $value['waste'];
 				$_POST['acc_stk_extra'] = $value['stk_extra'];
 				$_POST['stk_total'] = $value['stk_total'];
 				$_POST['ufilename'] = $value['ufilename'];
@@ -159,7 +162,10 @@ function edit(&$order,  $order_no, $line , $maincat_id) {
 			label_cells(null, get_description($_POST['stock_id']));
 			$unit = get_unit($_POST['stock_id']);
 			label_cell($unit);
-			small_qty_cells_ex(null, 'acc_perpc', 0,false);
+			small_qty_cells_ex(null, 'acc_perpc', 1,false);
+			small_qty_cells_ex(null, 'acc_waste', 0,false);
+			$dyedperpc = get_dyedperpc($_POST['t_style_qty'], $_POST['acc_perpc'], $_POST['acc_waste']);
+			qty_cell($dyedperpc);
 			small_qty_cells_ex(null, 'acc_stk_extra', 0,false);
 			$stk_total = total_required($_POST['t_style_qty'], $_POST['acc_perpc'], $_POST['acc_stk_extra']);
 			hidden('stk_total', $stk_total);
@@ -174,7 +180,10 @@ function edit(&$order,  $order_no, $line , $maincat_id) {
 			sales_items_list_cells(null,'stock_id', $_POST['stock_id'], false, true, true, $maincat_id);
 			$unit = get_unit($_POST['stock_id']);
 			label_cell($unit);
-			small_qty_cells_ex(null, 'acc_perpc', 0,true);
+			small_qty_cells_ex(null, 'acc_perpc', 1,true);
+			small_qty_cells_ex(null, 'acc_waste', 0,true);
+			$dyedperpc = get_dyedperpc($_POST['t_style_qty'], $_POST['acc_perpc'], $_POST['acc_waste']);
+			qty_cell($dyedperpc);
 			small_qty_cells_ex(null, 'acc_stk_extra', 0,true);
 			$stk_total = total_required($_POST['t_style_qty'], $_POST['acc_perpc'], $_POST['acc_stk_extra']);
 			hidden('stk_total', $stk_total);
@@ -189,14 +198,13 @@ if ($id != -1) {
 }
 else
 	submit_cells('AddItem', _('Add Item'), "colspan=2 align='center'", _('Add new item to document'), true);
-hidden('ufilename', uniqid());
 end_row();
 }
 start_form(true);
 div_start('items_table');
 display_heading("Plan Stylewise Acessories Against Sales Order");
 start_table(TABLESTYLE, "width='90%'");
-	$th = array(_('Style Id'), _('Total Qty'), _('Accessory Code'), _('Accessory Desc'), _('UoM'), _('Qty/Pc'), _('Extra Qty %'), _('Req Qty'), _('Req by'),  _('Image'), '', '');
+	$th = array(_('Style Id'), _('Total Qty'), _('Accessory Code'), _('Accessory Desc'), _('UoM'), _('Qty/Pc'),_('Acc Waste%'),_('Tot Qty'), _('Extra Qty %'), _('Req Qty'), _('Req by'),  _('Image'), '', '');
 			table_header($th);
 			start_row();
 			global $SysPrefs;
@@ -219,6 +227,9 @@ start_table(TABLESTYLE, "width='90%'");
 				label_cell($des);
 				label_cell($unit);
 				qty_cell($value['perpc']);
+				qty_cell($value['waste']);
+				$dyedperpc = get_dyedperpc($t_style_qty, $value['perpc'], $value['waste']);
+				qty_cell($dyedperpc);
 				qty_cell($value['stk_extra']);
 				qty_cell($value['stk_total']);
 				$ufilename = $value['ufilename'];
