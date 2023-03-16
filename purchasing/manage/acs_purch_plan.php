@@ -66,19 +66,19 @@ if (isset($_FILES['image']) && $_FILES['image']['name'] != '') {
 }
 if(isset($_POST['Delete'])){
 	$Delete_key = $_POST['Delete_key'];
-	unset($_SESSION['accessory_data'][$Delete_key]);
+	unset($_SESSION['acs_data'][$Delete_key]);
 }
 
 if(isset($_POST['update_item'])) {
     $edit_id = $_POST['edit_id'];
-    foreach($_SESSION['accessory_data'] as $key => $value) {
+    foreach($_SESSION['acs_data'] as $key => $value) {
         if($key == $edit_id) {
-            $_SESSION['accessory_data'][$key]['perpc'] = $_POST['acc_perpc'];
-			$_SESSION['accessory_data'][$key]['waste'] = $_POST['acc_waste'];
-            $_SESSION['accessory_data'][$key]['stk_extra'] = $_POST['acc_stk_extra'];
-			$t_style_qty = get_order_qty($order_no, $value['style_id']);
-			$_SESSION['accessory_data'][$key]['stk_total'] = total_required($t_style_qty, $_POST['acc_perpc'], $_POST['acc_stk_extra']);
-			$_SESSION['accessory_data'][$key]['req_date'] = $_POST['req_date'];
+            $_SESSION['acs_data'][$key]['perpc'] = $_POST['perpc'];
+			$_SESSION['acs_data'][$key]['waste'] = $_POST['waste'];
+            $_SESSION['acs_data'][$key]['stk_extra'] = $_POST['stk_extra'];
+			$t_style_qty = get_style_total($order_no, $value['style_id']);
+			$_SESSION['acs_data'][$key]['stk_total'] = net_req($_POST['perpc'], $_POST['stk_extra']);
+			$_SESSION['acs_data'][$key]['req_date'] = $_POST['req_date'];
 			display_notification(_('Order plan has been updated'));
             break;
         }
@@ -90,39 +90,39 @@ if(isset($_POST['update_item'])) {
 }
 if(isset($_POST['AddItem'])) {
    // Create an empty array to store the form data
-$accessory_data = array();
+$acs_data = array();
 
 // Retrieve the existing array of data from the session variable
-$existing_data = isset($_SESSION['accessory_data']) ? $_SESSION['accessory_data'] : array();
+$existing_data = isset($_SESSION['acs_data']) ? $_SESSION['acs_data'] : array();
 
 // Determine the next line number by retrieving the line number of the last item (if it exists) and incrementing it by one
 $next_line_no = count($existing_data) > 0 ? $existing_data[count($existing_data) - 1]['line_no'] + 1 : 1;
-$accessory_data['pp_id'] =null;
-$accessory_data['line_no'] = $next_line_no;
-$accessory_data['style_id'] = $_POST['style_id'];
-$accessory_data['stock_id'] = $_POST['stock_id'];
-$accessory_data['maincat_id'] = $_POST['maincat_id'];
-$accessory_data['perpc'] = $_POST['acc_perpc'];
-$accessory_data['waste'] = $_POST['acc_waste'];
-$accessory_data['stk_extra'] = $_POST['acc_stk_extra'];
-$accessory_data['t_style_qty']  = $_POST['t_style_qty'];
-$accessory_data['description'] = get_description($_POST['stock_id']);
-$accessory_data['units'] = get_unit($_POST['stock_id']);
-$accessory_data['ufilename'] = $_POST['ufilename'];
-$accessory_data['stk_extra'] = $_POST['acc_stk_extra'];
-$accessory_data['stk_total'] = $_POST['stk_total'];
-$accessory_data['req_date'] = $_POST['req_date'];
+$acs_data['pp_id'] =null;
+$acs_data['line_no'] = $next_line_no;
+$acs_data['style_id'] = $_POST['style_id'];
+$acs_data['stock_id'] = $_POST['stock_id'];
+$acs_data['maincat_id'] = $_POST['maincat_id'];
+$acs_data['perpc'] = $_POST['perpc'];
+$acs_data['waste'] = $_POST['waste'];
+$acs_data['stk_extra'] = $_POST['stk_extra'];
+$acs_data['t_style_qty']  = $_POST['t_style_qty'];
+$acs_data['description'] = get_description($_POST['stock_id']);
+$acs_data['units'] = get_unit($_POST['stock_id']);
+$acs_data['ufilename'] = $_POST['ufilename'];
+$acs_data['stk_extra'] = $_POST['stk_extra'];
+$acs_data['stk_total'] = $_POST['stk_total'];
+$acs_data['req_date'] = $_POST['req_date'];
 
 // Add the new form data to the existing array of data
-$existing_data[] = $accessory_data;
+$existing_data[] = $acs_data;
 
 // Store the updated array data in the session variable
-$_SESSION['accessory_data'] = $existing_data;
+$_SESSION['acs_data'] = $existing_data;
 display_notification(_('New order plan has been added'));
 $Ajax->activate('items_table');
 }
 if(isset($_POST['add_plan'])){
-	add_to_database($_SESSION['accessory_data'], $_POST['order_no'],$_POST['Comments'], $_POST['maincat_id']);
+	add_to_database($_SESSION['acs_data'], $_POST['order_no'],$_POST['Comments'], $_POST['maincat_id']);
 	display_notification(_('New order plan has been added'));
 	get_acs_data($order_no,$maincat_id);
 }
@@ -145,9 +145,9 @@ function edit(&$order,  $order_no, $line , $maincat_id) {
 				hidden('edit_id', $key);
 				$_POST['style_id'] = $value['style_id'];
 				$_POST['stock_id'] = $value['stock_id'];
-				$_POST['acc_perpc'] = $value['perpc'];
-				$_POST['acc_waste'] = $value['waste'];
-				$_POST['acc_stk_extra'] = $value['stk_extra'];
+				$_POST['perpc'] = $value['perpc'];
+				$_POST['waste'] = $value['waste'];
+				$_POST['stk_extra'] = $value['stk_extra'];
 				$_POST['stk_total'] = $value['stk_total'];
 				$_POST['ufilename'] = $value['ufilename'];
 				$_POST['req_date'] = $value['req_date'];
@@ -156,18 +156,18 @@ function edit(&$order,  $order_no, $line , $maincat_id) {
 			}
 		}
 			label_cells( null, $_POST['style_id']);
-			$_POST['t_style_qty'] = get_order_qty($order_no, $_POST['style_id']);
+			$_POST['t_style_qty'] = get_style_total($order_no, $_POST['style_id']);
 			qty_cell($_POST['t_style_qty']);
 			label_cells(null, $_POST['stock_id']);
 			label_cells(null, get_description($_POST['stock_id']));
 			$unit = get_unit($_POST['stock_id']);
 			label_cell($unit);
-			small_qty_cells_ex(null, 'acc_perpc', 1,false);
-			small_qty_cells_ex(null, 'acc_waste', 0,false);
-			$dyedperpc = get_dyedperpc($_POST['t_style_qty'], $_POST['acc_perpc'], $_POST['acc_waste']);
-			qty_cell($dyedperpc);
-			small_qty_cells_ex(null, 'acc_stk_extra', 0,false);
-			$stk_total = total_required($_POST['t_style_qty'], $_POST['acc_perpc'], $_POST['acc_stk_extra']);
+			small_qty_cells_ex(null, 'perpc', 1,false);
+			small_qty_cells_ex(null, 'waste', 0,false);
+			$perpc = get_perpc($_POST['t_style_qty'], $_POST['perpc'], $_POST['waste']);
+			qty_cell($perpc);
+			small_qty_cells_ex(null, 'stk_extra', 0,false);
+			$stk_total = net_req($_POST['perpc'], $_POST['stk_extra']);
 			hidden('stk_total', $stk_total);
 			qty_cell($_POST['stk_total'], );
 			date_cells(null, 'req_date', null, null, 0, 0, 0, null, false);
@@ -175,17 +175,17 @@ function edit(&$order,  $order_no, $line , $maincat_id) {
 	}
 	else{
 			stock_style_list_cells( 'style_id', $_POST['style_id'],  true,$order_no);
-			$_POST['t_style_qty'] = get_order_qty($order_no, $_POST['style_id']);
+			$_POST['t_style_qty'] = get_style_total($order_no, $_POST['style_id']);
 			qty_cell($_POST['t_style_qty']);
 			sales_items_list_cells(null,'stock_id', $_POST['stock_id'], false, true, true, $maincat_id);
 			$unit = get_unit($_POST['stock_id']);
 			label_cell($unit);
-			small_qty_cells_ex(null, 'acc_perpc', 1,true);
-			small_qty_cells_ex(null, 'acc_waste', 0,true);
-			$dyedperpc = get_dyedperpc($_POST['t_style_qty'], $_POST['acc_perpc'], $_POST['acc_waste']);
-			qty_cell($dyedperpc);
-			small_qty_cells_ex(null, 'acc_stk_extra', 0,true);
-			$stk_total = total_required($_POST['t_style_qty'], $_POST['acc_perpc'], $_POST['acc_stk_extra']);
+			small_qty_cells_ex(null, 'perpc', 1,true);
+			small_qty_cells_ex(null, 'waste', 0,true);
+			$perpc = get_perpc($_POST['t_style_qty'], $_POST['perpc'], $_POST['waste']);
+			qty_cell($perpc);
+			small_qty_cells_ex(null, 'stk_extra', 0,true);
+			$stk_total = net_req($perpc, $_POST['stk_extra']);
 			hidden('stk_total', $stk_total);
 			qty_cell($stk_total );
 			date_cells(null, 'req_date', null, null, 0, 0, 0, null, true);
@@ -212,14 +212,14 @@ start_table(TABLESTYLE, "width='90%'");
 
 			$editable_items = true;
 			if ($id == -1 && $editable_items)
-				edit($_SESSION['accessory_data'], $order_no, -1, $maincat_id);
+				edit($_SESSION['acs_data'], $order_no, -1, $maincat_id);
 
-			foreach ($_SESSION['accessory_data'] as $key => $value) {
+			foreach ($_SESSION['acs_data'] as $key => $value) {
 				start_row();
 				if($id != $key || !$editable_items){
 
 				label_cell($value['style_id']);
-				$t_style_qty = get_order_qty($order_no, $value['style_id']);
+				$t_style_qty = get_style_total($order_no, $value['style_id']);
 				qty_cell($t_style_qty);
 				view_stock_status_cell($value['stock_id']);
 				$des = get_description($value['stock_id']);
@@ -228,10 +228,11 @@ start_table(TABLESTYLE, "width='90%'");
 				label_cell($unit);
 				qty_cell($value['perpc']);
 				qty_cell($value['waste']);
-				$dyedperpc = get_dyedperpc($t_style_qty, $value['perpc'], $value['waste']);
-				qty_cell($dyedperpc);
+				$perpc = get_perpc($t_style_qty, $value['perpc'], $value['waste']);
+				qty_cell($perpc);
 				qty_cell($value['stk_extra']);
-				qty_cell($value['stk_total']);
+				$stk_total = net_req($perpc, $value['stk_extra']);
+				qty_cell($stk_total);
 				$ufilename = $value['ufilename'];
 				$ufilename = str_replace(' ', '_', $ufilename);
 				$stock_img_link = null;
@@ -248,17 +249,17 @@ start_table(TABLESTYLE, "width='90%'");
 				edit_button_cell('Edit'.$value['line_no'], _('Edit'), _('Edit document line'));
 				delete_button_cell('Delete'.$value['line_no'], _('Delete'), _('Remove line from document'));
 				if(isset($_POST['Delete'.$value['line_no']])){
-					unset($_SESSION['accessory_data'][$key]);
+					unset($_SESSION['acs_data'][$key]);
 					$Ajax->activate('items_table');
 				}
 				end_row();
 			}
 			else{
-				edit($_SESSION['accessory_data'], $order_no, $key, $maincat_id);
+				edit($_SESSION['acs_data'], $order_no, $key, $maincat_id);
 			}
 	}
 end_table(1);
-$old_comments = get_plan_comments($order_no,$maincat_id);
+$old_comments = get_plan_comments($order_no, $maincat_id);
 start_table(TABLESTYLE2);
 textarea_row(_('Remarks:'), 'Comments', $old_comments, 70, 4);
 end_table(1);

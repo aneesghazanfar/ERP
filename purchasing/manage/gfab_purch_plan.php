@@ -23,10 +23,10 @@ if(isset($_POST['update_item'])) {
         if($key == $edit_id) {
 			$_SESSION['fabric_data'][$key]['stk_total'] = $_POST['stk_total'];
 			$_SESSION['fabric_data'][$key]['waste'] = $_POST['gfwaste'];
-			$get_cat_qty= get_cat_qty($order_no, $value['stock_id']);
-			$total_fabric = get_total_fabric($get_cat_qty, $_POST['gfwaste'] );
+			$cat_qty= get_cat_qty($order_no, $value['stock_id'], 4, 'qlty_id');
+			$total_fabric = total_req($cat_qty, $_POST['gfwaste'] );
       		$_SESSION['fabric_data'][$key]['stk_extra'] = $_POST['gfstk_extra'];
-			$_SESSION['fabric_data'][$key]['stk_total'] = total_required_fabric($total_fabric, $_POST['gfstk_extra']);
+			$_SESSION['fabric_data'][$key]['stk_total'] = net_req($total_fabric, $_POST['gfstk_extra']);
 			$_SESSION['fabric_data'][$key]['req_date']  = $_POST['req_date'];
 			display_notification(_('Order plan has been updated'));
             break;
@@ -58,7 +58,7 @@ $fabric_data['perpc'] = 0;
 $fabric_data['waste'] = $_POST['gfwaste'];
 $fabric_data['dyedperpc'] = $_POST['dyedperpc'];
 $fabric_data['stk_extra'] = $_POST['gfstk_extra'];
-$fabric_data['t_style_qty']  = $_POST['t_style_qty'];
+$fabric_data['t_style_qty']  = 0;
 $fabric_data['description'] = get_description($_POST['stock_id']);
 $fabric_data['units'] = get_unit($_POST['stock_id']);
 $fabric_data['ufilename'] = '';
@@ -104,20 +104,18 @@ function edit(&$order,  $order_no, $line , $maincat_id) {
 			}
 		}
 		label_cells( null, $_POST['style_id']);
-		// $_POST['t_style_qty'] = get_order_qty($order_no, $_POST['style_id']);
-		$get_cat_qty= get_cat_qty($order_no, $_POST['stock_id']);
-		qty_cell($get_cat_qty);
-		// qty_cell($_POST['t_style_qty']);
+		$cat_qty= get_cat_qty($order_no, $_POST['stock_id'], 4, 'qlty_id');
+		qty_cell($cat_qty);
 		label_cells(null, $_POST['stock_id']);
 		label_cells(null, get_description($_POST['stock_id']));
 		$unit = get_unit($_POST['stock_id']);
-		$total_fabric = get_total_fabric($get_cat_qty, $_POST['gfwaste'] );
+		$total_fabric = total_req($cat_qty, $_POST['gfwaste'] );
 		label_cell($unit);
 		small_qty_cells_ex(null, 'gfwaste', 0,false);
 		qty_cell($total_fabric);
 		hidden('total_fabric', $total_fabric);
 		small_qty_cells_ex(null, 'gfstk_extra', 0,false);
-		$stk_total = total_required_fabric($total_fabric, $_POST['gfstk_extra']);
+		$stk_total = net_req($total_fabric, $_POST['gfstk_extra']);
 		qty_cell($stk_total);
 		date_cells(null, 'req_date', null, null, 0, 0, 0, null, false);
 		hidden('stk_total', $stk_total);
@@ -125,19 +123,17 @@ function edit(&$order,  $order_no, $line , $maincat_id) {
 	}
 	else{
 		stock_style_list_cells( 'style_id', null,  true,$order_no);
-		// $_POST['t_style_qty'] = get_order_qty($order_no, $_POST['style_id']);
-		$get_cat_qty= get_cat_qty($order_no,$_POST['stock_id'] ,'qlty_id');
-		qty_cell($get_cat_qty);
+		$cat_qty= get_cat_qty($order_no, $_POST['stock_id'], 4, 'qlty_id');
+		qty_cell($cat_qty);
 		sales_items_list_cells(null,'stock_id', null, false, true, true, $maincat_id);
-		// qty_cell($_POST['t_style_qty']);
 		$unit = get_unit($_POST['stock_id']);
 		label_cell($unit);
 		small_qty_cells_ex(null, 'gfwaste', 0,true);
-		$total_fabric = get_total_fabric($get_cat_qty, $_POST['gfwaste'] );
+		$total_fabric = total_req($cat_qty, $_POST['gfwaste'] );
 		qty_cell($total_fabric);
 		hidden('total_fabric', $total_fabric);
 		small_qty_cells_ex(null, 'gfstk_extra', 0,true);
-		$stk_total = total_required_fabric($total_fabric, $_POST['gfstk_extra']);
+		$stk_total = net_req($total_fabric, $_POST['gfstk_extra']);
 		qty_cell($stk_total);
 		date_cells(null, 'req_date', null, null, 0, 0, 0, null, true);
 		hidden('stk_total', $stk_total);
@@ -169,12 +165,10 @@ start_table(TABLESTYLE, "width='90%'");
 							if($id != $key || !$editable_items){
 								$des = get_description($value['stock_id']);
 								$unit = get_unit($value['stock_id']);
-								$get_cat_qty= get_cat_qty($order_no, $value['stock_id']);
-								// $t_style_qty = get_order_qty($order_no, $value['style_id']);
-								$total_fabric = get_total_fabric($get_cat_qty, $value['waste'] );
+								$cat_qty= get_cat_qty($order_no, $value['stock_id'], 4, 'qlty_id');
+								$total_fabric = total_req($cat_qty, $value['waste'] );
 								label_cell($value['style_id']);
-								// qty_cell($t_style_qty);
-								qty_cell($get_cat_qty);
+								qty_cell($cat_qty);
 								view_stock_status_cell($value['stock_id']);
 								label_cell($des);
 								label_cell($unit);

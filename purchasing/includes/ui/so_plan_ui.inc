@@ -30,55 +30,51 @@ function stock_style_list_cells( $name, $selected_id=null, $submit_on_change=fal
 	echo "</td>\n";
 }
 
-
-/*
-function stock_style_list($name, $selected_id=null, $submit_on_change=false,$order_no) {
-$sql = "SELECT DISTINCT s.style_id, s.style_id FROM ".TB_PREF."stock_master s,".TB_PREF."sales_order_details c WHERE s.stock_id=c.stk_code AND c.order_no=".db_escape($order_no);
-//$sql = "SELECT DISTINCT s.clt_style, CONCAT(s.clt_style,' | ',s.style_id) as style_ref FROM ".TB_PREF."stock_master s,".TB_PREF."sales_order_details c WHERE s.stock_id=c.stk_code AND c.order_no=".db_escape($order_no);
-	return combo_input($name, $selected_id, $sql, 'style_id', 'style_id',
-		array(
-			'spec_id' => -1,
-			'search_submit' => true,
-			'select_submit'=> $submit_on_change,
-	));
-}
-function stock_style_list_cells( $name, $selected_id=null, $submit_on_change=false,$order_no) {
-	echo "<td>";
-	echo stock_style_list($name, $selected_id,  $submit_on_change,$order_no);
-	echo "</td>\n";
-}
-*/
-
-
-
 //--------------------------------------------------------------------------------------
-function total_required($t_style_qty , $dyedperpc , $stk_extra){
-		return ($t_style_qty * ( $dyedperpc + ($dyedperpc * ($stk_extra/100))));
+function net_req($stk_total, $stk_extra){
+		return ($stk_total + ($stk_total * ($stk_extra/100)));
 }
-//--------------------------------------------------------------------------------------
-// function total_required_dyed($t_style_qty , $dyedperpc , $stk_extra){
-// 		return ($dyedperpc + ($dyedperpc * ($stk_extra/100)));
+//-----------------------------------------------------------------------------------
+function get_perpc($t_style_qty , $perpc , $waste){
+		return ($t_style_qty * ($perpc * (100/(100-$waste))));
+}
+//-----------------------------------------------------------------------------------
+// function total_yarn($total_qty , $waste){
+// 		return ($total_qty * (100/(100-$waste)));
 // }
 //-----------------------------------------------------------------------------------
-function total_required_fabric( $total_fabric , $stk_extra){
-		return ( $total_fabric + ($total_fabric * ($stk_extra/100)));
+function total_net_req($stk_total, $waste, $stk_extra){
+		$net_req = total_req($stk_total, $waste);
+		return ($net_req + ($net_req * ($stk_extra/100)));
 }
 //-----------------------------------------------------------------------------------
-function get_dyedperpc($t_style_qty , $perpc , $waste){
-		return ($t_style_qty * ($perpc + ($perpc * ($waste/100))));
+function total_req($stk_total , $waste){
+		return ($stk_total * (100/(100-$waste)));
 }
-//-----------------------------------------------------------------------------------
-function total_yarn($get_total_net_qty , $waste){
-		return ($get_total_net_qty - ( $get_total_net_qty * ($waste/100)));
+//--------------------------------------------------------------------------------------
+function get_dyed_data($order_no,$maincat_id){
+		unset($_SESSION['dyed_data']);
+	$result = get_all_detail($order_no,$maincat_id);
+	$line_no = 1;
+while($myrow = db_fetch($result)) {
+	$dyed_data['line_no'] =$line_no++;
+	$dyed_data['pp_id'] = $myrow['pp_id'];
+	$dyed_data['style_id'] = $myrow['style_id'];
+    $dyed_data['stock_id'] = $myrow['stk_code'];
+	$dyed_data['maincat_id'] = $myrow['maincat_id'];
+	$dyed_data['t_style_qty']  = get_style_total($order_no, $myrow['style_id']);
+	$dyed_data['description'] = get_description($myrow['stk_code']);
+	$dyed_data['units'] = get_unit($myrow['stk_code']);
+    $dyed_data['perpc'] = $myrow['perpc'];
+	$dyed_data['waste'] = $myrow['waste'];
+    $dyed_data['stk_extra'] = $myrow['stk_extra'];
+	$dyed_data['stk_total'] = $myrow['stk_total'];
+	$dyed_data['req_date'] = $myrow['req_date'];
+	$dyed_data['ufilename'] = $myrow['ufilename'];
+	$existing_data = isset($_SESSION['dyed_data']) ? $_SESSION['dyed_data'] : array();
+    $existing_data[] = $dyed_data;
+    $_SESSION['dyed_data'] = $existing_data;
 }
-//-----------------------------------------------------------------------------------
-function total_required_yarn($get_total_net_qty, $waste, $stk_extra){
-		$total_required_yarn = total_yarn ($get_total_net_qty, $waste);
-		return ($total_required_yarn + ($total_required_yarn * ($stk_extra/100)));
-}
-//-----------------------------------------------------------------------------------
-function get_total_fabric($get_total_net_qty , $waste ){
-		return ($get_total_net_qty - ( $get_total_net_qty * ($waste/100)));
 }
 //--------------------------------------------------------------------------------------
 function get_fabric_data($order_no,$maincat_id){
@@ -91,16 +87,16 @@ while($myrow = db_fetch($result)) {
 	$fabric_data['style_id'] = $myrow['style_id'];
     $fabric_data['stock_id'] = $myrow['stk_code'];
 	$fabric_data['maincat_id'] = $myrow['maincat_id'];
-	$fabric_data['total_Net_Qty'] = get_total_net_qty($order_no,4 );
-	$fabric_data['t_style_qty']  = get_order_qty($order_no, $myrow['style_id']);
+//	$fabric_data['total_Net_Qty'] = get_total_net_qty($order_no, 4);
+//	$fabric_data['t_style_qty']  = get_style_total($order_no, $myrow['style_id']);
 	$fabric_data['description'] = get_description($myrow['stk_code']);
 	$fabric_data['units'] = get_unit($myrow['stk_code']);
-    $fabric_data['perpc'] = $myrow['perpc'];
+//    $fabric_data['perpc'] = $myrow['perpc'];
 	$fabric_data['waste'] = $myrow['waste'];
     $fabric_data['stk_extra'] = $myrow['stk_extra'];
 	$fabric_data['stk_total'] = $myrow['stk_total'];
 	$fabric_data['req_date'] = $myrow['req_date'];
-	$fabric_data['ufilename'] = $myrow['ufilename'];
+//	$fabric_data['ufilename'] = $myrow['ufilename'];
 	$existing_data = isset($_SESSION['fabric_data']) ? $_SESSION['fabric_data'] : array();
     $existing_data[] = $fabric_data;
     $_SESSION['fabric_data'] = $existing_data;
@@ -132,76 +128,51 @@ while($myrow = db_fetch($result)) {
 }
 //--------------------------------------------------------------------------------------
 function get_acs_data($order_no,$maincat_id){
-		unset($_SESSION['accessory_data']);
+		unset($_SESSION['acs_data']);
 	$result = get_all_detail($order_no,$maincat_id);
 	$line_no = 1;
 while($myrow = db_fetch($result)) {
-	$accessory_data['line_no'] =$line_no++;
-	$accessory_data['pp_id'] = $myrow['pp_id'];
-	$accessory_data['style_id'] = $myrow['style_id'];
-    $accessory_data['stock_id'] = $myrow['stk_code'];
-	$accessory_data['maincat_id'] = $myrow['maincat_id'];
-	$accessory_data['t_style_qty']  = get_order_qty($order_no, $myrow['style_id']);
-	$accessory_data['description'] = get_description($myrow['stk_code']);
-	$accessory_data['units'] = get_unit($myrow['stk_code']);
-    $accessory_data['perpc'] = $myrow['perpc'];
-	$accessory_data['waste'] = $myrow['waste'];
-    $accessory_data['stk_extra'] = $myrow['stk_extra'];
-	$accessory_data['stk_total'] = $myrow['stk_total'];
-	$accessory_data['ufilename'] = $myrow['ufilename'];
-	$accessory_data['req_date'] = $myrow['req_date'];
-	$existing_data = isset($_SESSION['accessory_data']) ? $_SESSION['accessory_data'] : array();
-    $existing_data[] = $accessory_data;
-    $_SESSION['accessory_data'] = $existing_data;
+	$acs_data['line_no'] =$line_no++;
+	$acs_data['pp_id'] = $myrow['pp_id'];
+	$acs_data['style_id'] = $myrow['style_id'];
+    $acs_data['stock_id'] = $myrow['stk_code'];
+	$acs_data['maincat_id'] = $myrow['maincat_id'];
+	$acs_data['t_style_qty']  = get_style_total($order_no, $myrow['style_id']);
+	$acs_data['description'] = get_description($myrow['stk_code']);
+	$acs_data['units'] = get_unit($myrow['stk_code']);
+    $acs_data['perpc'] = $myrow['perpc'];
+	$acs_data['waste'] = $myrow['waste'];
+    $acs_data['stk_extra'] = $myrow['stk_extra'];
+	$acs_data['stk_total'] = $myrow['stk_total'];
+	$acs_data['ufilename'] = $myrow['ufilename'];
+	$acs_data['req_date'] = $myrow['req_date'];
+	$existing_data = isset($_SESSION['acs_data']) ? $_SESSION['acs_data'] : array();
+    $existing_data[] = $acs_data;
+    $_SESSION['acs_data'] = $existing_data;
 }
 }
 //--------------------------------------------------------------------------------------
 function get_collection_data($order_no,$maincat_id){
-		unset($_SESSION['contract_data']);
+		unset($_SESSION['col_data']);
 	$result = get_collection_detail($order_no,$maincat_id);
 	$line_no = 1;
 while($myrow = db_fetch($result)) {
-	$contract_data['line_no'] =$line_no++;
-	$contract_data['pp_id'] = $myrow['pp_id'];
-    $contract_data['stock_id'] = $myrow['stk_code'];
-	$contract_data['maincat_id'] = $myrow['maincat_id'];
-	$contract_data['t_style_qty']  = get_collection_qty($order_no);
-	$contract_data['description'] = get_description($myrow['stk_code']);
-	$contract_data['units'] = get_unit($myrow['stk_code']);
-    $contract_data['perpc'] = $myrow['perpc'];
-	$contract_data['waste'] = $myrow['waste'];
-    $contract_data['stk_extra'] = $myrow['stk_extra'];
-	$contract_data['stk_total'] = $myrow['stk_total'];
-	$contract_data['ufilename'] = $myrow['ufilename'];
-	$contract_data['req_date'] = $myrow['req_date'];
-	$existing_data = isset($_SESSION['contract_data']) ? $_SESSION['contract_data'] : array();
-    $existing_data[] = $contract_data;
-    $_SESSION['contract_data'] = $existing_data;
-}
-}
-//--------------------------------------------------------------------------------------
-function get_dyed_data($order_no,$maincat_id){
-		unset($_SESSION['dyed_data']);
-	$result = get_all_detail($order_no,$maincat_id);
-	$line_no = 1;
-while($myrow = db_fetch($result)) {
-	$dyed_data['line_no'] =$line_no++;
-	$dyed_data['pp_id'] = $myrow['pp_id'];
-	$dyed_data['style_id'] = $myrow['style_id'];
-    $dyed_data['stock_id'] = $myrow['stk_code'];
-	$dyed_data['maincat_id'] = $myrow['maincat_id'];
-	$dyed_data['t_style_qty']  = get_order_qty($order_no, $myrow['style_id']);
-	$dyed_data['description'] = get_description($myrow['stk_code']);
-	$dyed_data['units'] = get_unit($myrow['stk_code']);
-    $dyed_data['perpc'] = $myrow['perpc'];
-	$dyed_data['waste'] = $myrow['waste'];
-    $dyed_data['stk_extra'] = $myrow['stk_extra'];
-	$dyed_data['stk_total'] = $myrow['stk_total'];
-	$dyed_data['req_date'] = $myrow['req_date'];
-	$dyed_data['ufilename'] = $myrow['ufilename'];
-	$existing_data = isset($_SESSION['dyed_data']) ? $_SESSION['dyed_data'] : array();
-    $existing_data[] = $dyed_data;
-    $_SESSION['dyed_data'] = $existing_data;
+	$col_data['line_no'] =$line_no++;
+	$col_data['pp_id'] = $myrow['pp_id'];
+    $col_data['stock_id'] = $myrow['stk_code'];
+	$col_data['maincat_id'] = $myrow['maincat_id'];
+	$col_data['t_style_qty']  = get_collection_qty($order_no);
+	$col_data['description'] = get_description($myrow['stk_code']);
+	$col_data['units'] = get_unit($myrow['stk_code']);
+    $col_data['perpc'] = $myrow['perpc'];
+	$col_data['waste'] = $myrow['waste'];
+    $col_data['stk_extra'] = $myrow['stk_extra'];
+	$col_data['stk_total'] = $myrow['stk_total'];
+	$col_data['ufilename'] = $myrow['ufilename'];
+	$col_data['req_date'] = $myrow['req_date'];
+	$existing_data = isset($_SESSION['col_data']) ? $_SESSION['col_data'] : array();
+    $existing_data[] = $col_data;
+    $_SESSION['col_data'] = $existing_data;
 }
 }
 //--------------------------------------------------------------------------------------

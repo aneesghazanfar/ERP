@@ -149,14 +149,14 @@ function get_all_detail($order_no,$maincat_id, $maincat_id_2 = null){
 }
 //--------------------------------------------------------------------------------------
 function get_collection_qty($order_no){
-$sql = "SELECT SUM(quantity) AS collection_qty FROM ".TB_PREF."sales_order_details WHERE order_no = ".db_escape($order_no);
+$sql = "SELECT SUM(CEIL(quantity+(quantity*(additional/100)))) AS collection_qty FROM ".TB_PREF."sales_order_details WHERE order_no = ".db_escape($order_no);
 $result = db_query($sql, 'Could not retreive collection quantity');
 $row = db_fetch($result);
 return $row[0];
 }
 //--------------------------------------------------------------------------------------
-function get_order_qty($order_no , $style_id){
-$sql = "SELECT SUM(quantity) AS style_qty FROM ".TB_PREF."sales_order_details s,".TB_PREF."stock_master c WHERE s.order_no = ".db_escape($order_no)." AND c.clt_style = ".db_escape($style_id)." AND s.stk_code=c.stock_id";
+function get_style_total($order_no , $style_id){
+$sql = "SELECT SUM(CEIL(quantity+(quantity*(additional/100)))) AS style_qty FROM ".TB_PREF."sales_order_details s,".TB_PREF."stock_master c WHERE s.order_no = ".db_escape($order_no)." AND c.clt_style = ".db_escape($style_id)." AND s.stk_code=c.stock_id";
 $result = db_query($sql, 'Could not retreive style quantity');
 $row = db_fetch($result);
 return $row[0];
@@ -183,31 +183,24 @@ $result = db_query($sql, "could not get id");
 	return $row[0];
 }
 //--------------------------------------------------------------------------------------
-function get_total_net_qty($order_no, $maincat_id){
+function get_style_qty($order_no, $maincat_id){
 	$sql = "SELECT stk_total FROM ".TB_PREF."purch_plan_details WHERE sorder_no = ".db_escape($order_no)." AND maincat_id = ".db_escape($maincat_id);
 	$result = db_query($sql, "could not get stk_total");
 	$row = db_fetch_row($result);
 	return $row[0];
 }
 //--------------------------------------------------------------------------------------
-function get_cat_qty($order_no, $stock_id){
-	$sql1 = "SELECT qlty_id FROM ".TB_PREF."stock_master WHERE stock_id = ".db_escape($stock_id);
-	$result1 = db_query($sql1, "could not get qlty_id");
-	$row1 = db_fetch($result1);
-	$qlty_id = $row1[0];
+function get_cat_qty($order_no, $stock_id, $maincat_id, $col_id){
+$sql = "SELECT SUM(stk_total) AS cat_qty
+FROM ".TB_PREF."purch_plan_details p, ".TB_PREF."stock_master s, ".TB_PREF."stock_master m
+WHERE p.sorder_no = ".db_escape($order_no)."
+AND m.stock_id = ".db_escape($stock_id)."
+AND s.".$col_id." = m.".$col_id."
+AND p.maincat_id = ".db_escape($maincat_id)."
+AND p.stk_code = s.stock_id";
+$result = db_query($sql, 'Could not retreive quantity');
+$row = db_fetch_row($result);
+return $row[0];
+}
 
-	$sql = "SELECT SUM(stk_total) AS cat_qty FROM ".TB_PREF."purch_plan_details p,".TB_PREF."stock_master s WHERE 
-	p.sorder_no = ".db_escape($order_no)." AND s.qlty_id =  ".db_escape($qlty_id)." AND p.stk_code=s.stock_id AND p.maincat_id = 4";
-	
-	$result = db_query($sql, "could not get stk_total");
-	$row = db_fetch_row($result);
-	return $row[0];
-}
-//--------------------------------------------------------------------------------------
-function get_collection($order_no){
-	$sql = "SELECT reference FROM ".TB_PREF."purch_plan WHERE sorder_no = ".db_escape($order_no);
-	$result = db_query($sql, "could not get collection");
-	$row = db_fetch_row($result);
-	return $row[0];
-}
 //--------------------------------------------------------------------------------------

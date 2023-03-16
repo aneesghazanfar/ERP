@@ -15,19 +15,16 @@ hidden('maincat_id', $maincat_id);
 
 if(isset($_POST['update_item'])) {
     $edit_id = $_POST['edit_id'];
-
-
     foreach($_SESSION['dyed_data'] as $key => $value) {
         if($key == $edit_id) {
             $_SESSION['dyed_data'][$key]['perpc'] = $_POST['dfperpc'];
 			$_SESSION['dyed_data'][$key]['waste'] = $_POST['dfwaste'];
             $_SESSION['dyed_data'][$key]['stk_extra'] = $_POST['dfstk_extra'];
-			$t_style_qty = get_order_qty($order_no, $value['style_id']);
-			$dyedperpc = get_dyedperpc($t_style_qty, $_POST['dfperpc'], $_POST['dfwaste']);
-			$_SESSION['dyed_data'][$key]['stk_total'] = total_required($t_style_qty, $dyedperpc, $_POST['dfstk_extra']);
+			$t_style_qty = get_style_total($order_no, $value['style_id']);
+			$perpc = get_perpc($t_style_qty, $_POST['dfperpc'], $_POST['dfwaste']);
+			$_SESSION['dyed_data'][$key]['stk_total'] = net_req($perpc, $_POST['dfstk_extra']);
 			$_SESSION['dyed_data'][$key]['req_date'] = $_POST['req_date'];
 			display_notification(_('Order plan has been updated'));
-
             break;
         }
     }
@@ -104,7 +101,7 @@ function edit_dyed(&$order,  $order_no, $line , $maincat_id) {
 			}
 		}
 		label_cells( null, $_POST['style_id']);
-		$_POST['t_style_qty'] = get_order_qty($order_no, $_POST['style_id']);
+		$_POST['t_style_qty'] = get_style_total($order_no, $_POST['style_id']);
 		qty_cell($_POST['t_style_qty']);
 		label_cells(null, $_POST['stock_id']);
 		label_cells(null,get_description($_POST['stock_id']));
@@ -113,11 +110,11 @@ function edit_dyed(&$order,  $order_no, $line , $maincat_id) {
 		small_qty_cells_ex(null, 'dfperpc', 1, false);
 		small_qty_cells_ex(null, 'dfwaste', 0, false);
 
-		$dyedperpc = get_dyedperpc($_POST['t_style_qty'], $_POST['dfperpc'], $_POST['dfwaste']);
-		qty_cell($dyedperpc);
+		$perpc = get_perpc($_POST['t_style_qty'], $_POST['dfperpc'], $_POST['dfwaste']);
+		qty_cell($perpc);
 		small_qty_cells_ex(null, 'dfstk_extra', 0);
 
-		$stk_total = total_required($_POST['t_style_qty'], $dyedperpc, $_POST['dfstk_extra']);
+		$stk_total = net_req($perpc, $_POST['dfstk_extra']);
 		qty_cell($stk_total);
 		hidden('stk_total', $stk_total);
 		date_cells(null, 'req_date', null, null, 0, 0, 0, null, false);
@@ -125,19 +122,19 @@ function edit_dyed(&$order,  $order_no, $line , $maincat_id) {
 	else{
 
 		stock_style_list_cells( 'style_id', null,  true,$order_no);
-		$_POST['t_style_qty'] = get_order_qty($order_no, $_POST['style_id']);
+		$_POST['t_style_qty'] = get_style_total($order_no, $_POST['style_id']);
 		qty_cell($_POST['t_style_qty']);
 		sales_items_list_cells(null,'stock_id', null, false, true, true, $maincat_id);
 		$unit = get_unit($_POST['stock_id']);
 		label_cell($unit);
 		small_qty_cells_ex(null, 'dfperpc', 1,true);
 		small_qty_cells_ex(null, 'dfwaste', 0,true);
-		$dyedperpc = get_dyedperpc($_POST['t_style_qty'], $_POST['dfperpc'], $_POST['dfwaste']);
-		qty_cell($dyedperpc);
-		hidden('dyedperpc', $dyedperpc);
+		$perpc = get_perpc($_POST['t_style_qty'], $_POST['dfperpc'], $_POST['dfwaste']);
+		qty_cell($perpc);
+		hidden('dyedperpc', $perpc);
 		small_qty_cells_ex(null, 'dfstk_extra', 0,true);
 
-		$stk_total = total_required($_POST['t_style_qty'], $dyedperpc, $_POST['dfstk_extra']);
+		$stk_total = net_req($perpc, $_POST['dfstk_extra']);
 		qty_cell($stk_total);
 		hidden('stk_total', $stk_total);
 		date_cells(null, 'req_date', null, null, 0, 0, 0, null, true);
@@ -168,8 +165,8 @@ start_table(TABLESTYLE, "width='90%'");
 				if($id != $key || !$editable_items){
 					$des = get_description($value['stock_id']);
 					$unit = get_unit($value['stock_id']);
-					$t_style_qty = get_order_qty($order_no, $value['style_id']);
-					$dyedperpc = get_dyedperpc($t_style_qty, $value['perpc'], $value['waste']);
+					$t_style_qty = get_style_total($order_no, $value['style_id']);
+					$perpc = get_perpc($t_style_qty, $value['perpc'], $value['waste']);
 					label_cell($value['style_id']);
 					qty_cell($t_style_qty);
 					view_stock_status_cell($value['stock_id']);
@@ -177,7 +174,7 @@ start_table(TABLESTYLE, "width='90%'");
 					label_cell($unit);
 					qty_cell($value['perpc']);
 					qty_cell($value['waste']);
-					qty_cell($dyedperpc);
+					qty_cell($perpc);
 					qty_cell($value['stk_extra']);
 					qty_cell($value['stk_total']);
 					label_cell($value['req_date']);
@@ -189,7 +186,7 @@ start_table(TABLESTYLE, "width='90%'");
 				}
 				else
 					edit_dyed($_SESSION['dyed_data'], $order_no, $key, $maincat_id);
-				
+
 			}
 end_table(1);
 $old_comments = get_plan_comments($order_no,$maincat_id);

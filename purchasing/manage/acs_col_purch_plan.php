@@ -64,20 +64,19 @@ if (isset($_FILES['image']) && $_FILES['image']['name'] != '') {
 }
 if(isset($_POST['Delete'])){
 	$Delete_key = $_POST['Delete_key'];
-	unset($_SESSION['contract_data'][$Delete_key]);
+	unset($_SESSION['col_data'][$Delete_key]);
 }
 
 if(isset($_POST['update_item'])) {
     $edit_id = $_POST['edit_id'];
-    foreach($_SESSION['contract_data'] as $key => $value) {
+    foreach($_SESSION['col_data'] as $key => $value) {
         if($key == $edit_id) {
-            $_SESSION['contract_data'][$key]['perpc'] = $_POST['perpc'];
-            $_SESSION['contract_data'][$key]['stk_extra'] = $_POST['stk_extra'];
+      $_SESSION['col_data'][$key]['perpc'] = $_POST['perpc'];
+      $_SESSION['col_data'][$key]['stk_extra'] = $_POST['stk_extra'];
 			$t_style_qty = get_collection_qty($order_no);
-			// $dyedperpc = get_dyedperpc($t_style_qty, $_POST['perpc'], $_POS);
-			$_SESSION['contract_data'][$key]['stk_total'] = total_required($t_style_qty, $_POST['perpc'], $_POST['stk_extra']);
-			$_SESSION['contract_data'][$key]['ufilename'] = $_POST['ufilename'];
-			$_SESSION['contract_data'][$key]['req_date'] = $_POST['req_date'];
+			$_SESSION['col_data'][$key]['stk_total'] = net_req($_POST['perpc'], $_POST['stk_extra']);
+			$_SESSION['col_data'][$key]['ufilename'] = $_POST['ufilename'];
+			$_SESSION['col_data'][$key]['req_date'] = $_POST['req_date'];
 			display_notification(_('Order plan has been updated'));
             break;
         }
@@ -90,44 +89,44 @@ if(isset($_POST['update_item'])) {
 
 if(isset($_POST['AddItem'])) {
    // Create an empty array to store the form data
-$contract_data = array();
+$col_data = array();
 
 // Retrieve the existing array of data from the session variable
-$existing_data = isset($_SESSION['contract_data']) ? $_SESSION['contract_data'] : array();
+$existing_data = isset($_SESSION['col_data']) ? $_SESSION['col_data'] : array();
 
 // Determine the next line number by retrieving the line number of the last item (if it exists) and incrementing it by one
 $next_line_no = count($existing_data) > 0 ? $existing_data[count($existing_data) - 1]['line_no'] + 1 : 1;
 
-// $contract_data['new'] = $next_id_no;
-$contract_data['pp_id'] =null;
+// $col_data['new'] = $next_id_no;
+$col_data['pp_id'] =null;
 
 // Push the values of each form field into the array, including the new line number
-$contract_data['line_no'] = $next_line_no;
-$contract_data['stock_id'] = $_POST['stock_id'];
-$contract_data['maincat_id'] = $_POST['maincat_id'];
-$contract_data['perpc'] = $_POST['perpc'];
-$contract_data['waste'] = 0;
-$contract_data['stk_extra'] = $_POST['stk_extra'];
-$contract_data['t_style_qty']  = $_POST['t_style_qty'];
-$contract_data['description'] = get_description($_POST['stock_id']);
-$contract_data['units'] = get_unit($_POST['stock_id']);
-$contract_data['ufilename'] = $_POST['ufilename'];
-$contract_data['stk_extra'] = $_POST['stk_extra'];
-$contract_data['stk_total'] = $_POST['stk_total'];
-$contract_data['req_date'] = $_POST['req_date'];
+$col_data['line_no'] = $next_line_no;
+$col_data['stock_id'] = $_POST['stock_id'];
+$col_data['maincat_id'] = $_POST['maincat_id'];
+$col_data['perpc'] = $_POST['perpc'];
+$col_data['waste'] = 0;
+$col_data['stk_extra'] = $_POST['stk_extra'];
+$col_data['t_style_qty']  = 0;
+$col_data['description'] = get_description($_POST['stock_id']);
+$col_data['units'] = get_unit($_POST['stock_id']);
+$col_data['ufilename'] = $_POST['ufilename'];
+$col_data['stk_extra'] = $_POST['stk_extra'];
+$col_data['stk_total'] = $_POST['stk_total'];
+$col_data['req_date'] = $_POST['req_date'];
 
 // Add the new form data to the existing array of data
-$existing_data[] = $contract_data;
+$existing_data[] = $col_data;
 
 // Store the updated array data in the session variable
-$_SESSION['contract_data'] = $existing_data;
+$_SESSION['col_data'] = $existing_data;
 display_notification(_('New order plan has been added'));
 $Ajax->activate('items_table');
 }
 
 if(isset($_POST['add_plan'])){
 
-	add_to_database($_SESSION['contract_data'], $_POST['order_no'],$_POST['Comments'], $_POST['maincat_id']);
+	add_to_database($_SESSION['col_data'], $_POST['order_no'],$_POST['Comments'], $_POST['maincat_id']);
 	display_notification(_('New order plan has been added'));
 	get_collection_data($order_no,$maincat_id);
 }
@@ -167,10 +166,10 @@ function edit(&$order,  $order_no, $line , $maincat_id) {
 			label_cell($unit);
 			small_qty_cells_ex(null, 'perpc', 0,false);
 			small_qty_cells_ex(null, 'waste', 0,false);
-			$dyedperpc = get_dyedperpc($_POST['t_style_qty'], $_POST['perpc'], $_POST['waste']);
-			qty_cell($dyedperpc);
+			$perpc = get_perpc($_POST['t_style_qty'], $_POST['perpc'], $_POST['waste']);
+			qty_cell($perpc);
 			small_qty_cells_ex(null, 'stk_extra', 0,false);
-			$stk_total = total_required($_POST['t_style_qty'], $_POST['perpc'], $_POST['stk_extra']);
+			$stk_total = net_req($_POST['perpc'], $_POST['stk_extra']);
 			hidden('stk_total', $stk_total);
 			qty_cell($stk_total);
 			date_cells(null, 'req_date', null, null, 0, 0, 0, null, false);
@@ -182,12 +181,12 @@ function edit(&$order,  $order_no, $line , $maincat_id) {
 			sales_items_list_cells(null,'stock_id', $_POST['stock_id'], false, true, true, $maincat_id);
 			$unit = get_unit($_POST['stock_id']);
 			label_cell($unit);
-			small_qty_cells_ex(null, 'perpc', 0,true);
+			small_qty_cells_ex(null, 'perpc', 1,true);
 			small_qty_cells_ex(null, 'waste', 0,true);
-			$dyedperpc = get_dyedperpc($_POST['t_style_qty'], $_POST['perpc'], $_POST['waste']);
-			qty_cell($dyedperpc);
+			$perpc = get_perpc($_POST['t_style_qty'], $_POST['perpc'], $_POST['waste']);
+			qty_cell($perpc);
 			small_qty_cells_ex(null, 'stk_extra', 0,true);
-			$stk_total = total_required($_POST['t_style_qty'], $_POST['perpc'], $_POST['stk_extra']);
+			$stk_total = net_req($perpc, $_POST['stk_extra']);
 			hidden('stk_total', $stk_total);
 			qty_cell($stk_total);
 			date_cells(null, 'req_date', null, null, 0, 0, 0, null, true);
@@ -215,9 +214,9 @@ start_table(TABLESTYLE, "width='90%'");
 			$id = find_row('Edit');
 			$editable_items = true;
 			if ($id == -1 && $editable_items)
-				edit($_SESSION['contract_data'], $order_no, -1, $maincat_id);
+				edit($_SESSION['col_data'], $order_no, -1, $maincat_id);
 
-			foreach ($_SESSION['contract_data'] as $key => $value) {
+			foreach ($_SESSION['col_data'] as $key => $value) {
 				start_row();
 				if($id != $key || !$editable_items){
 
@@ -230,10 +229,11 @@ start_table(TABLESTYLE, "width='90%'");
 				label_cell($unit);
 				qty_cell($value['perpc']);
 				qty_cell($value['waste']);
-				$dyedperpc = get_dyedperpc($t_style_qty, $value['perpc'], $value['waste']);
-				qty_cell($dyedperpc);
+				$perpc = get_perpc($t_style_qty, $value['perpc'], $value['waste']);
+				qty_cell($perpc);
 				qty_cell($value['stk_extra']);
-				qty_cell($value['stk_total']);
+				$stk_total = net_req($perpc, $value['stk_extra']);
+				qty_cell($stk_total);
 				$ufilename = $value['ufilename'];
 				$ufilename = str_replace(' ', '_', $ufilename);
 				$stock_img_link = null;
@@ -252,7 +252,7 @@ start_table(TABLESTYLE, "width='90%'");
 				end_row();
 			}
 			else{
-				edit($_SESSION['contract_data'], $order_no, $key, $maincat_id);
+				edit($_SESSION['col_data'], $order_no, $key, $maincat_id);
 			}
 	}
 end_table(1);
