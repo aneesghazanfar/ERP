@@ -1,96 +1,115 @@
 <?php
 /**********************************************************************
-	Copyright (C) ASMIte Inc.
-	contact@march7.group
-***********************************************************************/
+ Copyright (C) ASMIte Inc.
+ contact@march7.group
+ ***********************************************************************/
+
 $page_security = 'SA_PURCHASEPLAN';
 //----------------------------------------------------------------------------------------------
-if (isset($_GET['OrderNumber']))
-$order_no= $_GET['OrderNumber'];
-else $order_no = $_POST['order_no'];
 hidden('order_no', $order_no);
 $maincat_id = 1;
 $maincat_id_2 = 2;
 hidden('maincat_id', $maincat_id);
 hidden('maincat_id_2', $maincat_id_2);
 
-if(isset($_POST['Delete'])){
-	$Delete_key = $_POST['Delete_key'];
-	unset($_SESSION['yarn_data'][$Delete_key]);
+
+$unset = true;
+$lineNo = find_submit('Edit');
+
+if(isset($_POST['Edit'.$lineNo])){
+	$unset = false;
 }
 
-if(isset($_POST['update_item'])) {
-    $edit_id = $_POST['edit_id'];
-    foreach($_SESSION['yarn_data'] as $key => $value) {
-        if($key == $edit_id) {
-			$_SESSION['yarn_data'][$key]['stk_total'] = $_POST['stk_total'];
-			$_SESSION['yarn_data'][$key]['waste'] = $_POST['waste'];
-			$cat_qty= get_cat_qty($order_no, $value['stock_id'], 3, 'const_id');
-			$total_fabric = total_req($cat_qty, $_POST['waste'] );
-      		$_SESSION['yarn_data'][$key]['stk_extra'] = $_POST['stk_extra'];
-			$_SESSION['yarn_data'][$key]['stk_total'] = net_req($total_fabric, $_POST['stk_extra']);
-			$_SESSION['yarn_data'][$key]['req_date']  = $_POST['req_date'];
-			display_notification(_('Order plan has been updated'));
-            break;
-        }
-    }
 
-    // Unset the edit_id field to reset the form
-    unset($_POST['edit_id']);
-	$Ajax->activate('items_table');
-}
+	
+// Default value for $perpc
+$perpc=1;
+	hidden('perpc', $perpc);
+	
+	
+	if(isset($_POST['Delete'])){
+		$Delete_key = $_POST['Delete_key'];
+		unset($_SESSION['plan_data'][$Delete_key]);
+	}
+	//update after edit
+	if(isset($_POST['update_item'])) {
+		$edit_id = $_POST['edit_id'];
+		foreach($_SESSION['plan_data'] as $key => $value) {
+			if($key == $edit_id) {
+				$ini_qty= get_cat_qty($order_no, $value['stock_id'], 3, 'const_id');
+				//					$_SESSION['plan_data'][$key]['perpc'] = $_POST['perpc'];
+				$_SESSION['plan_data'][$key]['waste'] = $_POST['waste'];
+				$total_req = total_req($ini_qty, $_POST['perpc'], $_POST['waste'] );
+				$_SESSION['plan_data'][$key]['stk_extra'] = $_POST['stk_extra'];
+				$_SESSION['plan_data'][$key]['stk_total'] = net_req($total_req, $perpc , $_POST['stk_extra']);
+				$_SESSION['plan_data'][$key]['req_date']  = $_POST['req_date'];
+				//					$_SESSION['plan_data'][$key]['ufilename']  = 'ufilename';
+				$unset = false;
+				display_notification(_('Order plan has been updated'));
+				break;
+			}
+		}
+		
+		// Unset the edit_id field to reset the form
+		unset($_POST['edit_id']);
+		$Ajax->activate('items_table');
+	}
 
-if(isset($_POST['AddItem'])) {
-   // Create an empty array to store the form data
-$yarn_data = array();
 
-// Retrieve the existing array of data from the session variable
-$existing_data = isset($_SESSION['yarn_data']) ? $_SESSION['yarn_data'] : array();
+	
+	if(isset($_POST['AddItem'])) {
+		$unset = false;
+		// Create an empty array to store the form data
+		$plan_data = array();
+		
+		// Retrieve the existing array of data from the session variable
+		$existing_data = isset($_SESSION['plan_data']) ? $_SESSION['plan_data'] : array();
+		
+		// Determine the next line number by retrieving the line number of the last item (if it exists) and incrementing it by one
+		$next_line_no = count($existing_data) > 0 ? $existing_data[count($existing_data) - 1]['line_no'] + 1 : 1;
+		$plan_data['pp_id'] =null;
+		
+		// Push the values of each form field into the array, including the new line number
+		$plan_data['line_no'] = $next_line_no;
+		$plan_data['maincat_id'] = $_POST['maincat_id'];
+		$plan_data['style_id'] = $_POST['style_id'];
+		$plan_data['stock_id'] = $_POST['stock_id'];
+		$plan_data['description'] = get_description($_POST['stock_id']);
+		$plan_data['ini_qty']  = get_cat_qty($order_no, $_POST['stock_id'], 3, 'const_id');
+		$plan_data['units'] = get_unit($_POST['stock_id']);
+		$plan_data['perpc'] = 0;
+		//$plan_data['perpc'] = $_POST['perpc'];
+		$plan_data['waste'] = $_POST['waste'];
+		$plan_data['total_req']  = total_req($plan_data['ini_qty'], $_POST['perpc'], $_POST['waste'] );
+		$plan_data['stk_extra'] = $_POST['stk_extra'];
+		//$plan_data['stk_total'] = $_POST['stk_total'];
+		$plan_data['stk_total'] = net_req($plan_data['total_req'], $_POST['stk_extra']);
+		$plan_data['req_date'] = $_POST['req_date'];
+		$plan_data['ufilename'] = '';
 
-// Determine the next line number by retrieving the line number of the last item (if it exists) and incrementing it by one
-$next_line_no = count($existing_data) > 0 ? $existing_data[count($existing_data) - 1]['line_no'] + 1 : 1;
-$yarn_data['pp_id'] =null;
+		// Add the new form data to the existing array of data
+		$existing_data[] = $plan_data;
 
-// Push the values of each form field into the array, including the new line number
-$yarn_data['line_no'] = $next_line_no;
-$yarn_data['style_id'] = $_POST['style_id'];
-$yarn_data['stock_id'] = $_POST['stock_id'];
-$yarn_data['maincat_id'] = $_POST['maincat_id'];
-$yarn_data['maincat_id_2'] = $_POST['maincat_id_2'];
-$yarn_data['perpc'] = 0;
-$yarn_data['waste'] = $_POST['waste'];
-$yarn_data['stk_extra'] = $_POST['stk_extra'];
-$yarn_data['t_style_qty']  = 0;
-$yarn_data['description'] = get_description($_POST['stock_id']);
-$yarn_data['units'] = get_unit($_POST['stock_id']);
-$yarn_data['ufilename'] = '';
-$yarn_data['stk_extra'] = $_POST['stk_extra'];
-$yarn_data['stk_total'] = $_POST['stk_total'];
-$yarn_data['req_date'] = $_POST['req_date'];
-
-// Add the new form data to the existing array of data
-$existing_data[] = $yarn_data;
-
-// Store the updated array data in the session variable
-$_SESSION['yarn_data'] = $existing_data;
-display_notification(_('New order plan has been added'));
-
-$Ajax->activate('items_table');
+		// Store the updated array data in the session variable
+		$_SESSION['plan_data'] = $existing_data;
+		$Ajax->activate('items_table');
 }
 
 if(isset($_POST['add_plan'])){
-add_to_database($_SESSION['yarn_data'], $_POST['order_no'],$_POST['Comments'], $_POST['maincat_id'], $_POST['maincat_id_2']);
-display_notification(_('New order plan has been added'));
-get_yarn_data($_POST['order_no'], $maincat_id, $maincat_id_2);
+	add_to_database($_SESSION['plan_data'], $order_no, $_POST['comment'], $maincat_id);
+	display_notification(_('New order plan has been added'));
+	get_plan_data($order_no, $maincat_id,true);
 }
+
+
 
 if (isset($_POST['CancelItemChanges']))
 	line_start_focus();
-
-  function edit(&$order,  $order_no, $line , $maincat_id, $maincat_id_2) {
+	
+function edit(&$order, $order_no, $line, $maincat_id , $maincat_id_2) {
 	global $Ajax;
 	global $id;
-
+	
 	if ($id == $line && $line != -1) {
 		foreach($order as $key=>$value){
 			if($key == $line){
@@ -100,49 +119,50 @@ if (isset($_POST['CancelItemChanges']))
 				$_POST['waste'] = $value['waste'];
 				$_POST['stk_extra'] = $value['stk_extra'];
 				$_POST['stk_total'] = $value['stk_total'];
-				$Ajax->activate('items_table');
+				$_POST['ufilename'] = $value['ufilename'];
 				break;
 			}
 		}
-		label_cells( null, $_POST['style_id']);
-		$cat_qty= get_cat_qty($order_no, $_POST['stock_id'], 3, 'const_id');
-		qty_cell($cat_qty);
-		label_cells(null, $_POST['stock_id']);
-		label_cells(null, get_description($_POST['stock_id']));
-		$unit = get_unit($_POST['stock_id']);
-		$total_fabric = total_req($cat_qty, $_POST['waste'] );
-		label_cell($unit);
+		label_cell($_POST['style_id']);
+		$ini_qty= get_cat_qty($order_no, $_POST['stock_id'], 3, 'const_id');
+		label_cell($_POST['stock_id']);
+		label_cell(get_description($_POST['stock_id']));
+		qty_cell($ini_qty);
+		label_cell(get_unit($_POST['stock_id']));
+		//		small_qty_cells_ex(null, 'perpc', 0,false);
 		small_qty_cells_ex(null, 'waste', 0,false);
-		qty_cell($total_fabric);
-		hidden('total_fabric', $total_fabric);
-		small_qty_cells_ex(null, 'stk_extra', 0,false);
-		$stk_total = net_req($total_fabric, $_POST['stk_extra']);
+		$total_req = total_req($ini_qty, $_POST['perpc'], $_POST['waste']);
+		qty_cell($total_req);
+		small_qty_cells_ex(null, 'stk_extra', 0, false);
+		$stk_total = net_req($total_req, $_POST['stk_extra']);
 		qty_cell($stk_total);
 		date_cells(null, 'req_date', null, null, 0, 0, 0, null, false);
-		hidden('stk_total', $stk_total);
-		hidden('total_fabric', $total_fabric);
+		//		file_cells(null, 'image','image');
 	}
 	else{
 		stock_style_list_cells( 'style_id', null,  true,$order_no);
-		$cat_qty= get_cat_qty($order_no, $_POST['stock_id'], 3, 'const_id');
-		qty_cell($cat_qty);
-    sales_items_list_cells(null,'stock_id', $_POST['stock_id'], false, true, true , $maincat_id	,$maincat_id_2);
-		$unit = get_unit($_POST['stock_id']);
-		label_cell($unit);
-		small_qty_cells_ex(null, 'waste', 0,true);
-		$total_fabric = total_req($cat_qty, $_POST['waste'] );
-		qty_cell($total_fabric);
-		hidden('total_fabric', $total_fabric);
-		small_qty_cells_ex(null, 'stk_extra', 0,true);
-		$stk_total = net_req($total_fabric, $_POST['stk_extra']);
+		plan_sales_items_list_cells(null,'stock_id', null, false, true, true, $maincat_id,$maincat_id_2);
+		$ini_qty= get_cat_qty($order_no, $_POST['stock_id'], 3, 'const_id');
+		hidden('ini_qty', $ini_qty);
+		qty_cell($ini_qty);
+		label_cell(get_unit($_POST['stock_id']));
+		//small_qty_cells_ex(null, 'perpc', 0,false);
+		small_qty_cells_ex(null, 'waste', 0, true);
+		//need to change $perpc as per requirement
+		$perpc =1;
+		$total_req = total_req($ini_qty, $perpc, $_POST['waste']);
+		qty_cell($total_req);
+		hidden('total_req', $total_req);
+		small_qty_cells_ex(null, 'stk_extra', 0, true);
+		$stk_total = net_req($total_req, $_POST['stk_extra']);
 		qty_cell($stk_total);
-		date_cells(null, 'req_date', null, null, 0, 0, 0, null, true);
 		hidden('stk_total', $stk_total);
-		hidden('total_fabric', $total_fabric);
+		date_cells(null, 'req_date', null, null, 0, 0, 0, null, true);
+		//		file_cells(null, 'image','image');
 		$Ajax->activate('items_table');
 	}
-if ($id != -1) {
-	button_cell('update_item', _('Update'), _('Confirm changes'), ICON_UPDATE);
+	if ($id != -1) {
+		button_cell('update_item', _('Update'), _('Confirm changes'), ICON_UPDATE);
 	button_cell('CancelItemChanges', _('Cancel'), _('Cancel changes'), ICON_CANCEL);
 }
 else{
@@ -150,51 +170,53 @@ else{
 }
 end_row();
 }
+
 start_form(true);
 div_start('items_table');
-display_heading("Plan Yarn Against Sales Order");
+get_plan_data($order_no, $maincat_id , $unset);
+display_heading("Plan Greige Fabrics Against Sales Order");
 start_table(TABLESTYLE, "width='90%'");
-			$th = array(_('Style Id'),_('Total Qty'), _('Yarn Code'), _('Yarn Desc'), _('UoM'), _('Knit Waste %'), _('Tot Qty %'), _('Extra Qty %'), _('Req Qty'), _('Req by'), '', '');
+$th = array(_('Style Id'), _('Greige Fab Code'), _('Fabric Desc'), _('Total Qty'), _('UoM'), _('Dye Waste %'), _('Tot Greige Qty'), _('Ex Qty %'), _('Req Qty'), _('Req by'), '', '');
 						table_header($th);
 						start_row();
 						$id = find_row('Edit');
 						$editable_items = true;
 						if ($id == -1 && $editable_items)
-            edit($_SESSION['yarn_data'], $order_no, -1, $maincat_id,$maincat_id_2);
-						foreach ($_SESSION['yarn_data'] as $key => $value) {
-							start_row();
-							if($id != $key || !$editable_items){
-								$des = get_description($value['stock_id']);
-								$unit = get_unit($value['stock_id']);
-								$cat_qty= get_cat_qty($order_no, $value['stock_id'], 3, 'const_id');
-								$total_fabric = total_req($cat_qty, $value['waste'] );
+							edit($_SESSION['plan_data'], $order_no, -1, $maincat_id , $maincat_id_2);
+							foreach ($_SESSION['plan_data'] as $key => $value) {
+								start_row();
+								if($id != $key || !$editable_items){
 								label_cell($value['style_id']);
-								qty_cell($cat_qty);
-								view_stock_status_cell($value['stock_id']);
-								label_cell($des);
-								label_cell($unit);
+								label_cell($value['stock_id']);
+								label_cell(get_description($value['stock_id']));
+								$ini_qty = get_cat_qty($order_no, $value['stock_id'], 3, 'const_id');
+								qty_cell($ini_qty);
+								label_cell(get_unit($value['stock_id']));
+//								qty_cell($value['perpc']);
 								qty_cell($value['waste']);
-								qty_cell($total_fabric);
+//Need to change perpc as per requirement
+								$total_req = total_req($ini_qty, $perpc, $value['waste']);
+								qty_cell($total_req);
 								qty_cell($value['stk_extra']);
 								qty_cell($value['stk_total']);
 								label_cell($value['req_date']);
+//								label_cell($value['ufilename']);
 								edit_button_cell('Edit'.$value['line_no'], _('Edit'), _('Edit document line'));
 								delete_button_cell('Delete'.$value['line_no'], _('Delete'), _('Remove line from document'));
 								if(isset($_POST['Delete'.$value['line_no']])){
-									unset($_SESSION['yarn_data'][$key]);
+									unset($_SESSION['plan_data'][$key]);
 									$Ajax->activate('items_table');
-
-								}					end_row();
-
+								}
+								end_row();
 						}
 						else{
-							edit($_SESSION['yarn_data'], $order_no, $key, $maincat_id, $maincat_id_2);
+							edit($_SESSION['plan_data'], $order_no, $key, $maincat_id , $maincat_id_2);
 						}
 				}
 			end_table(1);
-			$old_comments = get_plan_comments($order_no, $maincat_id, $maincat_id_2);
+			$comment = get_plan_comments($order_no, $maincat_id);
 			start_table(TABLESTYLE2);
-			textarea_row(_('Remarks:'), 'Comments', $old_comments, 70, 4);
+			textarea_row(_('Remarks:'), 'comment', $comment, 70, 4);
 			end_table(1);
 submit_center_first('add_plan',_('Place Plan'),  _('Check entered data and save document'), 'default');
 div_end();

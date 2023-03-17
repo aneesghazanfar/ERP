@@ -19,13 +19,11 @@ simple_page_mode(true);
 //----------------------------------------------------------------------------------------------
 if (isset($_GET['OrderNumber'])){
 $order_no= $_GET['OrderNumber'];
-get_dyed_data($order_no,4);
-get_fabric_data($order_no,3);
-get_yarn_data($order_no,1,2);
-get_acs_data($order_no,5);
-get_collection_data($order_no,5);
+unset($_SESSION['plan_data']);
 }
-else $order_no = $_POST['order_no'];
+else {
+	$order_no = $_POST['order_no'];
+}
 hidden('order_no', $order_no);
 
 	$sql = "SELECT * FROM ".TB_PREF."sales_orders WHERE order_no=".db_escape($order_no);
@@ -44,9 +42,9 @@ end_row();
 start_row();
 label_cells(_('For Sales Order'), get_customer_trans_view_str(ST_SALESORDER, $order_no), "class='tableheader2'");
 if ($ordrow['repeat_of'] != 0)
-label_cells(_('Repeat of'), get_customer_trans_view_str(ST_SALESORDER, $ordrow['repeat_of']), "class='tableheader2'");
+	label_cells(_('Repeat of'), get_customer_trans_view_str(ST_SALESORDER, $ordrow['repeat_of']), "class='tableheader2'");
 else
-label_cells(_('Repeat of'), 'New', "class='tableheader2'");
+	label_cells(_('Repeat of'), 'New', "class='tableheader2'");
 label_cells(_('Total Quantity'), $ordrow['qty_total'], "class='tableheader2'");
 label_cells(_('Total Value'), $ordrow['total'].' '.$ordrow['ord_curr'], "class='tableheader2'");
 end_row();

@@ -91,11 +91,11 @@ return $row[0];
 }
 
 //Sum end--------------------------------------------------------------------------------------
-function add_to_database (&$item , $order_no , $Comments , $maincat_id){
+function add_to_database (&$item , $order_no , $comment , $maincat_id){
 foreach($item as $key => $row) {
 	$req_date = date('y/m/d', strtotime($row['req_date']));
     if($row['pp_id'] == null ) {
-    $sql = "INSERT INTO ".TB_PREF."purch_plan_details (sorder_no, style_id, maincat_id, stk_code, perpc,waste, stk_extra, stk_total, ufilename, req_date)
+    $sql = "INSERT INTO ".TB_PREF."purch_plan_details (sorder_no, style_id, maincat_id, stk_code, perpc, waste, stk_extra, stk_total, ufilename, req_date)
             VALUES (".db_escape($order_no).", ".db_escape($row['style_id']).", ".db_escape($row['maincat_id']).", ".db_escape($row['stock_id']).",
             ".db_escape($row['perpc']).", ".db_escape($row['waste']).", ".db_escape($row['stk_extra']).",
             ".db_escape($row['stk_total']).", ".db_escape($row['ufilename'])." , ".db_escape($req_date).")";
@@ -111,45 +111,45 @@ else {
 }
 
 if($maincat_id == 4)
-	$Comments_variable = 'dyed_cmt';
+	$cmt = 'dyed_cmt';
 else if($maincat_id == 3)
-	$Comments_variable ='greige_cmt';
-else if($maincat_id == 1)
-	$Comments_variable ='yarn_cmt';
+	$cmt ='greige_cmt';
+else if($maincat_id == (1||2))
+	$cmt ='yarn_cmt';
 else if($maincat_id == 5)
-	$Comments_variable ='acs_cmt';
-$sql = "UPDATE ".TB_PREF."purch_plan SET $Comments_variable = ".db_escape($Comments)." WHERE sorder_no = ".db_escape($order_no);
+	$cmt ='acs_cmt';
+$sql = "UPDATE ".TB_PREF."purch_plan SET $cmt = ".db_escape($comment)." WHERE sorder_no = ".db_escape($order_no);
 	    	db_query($sql, 'order Cannot be Added');
 }
 //--------------------------------------------------------------------------------------
 function get_plan_comments($order_no ,$maincat_id){
 	if($maincat_id == 4)
-		$Comments_variable = 'dyed_cmt';
+		$cmt = 'dyed_cmt';
 	else if($maincat_id == 3)
-		$Comments_variable ='greige_cmt';
-	else if($maincat_id == 1)
-		$Comments_variable ='yarn_cmt';
+		$cmt ='greige_cmt';
+	else if($maincat_id == (1||2))
+		$cmt ='yarn_cmt';
 	else if($maincat_id == 5)
-		$Comments_variable ='acs_cmt';
+		$cmt ='acs_cmt';
 
-	$sql = "SELECT $Comments_variable FROM ".TB_PREF."purch_plan WHERE sorder_no = ".db_escape($order_no);
+	$sql = "SELECT $cmt FROM ".TB_PREF."purch_plan WHERE sorder_no = ".db_escape($order_no);
 	$result = db_query($sql, "could not get comments");
 	$row = db_fetch_row($result);
 	return $row[0];
 }
 //--------------------------------------------------------------------------------------
-function get_collection_detail($order_no,$maincat_id, $maincat_id_2 = null){
+function get_col_detail($order_no,$maincat_id, $maincat_id_2 = null){
 	$sql = "SELECT * FROM ".TB_PREF."purch_plan_details WHERE sorder_no = ".db_escape($order_no)." AND (maincat_id = ".db_escape($maincat_id)." OR maincat_id = ".db_escape($maincat_id_2).") AND style_id = '' ";
 	return db_query($sql, "could not get all detail");
 }
 //--------------------------------------------------------------------------------------
-function get_all_detail($order_no,$maincat_id, $maincat_id_2 = null){
+function get_style_detail($order_no,$maincat_id, $maincat_id_2 = null){
 	$sql = "SELECT * FROM ".TB_PREF."purch_plan_details WHERE sorder_no = ".db_escape($order_no)." AND (maincat_id = ".db_escape($maincat_id)." OR maincat_id = ".db_escape($maincat_id_2).") AND style_id != ''";
 	return db_query($sql, "could not get all detail");
 }
-//--------------------------------------------------------------------------------------
-function get_collection_qty($order_no){
-$sql = "SELECT SUM(CEIL(quantity+(quantity*(additional/100)))) AS collection_qty FROM ".TB_PREF."sales_order_details WHERE order_no = ".db_escape($order_no);
+//16mar--------------------------------------------------------------------------------------
+function get_ord_qty($order_no){
+$sql = "SELECT qty_total FROM ".TB_PREF."sales_orders WHERE order_no = ".db_escape($order_no);
 $result = db_query($sql, 'Could not retreive collection quantity');
 $row = db_fetch($result);
 return $row[0];
@@ -183,8 +183,10 @@ $result = db_query($sql, "could not get id");
 	return $row[0];
 }
 //--------------------------------------------------------------------------------------
-function get_style_qty($order_no, $maincat_id){
-	$sql = "SELECT stk_total FROM ".TB_PREF."purch_plan_details WHERE sorder_no = ".db_escape($order_no)." AND maincat_id = ".db_escape($maincat_id);
+function get_style_qty($order_no, $style_id){
+	//$sql = "SELECT stk_total FROM ".TB_PREF."purch_plan_details WHERE sorder_no = ".db_escape($order_no)." AND maincat_id = ".db_escape($maincat_id);
+	$sql = "SELECT SUM(CEIL(quantity+(quantity*(additional/100)))) AS style_qty FROM ".TB_PREF."sales_order_details s,".TB_PREF."stock_master c WHERE s.order_no = ".db_escape($order_no)." AND c.clt_style = ".db_escape($style_id)." AND s.stk_code=c.stock_id";
+
 	$result = db_query($sql, "could not get stk_total");
 	$row = db_fetch_row($result);
 	return $row[0];

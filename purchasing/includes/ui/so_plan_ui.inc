@@ -14,7 +14,6 @@ function find_row($prefix, $numeric=true) {
 	return $numeric ? -1 : null;
 }
 //--------------------------------------------------------------------------------------
-
 function stock_style_list($name, $selected_id=null, $submit_on_change=false,$order_no) {
 $sql = "SELECT DISTINCT s.clt_style, CONCAT(s.clt_style,' | ',s.style_id) as style_ref FROM ".TB_PREF."stock_master s,".TB_PREF."sales_order_details c WHERE s.stock_id=c.stk_code AND c.order_no=".db_escape($order_no);
 	return combo_input($name, $selected_id, $sql, 'clt_style', 'style_ref',
@@ -22,6 +21,7 @@ $sql = "SELECT DISTINCT s.clt_style, CONCAT(s.clt_style,' | ',s.style_id) as sty
 			'spec_id' => -1,
 			'search_submit' => true,
 			'select_submit'=> $submit_on_change,
+			'async' => true,
 	));
 }
 function stock_style_list_cells( $name, $selected_id=null, $submit_on_change=false,$order_no) {
@@ -30,151 +30,6 @@ function stock_style_list_cells( $name, $selected_id=null, $submit_on_change=fal
 	echo "</td>\n";
 }
 
-//--------------------------------------------------------------------------------------
-function net_req($stk_total, $stk_extra){
-		return ($stk_total + ($stk_total * ($stk_extra/100)));
-}
-//-----------------------------------------------------------------------------------
-function get_perpc($t_style_qty , $perpc , $waste){
-		return ($t_style_qty * ($perpc * (100/(100-$waste))));
-}
-//-----------------------------------------------------------------------------------
-// function total_yarn($total_qty , $waste){
-// 		return ($total_qty * (100/(100-$waste)));
-// }
-//-----------------------------------------------------------------------------------
-function total_net_req($stk_total, $waste, $stk_extra){
-		$net_req = total_req($stk_total, $waste);
-		return ($net_req + ($net_req * ($stk_extra/100)));
-}
-//-----------------------------------------------------------------------------------
-function total_req($stk_total , $waste){
-		return ($stk_total * (100/(100-$waste)));
-}
-//--------------------------------------------------------------------------------------
-function get_dyed_data($order_no,$maincat_id){
-		unset($_SESSION['dyed_data']);
-	$result = get_all_detail($order_no,$maincat_id);
-	$line_no = 1;
-while($myrow = db_fetch($result)) {
-	$dyed_data['line_no'] =$line_no++;
-	$dyed_data['pp_id'] = $myrow['pp_id'];
-	$dyed_data['style_id'] = $myrow['style_id'];
-    $dyed_data['stock_id'] = $myrow['stk_code'];
-	$dyed_data['maincat_id'] = $myrow['maincat_id'];
-	$dyed_data['t_style_qty']  = get_style_total($order_no, $myrow['style_id']);
-	$dyed_data['description'] = get_description($myrow['stk_code']);
-	$dyed_data['units'] = get_unit($myrow['stk_code']);
-    $dyed_data['perpc'] = $myrow['perpc'];
-	$dyed_data['waste'] = $myrow['waste'];
-    $dyed_data['stk_extra'] = $myrow['stk_extra'];
-	$dyed_data['stk_total'] = $myrow['stk_total'];
-	$dyed_data['req_date'] = $myrow['req_date'];
-	$dyed_data['ufilename'] = $myrow['ufilename'];
-	$existing_data = isset($_SESSION['dyed_data']) ? $_SESSION['dyed_data'] : array();
-    $existing_data[] = $dyed_data;
-    $_SESSION['dyed_data'] = $existing_data;
-}
-}
-//--------------------------------------------------------------------------------------
-function get_fabric_data($order_no,$maincat_id){
-	unset($_SESSION['fabric_data']);
-	$result = get_all_detail($order_no,$maincat_id);
-	$line_no = 1;
-while($myrow = db_fetch($result)) {
-	$fabric_data['line_no'] =$line_no++;
-	$fabric_data['pp_id'] = $myrow['pp_id'];
-	$fabric_data['style_id'] = $myrow['style_id'];
-    $fabric_data['stock_id'] = $myrow['stk_code'];
-	$fabric_data['maincat_id'] = $myrow['maincat_id'];
-//	$fabric_data['total_Net_Qty'] = get_total_net_qty($order_no, 4);
-//	$fabric_data['t_style_qty']  = get_style_total($order_no, $myrow['style_id']);
-	$fabric_data['description'] = get_description($myrow['stk_code']);
-	$fabric_data['units'] = get_unit($myrow['stk_code']);
-//    $fabric_data['perpc'] = $myrow['perpc'];
-	$fabric_data['waste'] = $myrow['waste'];
-    $fabric_data['stk_extra'] = $myrow['stk_extra'];
-	$fabric_data['stk_total'] = $myrow['stk_total'];
-	$fabric_data['req_date'] = $myrow['req_date'];
-//	$fabric_data['ufilename'] = $myrow['ufilename'];
-	$existing_data = isset($_SESSION['fabric_data']) ? $_SESSION['fabric_data'] : array();
-    $existing_data[] = $fabric_data;
-    $_SESSION['fabric_data'] = $existing_data;
-}
-}
-//--------------------------------------------------------------------------------------
-function get_yarn_data($order_no,$maincat_id, $maincat_id_2){
-		unset($_SESSION['yarn_data']);
-	$result = get_all_detail($order_no,$maincat_id, $maincat_id_2);
-	$line_no = 1;
-while($myrow = db_fetch($result)) {
-	$yarn_data['line_no'] =$line_no++;
-	$yarn_data['pp_id'] = $myrow['pp_id'];
-	$yarn_data['style_id'] = $myrow['style_id'];
-    $yarn_data['stock_id'] = $myrow['stk_code'];
-	$yarn_data['maincat_id'] = $myrow['maincat_id'];
-	$yarn_data['description'] = get_description($myrow['stk_code']);
-	$yarn_data['units'] = get_unit($myrow['stk_code']);
-    $yarn_data['perpc'] = $myrow['perpc'];
-	$yarn_data['waste'] = $myrow['waste'];
-    $yarn_data['stk_extra'] = $myrow['stk_extra'];
-	$yarn_data['stk_total'] = $myrow['stk_total'];
-	$yarn_data['req_date'] = $myrow['req_date'];
-	$yarn_data['ufilename'] = $myrow['ufilename'];
-	$existing_data = isset($_SESSION['yarn_data']) ? $_SESSION['yarn_data'] : array();
-    $existing_data[] = $yarn_data;
-    $_SESSION['yarn_data'] = $existing_data;
-}
-}
-//--------------------------------------------------------------------------------------
-function get_acs_data($order_no,$maincat_id){
-		unset($_SESSION['acs_data']);
-	$result = get_all_detail($order_no,$maincat_id);
-	$line_no = 1;
-while($myrow = db_fetch($result)) {
-	$acs_data['line_no'] =$line_no++;
-	$acs_data['pp_id'] = $myrow['pp_id'];
-	$acs_data['style_id'] = $myrow['style_id'];
-    $acs_data['stock_id'] = $myrow['stk_code'];
-	$acs_data['maincat_id'] = $myrow['maincat_id'];
-	$acs_data['t_style_qty']  = get_style_total($order_no, $myrow['style_id']);
-	$acs_data['description'] = get_description($myrow['stk_code']);
-	$acs_data['units'] = get_unit($myrow['stk_code']);
-    $acs_data['perpc'] = $myrow['perpc'];
-	$acs_data['waste'] = $myrow['waste'];
-    $acs_data['stk_extra'] = $myrow['stk_extra'];
-	$acs_data['stk_total'] = $myrow['stk_total'];
-	$acs_data['ufilename'] = $myrow['ufilename'];
-	$acs_data['req_date'] = $myrow['req_date'];
-	$existing_data = isset($_SESSION['acs_data']) ? $_SESSION['acs_data'] : array();
-    $existing_data[] = $acs_data;
-    $_SESSION['acs_data'] = $existing_data;
-}
-}
-//--------------------------------------------------------------------------------------
-function get_collection_data($order_no,$maincat_id){
-		unset($_SESSION['col_data']);
-	$result = get_collection_detail($order_no,$maincat_id);
-	$line_no = 1;
-while($myrow = db_fetch($result)) {
-	$col_data['line_no'] =$line_no++;
-	$col_data['pp_id'] = $myrow['pp_id'];
-    $col_data['stock_id'] = $myrow['stk_code'];
-	$col_data['maincat_id'] = $myrow['maincat_id'];
-	$col_data['t_style_qty']  = get_collection_qty($order_no);
-	$col_data['description'] = get_description($myrow['stk_code']);
-	$col_data['units'] = get_unit($myrow['stk_code']);
-    $col_data['perpc'] = $myrow['perpc'];
-	$col_data['waste'] = $myrow['waste'];
-    $col_data['stk_extra'] = $myrow['stk_extra'];
-	$col_data['stk_total'] = $myrow['stk_total'];
-	$col_data['ufilename'] = $myrow['ufilename'];
-	$col_data['req_date'] = $myrow['req_date'];
-	$existing_data = isset($_SESSION['col_data']) ? $_SESSION['col_data'] : array();
-    $existing_data[] = $col_data;
-    $_SESSION['col_data'] = $existing_data;
-}
-}
 //--------------------------------------------------------------------------------------
 function amount_cells_ex_new($label, $name, $size, $max=null, $init=null, $submit_on_change=false, $params=null, $post_label=null, $dec=null) {
 	global $Ajax;
@@ -217,4 +72,105 @@ function small_qty_cells_ex($label, $name, $init=null, $submit_on_change=false, 
 	if (!isset($dec))
 		$dec = user_qty_dec();
 	amount_cells_ex_new($label, $name, 7, 12, $init, $submit_on_change, $params, $post_label, $dec);
+}
+//--------------------------------------------------------------------------------------
+function get_plan_data($order_no, $maincat_id, $unset=false, $col=null){
+	if($unset)
+		unset($_SESSION['plan_data']);
+if($col)
+$result = get_col_detail($order_no, $maincat_id);
+else
+$result = get_style_detail($order_no, $maincat_id);
+$line_no = 1;
+while ($myrow = db_fetch($result)) {
+    $plan_data['line_no'] = $line_no++;
+    $plan_data['maincat_id'] = $myrow['maincat_id'];
+    $plan_data['pp_id'] = $myrow['pp_id'];
+    $plan_data['style_id'] = $myrow['style_id'];
+    $plan_data['stock_id'] = $myrow['stk_code'];
+    $plan_data['description'] = get_description($myrow['stk_code']);
+    $plan_data['ini_qty'] = 0;
+    $plan_data['units'] = get_unit($myrow['stk_code']);
+    $plan_data['perpc'] = $myrow['perpc'];
+    $plan_data['waste'] = $myrow['waste'];
+    $plan_data['total_req'] = 0;
+    $plan_data['stk_extra'] = $myrow['stk_extra'];
+    $plan_data['stk_total'] = $myrow['stk_total'];
+    $plan_data['req_date'] = $myrow['req_date'];
+    $plan_data['ufilename'] = $myrow['ufilename'];
+
+    $existing_data = isset($_SESSION['plan_data']) ? $_SESSION['plan_data'] : array();
+ // Check if pp_id already exists in session
+$index = array_search($plan_data['pp_id'], array_column($existing_data, 'pp_id'));
+if ($index !== false) {
+// Data already in session, do nothing
+}
+else {
+// Add new data to session
+    $existing_data[] = $plan_data;
+    $_SESSION['plan_data'] = $existing_data;
+}
+}
+}
+//-----------------------------------------------------------------------------------
+function total_req($ini_qty , $perpc , $waste){
+		return ($ini_qty * ($perpc * (100/(100-$waste))));
+}
+//--------------------------------------------------------------------------------------
+function net_req($total_req, $stk_extra){
+		return ($total_req + ($total_req * ($stk_extra/100)));
+}
+//--------------------------------------------------------------------------------------
+function plan_sales_items_list($name, $selected_id=null, $all_option=false, $submit_on_change=false, $type='', $opts=array(), $editkey=false, $maincat_id,$maincat_id_2 ) {
+	$sql = "SELECT i.item_code, i.description, c.description, count(*)>1 as kit,
+			 i.inactive, if(count(*)>1, '0', s.editable) as editable
+			FROM
+			".TB_PREF."stock_master s,
+			".TB_PREF."item_codes i
+			LEFT JOIN
+			".TB_PREF."stock_category c
+			ON i.category_id=c.category_id
+			WHERE i.stock_id=s.stock_id
+	  AND mb_flag != 'F'";
+
+ 	if ($maincat_id || $maincat_id_2) 
+		$sql .= " AND (s.maincat_id = ".db_escape($maincat_id) . " OR s.maincat_id = ".db_escape($maincat_id_2).")";
+	
+	if ($type == 'local') // exclude foreign codes
+		$sql .=	" AND !i.is_foreign"; 
+	elseif ($type == 'kits') // sales kits
+		$sql .=	" AND !i.is_foreign AND i.item_code!=i.stock_id";
+	
+	$sql .= " AND !i.inactive AND !s.inactive AND !s.no_sale";
+	$sql .= " GROUP BY i.item_code";
+
+	return combo_input($name, $selected_id, $sql, 'i.item_code', 'c.description',
+		array_merge(
+		  array(
+			'format' => '_format_stock_items',
+			'spec_option' => $all_option===true ?  _('All Items') : $all_option,
+			'spec_id' => ALL_TEXT,
+			'search_box' => true,
+			'search' => array("i.item_code", "c.description", "i.description"),
+			'search_submit' => true,
+			'size'=>15,
+			'select_submit'=> $submit_on_change,
+			'category' => 2,
+			'order' => array('c.description','i.item_code'),
+			'editlink' => $editkey ? add_edit_combo('item', $name) : false,
+			'editable' => 30,
+			'max' => 255
+		  ), $opts), $type == 'kits' ? $type : "stock_sales" );
+}
+
+function plan_sales_items_list_cells($label, $name, $selected_id=null, $all_option=false, $submit_on_change=false, $editkey=false , $maincat_id = null ,$maincat_id_2 = null) {
+	if ($editkey)
+		set_editor('item', $name, $editkey);
+
+	if ($label != null)
+		echo "<td>".$label."</td>\n";
+
+	echo plan_sales_items_list($name, $selected_id, $all_option, $submit_on_change,
+		'', array('cells'=>true, 'max'=>50), $editkey, $maincat_id, $maincat_id_2); // maximum is set to 50 and not default 255.
+
 }
