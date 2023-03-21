@@ -54,7 +54,7 @@ function amount_cells_ex_new($label, $name, $size, $max=null, $init=null, $submi
 		echo "<td>";
 	else
 		echo "<td align='right'>";
-	$class = $submit_on_change ? 'class="searchbox"' : '';
+	 $class = $submit_on_change ? 'class="searchbox"' : '';
 
 	echo "<input $class class='amount' type=\"text\" name=\"$name\" size=\"$size\" maxlength=\"$max\" dec=\"$dec\" value=\"" . $_POST[$name]. "\">";
 

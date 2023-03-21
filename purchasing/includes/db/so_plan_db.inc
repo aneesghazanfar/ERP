@@ -114,7 +114,7 @@ if($maincat_id == 4)
 	$cmt = 'dyed_cmt';
 else if($maincat_id == 3)
 	$cmt ='greige_cmt';
-else if($maincat_id == (1||2))
+else if($maincat_id == 1 || $maincat_id == 2)
 	$cmt ='yarn_cmt';
 else if($maincat_id == 5)
 	$cmt ='acs_cmt';
@@ -127,7 +127,7 @@ function get_plan_comments($order_no ,$maincat_id){
 		$cmt = 'dyed_cmt';
 	else if($maincat_id == 3)
 		$cmt ='greige_cmt';
-	else if($maincat_id == (1||2))
+	else if($maincat_id == 1 || $maincat_id == 2)
 		$cmt ='yarn_cmt';
 	else if($maincat_id == 5)
 		$cmt ='acs_cmt';

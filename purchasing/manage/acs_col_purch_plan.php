@@ -30,7 +30,7 @@ if(isset($_POST['Edit'.$lineNo])){
 		$edit_id = $_POST['edit_id'];
 		foreach($_SESSION['plan_data'] as $key => $value) {
 			if($key == $edit_id) {
-				$ini_qty= get_col_detail($order_no,$maincat_id);
+				$ini_qty= get_ord_qty($order_no,$maincat_id);
 				$_SESSION['plan_data'][$key]['perpc'] = $_POST['perpc'];
 				$_SESSION['plan_data'][$key]['waste'] = $_POST['waste'];
 				$total_req = total_req($ini_qty, $_POST['perpc'], $_POST['waste'] );
@@ -66,7 +66,7 @@ if(isset($_POST['Edit'.$lineNo])){
 		$plan_data['style_id'] = $_POST['style_id'];
 		$plan_data['stock_id'] = $_POST['stock_id'];
 		$plan_data['description'] = get_description($_POST['stock_id']);
-		$plan_data['ini_qty']  = get_col_detail($order_no,$maincat_id);
+		$plan_data['ini_qty']  = get_ord_qty($order_no,$maincat_id);
 		$plan_data['units'] = get_unit($_POST['stock_id']);
 		$plan_data['perpc'] = $_POST['perpc'];
 		$plan_data['waste'] = $_POST['waste'];
@@ -90,21 +90,20 @@ if(isset($_POST['Edit'.$lineNo])){
 		get_plan_data($order_no, $maincat_id,true ,1);
 	}
 
-if (isset($_FILES['image']) && $_FILES['image']['name'] != '') {
-		hidden('ufilename', uniqid());
-
+if (isset($_FILES['image']) && $_FILES['image']['name'] != '') {	
 	$order_no = $_POST['order_no'];
 	$result = $_FILES['image']['error'];
 	$upload_file = 'Yes'; //Assume all is well to start off with
 	$filename = company_path().'/images';
-
+	
 	if (!file_exists($filename))
 	mkdir($filename);
-
+	
+	hidden('ufilename', uniqid());
 
 	$filename .= '/'. item_img_name($_POST['ufilename']).(substr(trim($_FILES['image']['name']), strrpos($_FILES['image']['name'], '.')));
-
-
+	
+	
 	if ($_FILES['image']['error'] == UPLOAD_ERR_INI_SIZE) {
 		display_error(_('The file size is over the maximum allowed.'));
 		$upload_file = 'No';
@@ -113,13 +112,13 @@ if (isset($_FILES['image']) && $_FILES['image']['name'] != '') {
 		display_error(_('Error uploading file.'));
 		$upload_file = 'No';
 	}
-
+	
 	//But check for the worst
 	if ((list($width, $height, $type, $attr) = getimagesize($_FILES['image']['tmp_name'])) !== false)
 	$imagetype = $type;
 	else
 	$imagetype = false;
-
+	
 	if ($imagetype != IMAGETYPE_GIF && $imagetype != IMAGETYPE_JPEG && $imagetype != IMAGETYPE_PNG) {
 		display_warning( _('Only graphics files can be uploaded'));
 		$upload_file = 'No';
@@ -136,7 +135,7 @@ if (isset($_FILES['image']) && $_FILES['image']['name'] != '') {
 		display_warning( _('Only graphics files can be uploaded'));
 		$upload_file = 'No';
 	}
-
+	
 	if ($upload_file == 'Yes') {
 		$result  =  move_uploaded_file($_FILES['image']['tmp_name'], $filename);
 		$upload_file = 'No';
@@ -166,8 +165,8 @@ function edit(&$order, $order_no, $line, $maincat_id) {
 		label_cell($_POST['stock_id']);
 		label_cell(get_description($_POST['stock_id']));
 		$ini_qty= get_ord_qty($order_no);
-		qty_cell($ini_qty);
 		label_cell(get_unit($_POST['stock_id']));
+		qty_cell($ini_qty);
 		small_qty_cells_ex(null, 'perpc', 0,false);
 		small_qty_cells_ex(null, 'waste', 0,false);
 		$total_req = total_req($ini_qty, $_POST['perpc'], $_POST['waste']);
@@ -177,25 +176,26 @@ function edit(&$order, $order_no, $line, $maincat_id) {
 		qty_cell($stk_total);
 		date_cells(null, 'req_date', null, null, 0, 0, 0, null, false);
 		file_cells(null, 'image','image');
+		hidden('ufilename', $_POST['ufilename']);
 	}
 	else{
 		// stock_style_list_cells( 'style_id', null,  true,$order_no);
 		plan_sales_items_list_cells(null,'stock_id', null, false, true, true, $maincat_id);
 		$ini_qty = get_ord_qty($order_no);
 		hidden('ini_qty', $ini_qty);
-		qty_cell($ini_qty);
 		label_cell(get_unit($_POST['stock_id']));
-		small_qty_cells_ex(null, 'perpc', 1, true);
-		small_qty_cells_ex(null, 'waste', 0, true);
+		qty_cell($ini_qty);
+		small_qty_cells_ex(null, 'perpc', 1, false);
+		small_qty_cells_ex(null, 'waste', 0, false);
 		//need to change $perpc as per requirement
 		$total_req = total_req($ini_qty, $_POST['perpc'], $_POST['waste']);
 		qty_cell($total_req);
 		hidden('total_req', $total_req);
-		small_qty_cells_ex(null, 'stk_extra', 0, true);
+		small_qty_cells_ex(null, 'stk_extra', 0, false);
 		$stk_total = net_req($total_req, $_POST['stk_extra']);
 		qty_cell($stk_total);
 		hidden('stk_total', $stk_total);
-		date_cells(null, 'req_date', null, null, 0, 0, 0, null, true);
+		date_cells(null, 'req_date', null, null, 0, 0, 0, null, false);
 		file_cells(null, 'image','image');
 		$Ajax->activate('items_table');
 	}
@@ -203,18 +203,22 @@ function edit(&$order, $order_no, $line, $maincat_id) {
 		button_cell('update_item', _('Update'), _('Confirm changes'), ICON_UPDATE);
 		button_cell('CancelItemChanges', _('Cancel'), _('Cancel changes'), ICON_CANCEL);
 	}
-	else
+	else{
 		submit_cells('AddItem', _('Add Item'), "colspan=2 align='center'", _('Add new item to document'), true);
-
+		hidden('ufilename', uniqid());
+	}
 end_row();
 }
 start_form(true);
 
 div_start('items_table');
+if((list_updated('stock_id'))){
+	$unset = false;
+}
 get_plan_data($order_no, $maincat_id , $unset, 1);
-display_heading("Plan Greige Fabrics Against Sales Order");
+display_heading("Plan Accessories Against Sales Order");
 start_table(TABLESTYLE, "width='90%'");
-$th = array( _('Dyed Fab Code'), _('Fabric Desc'), _('Total Qty'), _('UoM'), _('Qty/Pc'), _('Cut Waste %'), _('Dyed Fab/PC'), _('Extra Qty %'), _('Req Qty'), _('Req by'), _('Image'), '', '');
+$th = array(_('Acs Code'), _('Acs Desc'), _('UoM'), _('Tot St Items'), _('Qty/Pc'), _('Waste %'), _('Total Qty'), _('Ex Qty %'), _('Req Qty'), _('Req by'),_('Image'), '', '');
 table_header($th);
 						start_row();
 						$id = find_row('Edit');
@@ -227,9 +231,9 @@ table_header($th);
 								// label_cell($value['style_id']);
 								label_cell($value['stock_id']);
 								label_cell(get_description($value['stock_id']));
-								$ini_qty = get_col_detail($order_no,$maincat_id);
-								qty_cell($ini_qty);
+								$ini_qty = get_ord_qty($order_no,$maincat_id);
 								label_cell(get_unit($value['stock_id']));
+								qty_cell($ini_qty);
 								qty_cell($value['perpc']);
 								qty_cell($value['waste']);
 //Need to change perpc as per requirement

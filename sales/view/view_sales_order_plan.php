@@ -99,34 +99,29 @@ end_table();
 
 
 echo '<center>';
-var_dump(get_dyed_data($order_no,4));
-get_fabric_data($order_no,3);
-get_yarn_data($order_no,1,2);
-get_acs_data($order_no,5);
-get_collection_data($order_no,5);
+get_plan_data($order_no, 4 , true);
+$perpc=1;
+hidden('perpc', $perpc);
 
 display_heading2(_('Dyed Details'));
 
 start_table(TABLESTYLE, "width='95%'");
-$th = array(_('Style No.'), _('Total Quantity'), _('Accessory Code'), _('Accessory Description'), _('UoM'), _('Qty Per Piece'), _('Cutting Wastage%'), _('Dyed Fabric Per Piece'), _('Extra Quantity%'), _('Total Required'), _('Req Date'));
+$th = array(_('Style Id'), _('Dyed Fab Code'), _('Fabric Desc'), _('UoM'), _('Tot St Items'), _('Qty/Pc'), _('Cut Waste %'), _('Total Qty'), _('Extra Qty %'), _('Req Qty'), _('Req by'));
 table_header($th);
 
-var_dump($_SESSION['dyed_data']);
-
-foreach ($_SESSION['dyed_data'] as $key => $value) {
-	start_row();
-		$des = get_description($value['stock_id']);
-		$unit = get_unit($value['stock_id']);
-		$t_style_qty = get_order_qty($order_no, $value['style_id']);
-		$dyedperpc = get_dyedperpc($t_style_qty, $value['perpc'], $value['waste']);
+foreach ($_SESSION['plan_data'] as $key => $value) {
+		start_row();
 		label_cell($value['style_id']);
-		qty_cell($t_style_qty);
-		view_stock_status_cell($value['stock_id']);
-		label_cell($des);
-		label_cell($unit);
+		label_cell($value['stock_id']);
+		label_cell(get_description($value['stock_id']));
+		$ini_qty = get_style_qty($order_no, $value['style_id']);
+		label_cell(get_unit($value['stock_id']));
+		qty_cell($ini_qty);
 		qty_cell($value['perpc']);
 		qty_cell($value['waste']);
-		qty_cell($dyedperpc);
+	//Need to change perpc as per requirement
+		$total_req = total_req($ini_qty, $value['perpc'], $value['waste']);
+		qty_cell($total_req);
 		qty_cell($value['stk_extra']);
 		qty_cell($value['stk_total']);
 		label_cell($value['req_date']);
@@ -134,74 +129,142 @@ foreach ($_SESSION['dyed_data'] as $key => $value) {
 
 }
 
-
-
 end_table();
-echo "<br>";
+get_plan_data($order_no, 3 , true);
+
+// echo "<br>";
 display_heading2(_('Fabric Details'));
-
 start_table(TABLESTYLE, "width='95%'");
-$th = array(_('Style No.'), _('Total Quantity'), _('Accessory Code'), _('Accessory Description'),_('UoM'), _('Total Net Quantity'),_('Dyeing Wastage%'),_('Total Ecru Fabric'), _('Extra Quantity%'), _('Total Required'), _('Req Date'));
-table_header($th);
-
-foreach ($_SESSION['fabric_data'] as $key => $value) {
+$th = array(_('Style Id'), _('Greige Fab Code'), _('Fabric Desc'), _('UoM'), _('Tot Qlty Qty'), _('Dye Waste %'), _('Total Qty'), _('Ex Qty %'), _('Req Qty'), _('Req by'));
+	table_header($th);
 	start_row();
-		$des = get_description($value['stock_id']);
-		$unit = get_unit($value['stock_id']);
-		$get_total_net_qty= get_total_net_qty($order_no, 4);
-		$t_style_qty = get_order_qty($order_no, $value['style_id']);
-		$total_fabric = get_total_fabric($get_total_net_qty, $value['waste'] );
+	foreach ($_SESSION['plan_data'] as $key => $value) {
+		start_row();
 		label_cell($value['style_id']);
-		qty_cell($t_style_qty);
-		view_stock_status_cell($value['stock_id']);
-		label_cell($des);
-		label_cell($unit);
-		qty_cell($get_total_net_qty);
+		label_cell($value['stock_id']);
+		label_cell(get_description($value['stock_id']));
+		$ini_qty = get_cat_qty($order_no, $value['stock_id'], 4, 'qlty_id');
+		label_cell(get_unit($value['stock_id']));
+		qty_cell($ini_qty);
+		// qty_cell($value['perpc']);
 		qty_cell($value['waste']);
-		qty_cell($total_fabric);
+		// Need to change perpc as per requirement
+		$total_req = total_req($ini_qty, $perpc, $value['waste']);
+		qty_cell($total_req);
 		qty_cell($value['stk_extra']);
 		qty_cell($value['stk_total']);
 		label_cell($value['req_date']);
-	end_row();
+		end_row();
+	}
+end_table();
+get_plan_data($order_no, 1 , true);
 
-}
+echo '<br>';
+display_heading2(_('Yarn Details'));
+start_table(TABLESTYLE, "width='95%'");
+$th = array(_('Style Id'), _('Yarn Code'), _('Yarn Desc'), _('UoM'), _('Tot Const Qty'), _('Knit Waste %'), _('Total Qty'), _('Ex Qty %'), _('Req Qty'), _('Req by'));
+	table_header($th);
+	start_row();
+	foreach ($_SESSION['plan_data'] as $key => $value) {
+		start_row();
+		label_cell($value['style_id']);
+		label_cell($value['stock_id']);
+		label_cell(get_description($value['stock_id']));
+		$ini_qty = get_cat_qty($order_no, $value['stock_id'], 3, 'const_id');
+		label_cell(get_unit($value['stock_id']));
+		qty_cell($ini_qty);
+		// qty_cell($value['perpc']);
+		qty_cell($value['waste']);
+		// Need to change perpc as per requirement
+		$total_req = total_req($ini_qty, $perpc, $value['waste']);
+		qty_cell($total_req);
+		qty_cell($value['stk_extra']);
+		qty_cell($value['stk_total']);
+		label_cell($value['req_date']);
+		end_row();
+	}
+end_table();
+get_plan_data($order_no, 5 , true);
+echo '<br>';
+display_heading2(_('Accessories Details (by Style)'));
+start_table(TABLESTYLE, "width='95%'");
+$th = array(_('Style Id'), _('Acs Code'), _('Acs Desc'), _('UoM'), _('Tot St Items'), _('Qty/Pc'), _('Waste %'), _('Total Qty'), _('Ex Qty %'), _('Req Qty'), _('Req by'),_('Image'));
+table_header($th);
+	start_row();
+	foreach ($_SESSION['plan_data'] as $key => $value) {
+		start_row();
+		label_cell($value['style_id']);
+		label_cell($value['stock_id']);
+		label_cell(get_description($value['stock_id']));
+		$ini_qty = get_style_qty($order_no, $value['style_id']);
+		label_cell(get_unit($value['stock_id']));
+		qty_cell($ini_qty);
+		qty_cell($value['perpc']);
+		qty_cell($value['waste']);
+//Need to change perpc as per requirement
+		$total_req = total_req($ini_qty, $value['perpc'], $value['waste']);
+		qty_cell($total_req);
+		qty_cell($value['stk_extra']);
+		qty_cell($value['stk_total']);
+		label_cell($value['req_date']);
+		$ufilename = $value['ufilename'];
+		$ufilename = str_replace(' ', '_', $ufilename);
+		$stock_img_link = null;
+		foreach (array('jpg', 'png', 'gif') as $ext) {
+			$file = company_path().'/images/'. $ufilename .'.'.$ext;
 
+			if (file_exists($file)) {
+				$stock_img_link = "<img id='item_img' alt = 'no image found' src='".$file."?nocache=".rand()."'"." height='".$SysPrefs->pic_height."' border='0'>";
+				break;
+			}
+		}
+		label_cell( $stock_img_link);
+		end_row();
+	}
+end_table();
+get_plan_data($order_no, 5 , true, 1);
+echo '<br>';
+display_heading2(_('Accessories(By  Details (by Collection)'));
+start_table(TABLESTYLE, "width='95%'");
+$th = array(_('Acs Code'), _('Acs Desc'), _('UoM'), _('Tot St Items'), _('Qty/Pc'), _('Waste %'), _('Total Qty'), _('Ex Qty %'), _('Req Qty'), _('Req by'),_('Image'));
+table_header($th);
+	start_row();
 
+	foreach ($_SESSION['plan_data'] as $key => $value) {
+		start_row();
+		// label_cell($value['style_id']);
+		label_cell($value['stock_id']);
+		label_cell(get_description($value['stock_id']));
+		$ini_qty = get_col_detail($order_no,5);
+		label_cell(get_unit($value['stock_id']));
+		qty_cell($ini_qty);
+		qty_cell($value['perpc']);
+		qty_cell($value['waste']);
+//Need to change perpc as per requirement
+		$total_req = total_req($ini_qty, $value['perpc'], $value['waste']);
+		qty_cell($total_req);
+		qty_cell($value['stk_extra']);
+		qty_cell($value['stk_total']);
+		label_cell($value['req_date']);
+		$ufilename = $value['ufilename'];
+		$ufilename = str_replace(' ', '_', $ufilename);
+		$stock_img_link = null;
+		foreach (array('jpg', 'png', 'gif') as $ext) {
+			$file = company_path().'/images/'. $ufilename .'.'.$ext;
 
+			if (file_exists($file)) {
+				$stock_img_link = "<img id='item_img' alt = 'no image found' src='".$file."?nocache=".rand()."'"." height='".$SysPrefs->pic_height."' border='0'>";
+				break;
+			}
+		}
+		label_cell( $stock_img_link);
+		end_row();
+	}
 end_table();
 
-// echo "<br>";
-// display_heading2(_('Fabric Details'));
-
-// start_table(TABLESTYLE, "width='95%'");
-// $th = array(_('Style No.'), _('Total Quantity'), _('Accessory Code'), _('Accessory Description'),_('UoM'), _('Total Net Quantity'),_('Dyeing Wastage%'),_('Total Ecru Fabric'), _('Extra Quantity%'), _('Total Required'), _('Req Date'));
-// table_header($th);
-
-// foreach ($_SESSION['fabric_data'] as $key => $value) {
-// 	start_row();
-// 		$des = get_description($value['stock_id']);
-// 		$unit = get_unit($value['stock_id']);
-// 		$get_total_net_qty= get_total_net_qty($order_no, 4);
-// 		$t_style_qty = get_order_qty($order_no, $value['style_id']);
-// 		$total_fabric = get_total_fabric($get_total_net_qty, $value['waste'] );
-// 		label_cell($value['style_id']);
-// 		qty_cell($t_style_qty);
-// 		view_stock_status_cell($value['stock_id']);
-// 		label_cell($des);
-// 		label_cell($unit);
-// 		qty_cell($get_total_net_qty);
-// 		qty_cell($value['waste']);
-// 		qty_cell($total_fabric);
-// 		qty_cell($value['stk_extra']);
-// 		qty_cell($value['stk_total']);
-// 		label_cell($value['req_date']);
-// 	end_row();
-
-// }
 
 
 
-end_table();
 
 
 

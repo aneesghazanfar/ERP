@@ -19,7 +19,6 @@ if(isset($_POST['Edit'.$lineNo])){
 	$unset = false;
 }
 
-
 	
 // Default value for $perpc
 // $perpc=1;
@@ -98,9 +97,7 @@ if(isset($_POST['Edit'.$lineNo])){
 		get_plan_data($order_no, $maincat_id,true);
 	}
 	
-if (isset($_FILES['image']) && $_FILES['image']['name'] != '') {
-		hidden('ufilename', uniqid());
-		
+if (isset($_FILES['image']) && $_FILES['image']['name'] != '') {	
 	$order_no = $_POST['order_no'];
 	$result = $_FILES['image']['error'];
 	$upload_file = 'Yes'; //Assume all is well to start off with
@@ -109,7 +106,8 @@ if (isset($_FILES['image']) && $_FILES['image']['name'] != '') {
 	if (!file_exists($filename))
 	mkdir($filename);
 	
-	
+	hidden('ufilename', uniqid());
+
 	$filename .= '/'. item_img_name($_POST['ufilename']).(substr(trim($_FILES['image']['name']), strrpos($_FILES['image']['name'], '.')));
 	
 	
@@ -175,8 +173,8 @@ function edit(&$order, $order_no, $line, $maincat_id) {
 		$ini_qty= get_style_qty($order_no, $_POST['style_id']);
 		label_cell($_POST['stock_id']);
 		label_cell(get_description($_POST['stock_id']));
-		qty_cell($ini_qty);
 		label_cell(get_unit($_POST['stock_id']));
+		qty_cell($ini_qty);
 		small_qty_cells_ex(null, 'perpc', 0,false);
 		small_qty_cells_ex(null, 'waste', 0,false);
 		$total_req = total_req($ini_qty, $_POST['perpc'], $_POST['waste']);
@@ -186,25 +184,26 @@ function edit(&$order, $order_no, $line, $maincat_id) {
 		qty_cell($stk_total);
 		date_cells(null, 'req_date', null, null, 0, 0, 0, null, false);
 		file_cells(null, 'image','image');
+		hidden('ufilename', $_POST['ufilename']);
 	}
 	else{
 		stock_style_list_cells( 'style_id', null,  true,$order_no);
 		plan_sales_items_list_cells(null,'stock_id', null, false, true, true, $maincat_id);
 		$ini_qty= get_style_qty($order_no, $_POST['style_id']);
 		hidden('ini_qty', $ini_qty);
-		qty_cell($ini_qty);
 		label_cell(get_unit($_POST['stock_id']));
-		small_qty_cells_ex(null, 'perpc', 1,true);
-		small_qty_cells_ex(null, 'waste', 0, true);
+		qty_cell($ini_qty);
+		small_qty_cells_ex(null, 'perpc', 1,false);
+		small_qty_cells_ex(null, 'waste', 0, false);
 		//need to change $perpc as per requirement
 		$total_req = total_req($ini_qty, $_POST['perpc'], $_POST['waste']);
 		qty_cell($total_req);
 		hidden('total_req', $total_req);
-		small_qty_cells_ex(null, 'stk_extra', 0, true);
+		small_qty_cells_ex(null, 'stk_extra', 0, false);
 		$stk_total = net_req($total_req, $_POST['stk_extra']);
 		qty_cell($stk_total);
 		hidden('stk_total', $stk_total);
-		date_cells(null, 'req_date', null, null, 0, 0, 0, null, true);
+		date_cells(null, 'req_date', null, null, 0, 0, 0, null, false);
 		file_cells(null, 'image','image');
 		$Ajax->activate('items_table');
 	}
@@ -212,8 +211,10 @@ function edit(&$order, $order_no, $line, $maincat_id) {
 		button_cell('update_item', _('Update'), _('Confirm changes'), ICON_UPDATE);
 		button_cell('CancelItemChanges', _('Cancel'), _('Cancel changes'), ICON_CANCEL);
 	}
-	else
+	else{
 		submit_cells('AddItem', _('Add Item'), "colspan=2 align='center'", _('Add new item to document'), true);
+		hidden('ufilename', uniqid());
+	}
 
 end_row();
 }
@@ -223,10 +224,13 @@ end_row();
 start_form(true);
 
 div_start('items_table');
+if((list_updated('style_id') || list_updated('stock_id')) && (isset($_POST['waste']) >= 0)){
+	$unset = false;
+}
 get_plan_data($order_no, $maincat_id , $unset);
-display_heading("Plan Greige Fabrics Against Sales Order");
+display_heading("Plan Accessories Against Sales Order");
 start_table(TABLESTYLE, "width='90%'");
-$th = array(_('Style Id'), _('Dyed Fab Code'), _('Fabric Desc'), _('Total Qty'), _('UoM'), _('Qty/Pc'), _('Cut Waste %'), _('Dyed Fab/PC'), _('Extra Qty %'), _('Req Qty'), _('Req by'),_('Image'), '', '');
+$th = array(_('Style Id'), _('Acs Code'), _('Acs Desc'), _('UoM'), _('Tot St Items'), _('Qty/Pc'), _('Waste %'), _('Total Qty'), _('Ex Qty %'), _('Req Qty'), _('Req by'),_('Image'), '', '');
 table_header($th);
 						start_row();
 						$id = find_row('Edit');
@@ -240,8 +244,8 @@ table_header($th);
 								label_cell($value['stock_id']);
 								label_cell(get_description($value['stock_id']));
 								$ini_qty = get_style_qty($order_no, $value['style_id']);
-								qty_cell($ini_qty);
 								label_cell(get_unit($value['stock_id']));
+								qty_cell($ini_qty);
 								qty_cell($value['perpc']);
 								qty_cell($value['waste']);
 //Need to change perpc as per requirement

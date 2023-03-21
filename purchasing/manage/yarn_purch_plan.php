@@ -127,11 +127,12 @@ function edit(&$order, $order_no, $line, $maincat_id , $maincat_id_2) {
 		$ini_qty= get_cat_qty($order_no, $_POST['stock_id'], 3, 'const_id');
 		label_cell($_POST['stock_id']);
 		label_cell(get_description($_POST['stock_id']));
-		qty_cell($ini_qty);
 		label_cell(get_unit($_POST['stock_id']));
+		qty_cell($ini_qty);
 		//		small_qty_cells_ex(null, 'perpc', 0,false);
 		small_qty_cells_ex(null, 'waste', 0,false);
-		$total_req = total_req($ini_qty, $_POST['perpc'], $_POST['waste']);
+		$perpc =1;
+		$total_req = total_req($ini_qty, $perpc, $_POST['waste']);
 		qty_cell($total_req);
 		small_qty_cells_ex(null, 'stk_extra', 0, false);
 		$stk_total = net_req($total_req, $_POST['stk_extra']);
@@ -144,20 +145,20 @@ function edit(&$order, $order_no, $line, $maincat_id , $maincat_id_2) {
 		plan_sales_items_list_cells(null,'stock_id', null, false, true, true, $maincat_id,$maincat_id_2);
 		$ini_qty= get_cat_qty($order_no, $_POST['stock_id'], 3, 'const_id');
 		hidden('ini_qty', $ini_qty);
-		qty_cell($ini_qty);
 		label_cell(get_unit($_POST['stock_id']));
+		qty_cell($ini_qty);
 		//small_qty_cells_ex(null, 'perpc', 0,false);
-		small_qty_cells_ex(null, 'waste', 0, true);
+		small_qty_cells_ex(null, 'waste', 0, false);
 		//need to change $perpc as per requirement
 		$perpc =1;
 		$total_req = total_req($ini_qty, $perpc, $_POST['waste']);
 		qty_cell($total_req);
 		hidden('total_req', $total_req);
-		small_qty_cells_ex(null, 'stk_extra', 0, true);
+		small_qty_cells_ex(null, 'stk_extra', 0, false);
 		$stk_total = net_req($total_req, $_POST['stk_extra']);
 		qty_cell($stk_total);
 		hidden('stk_total', $stk_total);
-		date_cells(null, 'req_date', null, null, 0, 0, 0, null, true);
+		date_cells(null, 'req_date', null, null, 0, 0, 0, null, false);
 		//		file_cells(null, 'image','image');
 		$Ajax->activate('items_table');
 	}
@@ -173,10 +174,13 @@ end_row();
 
 start_form(true);
 div_start('items_table');
+if((list_updated('style_id') || list_updated('stock_id')) && (isset($_POST['waste']) >= 0)){
+	$unset = false;
+}
 get_plan_data($order_no, $maincat_id , $unset);
-display_heading("Plan Greige Fabrics Against Sales Order");
+display_heading("Plan Yarn Against Sales Order");
 start_table(TABLESTYLE, "width='90%'");
-$th = array(_('Style Id'), _('Greige Fab Code'), _('Fabric Desc'), _('Total Qty'), _('UoM'), _('Dye Waste %'), _('Tot Greige Qty'), _('Ex Qty %'), _('Req Qty'), _('Req by'), '', '');
+$th = array(_('Style Id'), _('Yarn Code'), _('Yarn Desc'), _('UoM'), _('Tot Const Qty'), _('Knit Waste %'), _('Total Qty'), _('Ex Qty %'), _('Req Qty'), _('Req by'), '', '');
 						table_header($th);
 						start_row();
 						$id = find_row('Edit');
@@ -190,8 +194,8 @@ $th = array(_('Style Id'), _('Greige Fab Code'), _('Fabric Desc'), _('Total Qty'
 								label_cell($value['stock_id']);
 								label_cell(get_description($value['stock_id']));
 								$ini_qty = get_cat_qty($order_no, $value['stock_id'], 3, 'const_id');
-								qty_cell($ini_qty);
 								label_cell(get_unit($value['stock_id']));
+								qty_cell($ini_qty);
 //								qty_cell($value['perpc']);
 								qty_cell($value['waste']);
 //Need to change perpc as per requirement
