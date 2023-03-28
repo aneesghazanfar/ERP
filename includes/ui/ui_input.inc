@@ -117,6 +117,16 @@ function hidden($name, $value=null, $echo=true) {
 */
 function submit($name, $value, $echo=true, $title=false, $atype=false, $icon=false) {
 	global $path_to_root;
+	// start
+	// Anees Ghazanfar
+	// 27/3/2023
+	if($name == 'delete')
+		{
+			$confirm_msg = 'Are you sure you want to delete?'; // set the confirmation message
+			submit_js_confirm(strtr($name, array()), $confirm_msg); // call submit_js_confirm() to set the confirmation function
+		
+		}
+	// end
 
 	$aspect = '';
 	if ($atype === null)
