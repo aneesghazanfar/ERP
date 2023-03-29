@@ -3,6 +3,12 @@ function get_cost_detail($maincat_id){
 	$sql = "SELECT * FROM ".TB_PREF."cost_sheet_details WHERE maincat_id=".db_escape($maincat_id)."";
 	return db_query($sql, "could not get all detail");
 }
+function get_cs_id(){
+    $sql = "SELECT cs_id FROM ".TB_PREF."cost_sheet ORDER BY cs_id DESC LIMIT 1";
+    $result = db_query($sql, "could not get all detail");
+    $row = db_fetch_row($result);
+    return ($row[0] + 1);
+    }
 function add_cost_data_to_db(&$cost_data, $cs_id, $user, $cost_date, $style, $shipping_terms, $cmt, $status,$overhead, $freight, $container, $insurance
 ,$commission, $profit, $exchange_rate, $ufilename){
 

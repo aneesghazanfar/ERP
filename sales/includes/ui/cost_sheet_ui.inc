@@ -27,9 +27,17 @@ function style_list_cells( $name, $selected_id=null, $submit_on_change=false) {
 	echo "</td>\n";
 }
 
-function amount(){
+function amount($yconsumption, $yrate){
+    return ($yconsumption * $yrate/100);
+   //     return 2+2;
+
+}
+// not used when final
+function amount1(){
     return 2+2;
 }
+// not used when final
+
 
 function knitt_bag_formula(){
     return 2+2;
@@ -46,6 +54,12 @@ function total_cost(){
 function total_rate(){
     return 2+2;
 }
+
+function fab_total($Per_total, $rate, $waste, $consumption){
+    echo $Per_total . "<br>" . $rate . "<br>" . $waste . "<br>" . $consumption;
+    return (($Per_total + $rate) * ($waste/100) + $consumption);
+}
+
 function label_cell_text($label, $name) {
     $value = isset($_POST[$name]) ? $_POST[$name] : '';
     echo "<td class='label'>$label
@@ -59,7 +73,7 @@ function get_data_data($maincat_id , $unset = false){
     $existing_data = isset($_SESSION['cost_data']) ? $_SESSION['cost_data'] : array();
 	$line_no = count($existing_data) > 0 ? $existing_data[count($existing_data) - 1]['line_no'] + 1 : 1;
     $result = get_cost_detail($maincat_id);
-    
+    $yarn_amount = 0;
     while ($myrow = db_fetch($result)) {
         $cost_data['line_no'] = $line_no++;
         $cost_data['id'] = $myrow['id'];
@@ -71,7 +85,13 @@ function get_data_data($maincat_id , $unset = false){
         $cost_data['waste'] = $myrow['waste'];
         $cost_data['consumption'] = $myrow['consumption'];
         $cost_data['rate'] = $myrow['rate'];
-        $cost_data['amount'] = 0;
+        if($myrow['maincat_id'] == 1 || $myrow['maincat_id'] == 2){
+            $cost_data['amount'] = amount($myrow['consumption'], $myrow['rate']);
+            $yarn_amount = $cost_data['amount'];
+        }
+        else if($myrow['maincat_id'] == 3 ){
+            $cost_data['amount'] = fab_total($yarn_amount, $myrow['rate'], $myrow['waste'], $myrow['consumption']);
+        }
         $existing_data = isset($_SESSION['cost_data']) ? $_SESSION['cost_data'] : array();
      // Check if pp_id already exists in session
     $index = array_search($cost_data['id'], array_column($existing_data, 'id'));

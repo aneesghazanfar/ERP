@@ -74,19 +74,38 @@ function small_qty_cells_ex($label, $name, $init=null, $submit_on_change=false, 
 	amount_cells_ex_new($label, $name, 7, 12, $init, $submit_on_change, $params, $post_label, $dec);
 }
 //--------------------------------------------------------------------------------------
-function get_plan_data($order_no, $maincat_id, $unset=false, $col=null){
-	if($unset)
+function get_plan_data($order_no, $maincat_id, $unset=false, $col=null,$com=null){
+	echo $com;
+	if($unset){
+		//echo "in ha bhai";
 		unset($_SESSION['plan_data']);
-if($col)
-$result = get_col_detail($order_no, $maincat_id);
-else
-$result = get_style_detail($order_no, $maincat_id);
+	}
+	if($col){
+		$result = get_col_detail($order_no, $maincat_id);
+	}
+	else if($com){
+		$result = get_comp_detail($order_no, $maincat_id);
+	}
+	else
+		$result = get_style_detail($order_no, $maincat_id);
 $line_no = 1;
 while ($myrow = db_fetch($result)) {
     $plan_data['line_no'] = $line_no++;
     $plan_data['maincat_id'] = $myrow['maincat_id'];
     $plan_data['pp_id'] = $myrow['pp_id'];
     $plan_data['style_id'] = $myrow['style_id'];
+	if($maincat_id == 1 && $myrow['maincat_id'] == 3){
+		$plan_data['cstock_id'] = $myrow['stk_code'];
+		$plan_data['cwaste'] = $myrow['waste'];
+		$plan_data['cstk_extra'] = $myrow['stk_extra'];
+		$plan_data['cstk_total'] = $myrow['stk_total'];
+	}
+	else{
+		$plan_data['cstock_id'] = $plan_data['cstock_id'];
+		$plan_data['cwaste'] = $plan_data['cwaste'];
+		$plan_data['cstk_extra'] = $plan_data['cstk_extra'];
+		$plan_data['cstk_total'] = $plan_data['cstk_total'];
+		}
     $plan_data['stock_id'] = $myrow['stk_code'];
     $plan_data['description'] = get_description($myrow['stk_code']);
     $plan_data['ini_qty'] = 0;

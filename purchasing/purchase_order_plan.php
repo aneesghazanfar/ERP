@@ -60,9 +60,10 @@ end_table(1); // outer table
 //----------------------------------------------------------------------------------------------
 start_form(true);
 tabbed_content_start('tabs', array(
-	'dyed' => array(_('Dyed Fabric Purchase Plan'), true),
-	'greige' => array(_('Greige Fabric Purchase Plan'), true),
+	// 'dyed' => array(_('Dyed Fabric Purchase Plan'), true),
+	// 'greige' => array(_('Greige Fabric Purchase Plan'), true),
 	'yarn' => array(_('Yarn Purchase Plan'), true),
+	'com' => array(_('Composite Purchase Plan'), true),
 	'acs' => array(_('Accessories Purchase Plan (by Style)'), true),
 	'col' => array(_('Accessories Purchase Plan (by Collection)'), true),
 	'sum' => array(_('Purchase Demand'), true),
@@ -72,20 +73,23 @@ tabbed_content_start('tabs', array(
 		case 'dyed':
 		include_once($path_to_root.'/purchasing/manage/dfab_purch_plan.php');
 			break;
-			case 'greige':
+		case 'greige':
 			include_once($path_to_root.'/purchasing/manage/gfab_purch_plan.php');
-		break;
-			case 'yarn':
+			break;
+		case 'com':
+			include_once($path_to_root.'/purchasing/manage/com_purch_plan.php');
+			break;
+		case 'yarn':
 			include_once($path_to_root.'/purchasing/manage/yarn_purch_plan.php');
-		break;
-	case 'acs':
- 			include_once($path_to_root.'/purchasing/manage/acs_purch_plan.php');
-		break;
-	case 'col':
+			break;
+		case 'acs':
+			include_once($path_to_root.'/purchasing/manage/acs_purch_plan.php');
+			break;
+		case 'col':
 			include_once($path_to_root.'/purchasing/manage/acs_col_purch_plan.php');
-		break;
-	case 'sum':
- 			include_once($path_to_root.'/purchasing/manage/summary_purch_plan.php');
+			break;
+		case 'sum':
+			include_once($path_to_root.'/purchasing/manage/summary_purch_plan.php');
 	};
 br();
 tabbed_content_end();

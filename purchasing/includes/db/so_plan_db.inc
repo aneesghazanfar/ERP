@@ -95,8 +95,13 @@ function add_to_database (&$item , $order_no , $comment , $maincat_id){
 foreach($item as $key => $row) {
 	$req_date = date('y/m/d', strtotime($row['req_date']));
     if($row['pp_id'] == null ) {
-    $sql = "INSERT INTO ".TB_PREF."purch_plan_details (sorder_no, style_id, maincat_id, stk_code, perpc, waste, stk_extra, stk_total, ufilename, req_date)
-            VALUES (".db_escape($order_no).", ".db_escape($row['style_id']).", ".db_escape($row['maincat_id']).", ".db_escape($row['stock_id']).",
+		$comp_id = 0;
+		if($row['maincat_id'] == 4 || $row['maincat_id'] == 3)
+			$comp_id = 1;
+			
+
+    $sql = "INSERT INTO ".TB_PREF."purch_plan_details (comp_id,sorder_no,  style_id, maincat_id, stk_code, perpc, waste, stk_extra, stk_total, ufilename, req_date)
+			VALUES (".db_escape($comp_id).",".db_escape($order_no).", ".db_escape($row['style_id']).", ".db_escape($row['maincat_id']).", ".db_escape($row['stock_id']).",
             ".db_escape($row['perpc']).", ".db_escape($row['waste']).", ".db_escape($row['stk_extra']).",
             ".db_escape($row['stk_total']).", ".db_escape($row['ufilename'])." , ".db_escape($req_date).")";
 }
@@ -140,6 +145,13 @@ function get_plan_comments($order_no ,$maincat_id){
 //--------------------------------------------------------------------------------------
 function get_col_detail($order_no,$maincat_id, $maincat_id_2 = null){
 	$sql = "SELECT * FROM ".TB_PREF."purch_plan_details WHERE sorder_no = ".db_escape($order_no)." AND (maincat_id = ".db_escape($maincat_id)." OR maincat_id = ".db_escape($maincat_id_2).") AND style_id = '' ";
+	return db_query($sql, "could not get all detail");
+}
+//--------------------------------------------------------------------------------------
+function get_comp_detail($order_no,$comp_id){
+$sql = "SELECT * FROM ".TB_PREF."purch_plan_details 
+        WHERE sorder_no = ".db_escape($order_no)." AND comp_id = ".db_escape($comp_id)." ";
+      //  ORDER BY maincat_id ASC";
 	return db_query($sql, "could not get all detail");
 }
 //--------------------------------------------------------------------------------------

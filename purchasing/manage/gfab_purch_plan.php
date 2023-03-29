@@ -70,9 +70,9 @@ if(isset($_POST['AddItem'])) {
 	$plan_data['ini_qty']  = get_cat_qty($order_no, $_POST['stock_id'], 4, 'qlty_id');
 	$plan_data['units'] = get_unit($_POST['stock_id']);
 	$plan_data['perpc'] = 0;
-	//$plan_data['perpc'] = $_POST['perpc'];
+	$plan_data['perpc'] = 1;
 	$plan_data['waste'] = $_POST['waste'];
-	$plan_data['total_req']  = total_req($plan_data['ini_qty'], $_POST['perpc'], $_POST['waste'] );
+	$plan_data['total_req']  = total_req($plan_data['ini_qty'], 1, $_POST['waste'] );
 	$plan_data['stk_extra'] = $_POST['stk_extra'];
 	//$plan_data['stk_total'] = $_POST['stk_total'];
 	$plan_data['stk_total'] = net_req($plan_data['total_req'], $_POST['stk_extra']);
@@ -141,17 +141,17 @@ function edit(&$order, $order_no, $line, $maincat_id) {
 		label_cell(get_unit($_POST['stock_id']));
 		qty_cell($ini_qty);
 //		small_qty_cells_ex(null, 'perpc', 0,false);
-		small_qty_cells_ex(null, 'waste', null, false);
+		small_qty_cells_ex(null, 'waste', null, true);
 		//need to change $perpc as per requirement
 		$perpc =1;
 		$total_req = total_req($ini_qty, $perpc, $_POST['waste']);
 		qty_cell($total_req);
 		hidden('total_req', $total_req);
-		small_qty_cells_ex(null, 'stk_extra', 0, false);
+		small_qty_cells_ex(null, 'stk_extra', 0, true);
 		$stk_total = net_req($total_req, $_POST['stk_extra']);
 		qty_cell($stk_total);
 		hidden('stk_total', $stk_total);
-		date_cells(null, 'req_date', null, null, 0, 0, 0, null, false);
+		date_cells(null, 'req_date', null, null, 0, 0, 0, null, true);
 		//		file_cells(null, 'image','image');
 		$Ajax->activate('items_table');
 	}
@@ -193,6 +193,7 @@ $th = array(_('Style Id'), _('Greige Fab Code'), _('Fabric Desc'), _('UoM'), _('
 //								qty_cell($value['perpc']);
 								qty_cell($value['waste']);
 //Need to change perpc as per requirement
+								$perpc =1;
 								$total_req = total_req($ini_qty, $perpc, $value['waste']);
 								qty_cell($total_req);
 								qty_cell($value['stk_extra']);
