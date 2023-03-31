@@ -31,13 +31,21 @@ if(isset($_POST['update_item'])) {
 	foreach($_SESSION['plan_data'] as $key => $value) {
 		if($key == $edit_id) {
 			$ini_qty= get_style_qty($order_no, $value['style_id']);
-			$_SESSION['plan_data'][$key]['perpc'] = $_POST['perpc'];
+			$_SESSION['plan_data'][$key]['perpc'] = $_POST['pcs'];
 			$_SESSION['plan_data'][$key]['waste'] = $_POST['waste'];
-			$total_req = total_req($ini_qty, $_POST['perpc'], $_POST['waste'] );
+			$perpc = get_perpc($value['stock_id'], $_POST['pcs']);
+			$total_req = total_req($ini_qty, $perpc, $_POST['waste']);
 			$_SESSION['plan_data'][$key]['stk_extra'] = $_POST['stk_extra'];
 			$_SESSION['plan_data'][$key]['stk_total'] = net_req($total_req , $_POST['stk_extra']);
 			$_SESSION['plan_data'][$key]['req_date']  = $_POST['req_date'];
 			// $_SESSION['plan_data'][$key]['ufilename']  = 'ufilename';
+
+			//gfab-----------------------------------------------------
+			$_SESSION['plan_data'][$key]['cwaste'] = $_POST['cwaste'];
+			$cperpc = 1;
+			$total_req = total_req($ini_qty, $cperpc, $_POST['cwaste'] );
+			$_SESSION['plan_data'][$key]['cstk_extra'] = $_POST['cstk_extra'];
+
 			display_notification(_('Order plan has been updated'));
 			$unset = false;
 			break;
@@ -59,6 +67,7 @@ if(isset($_POST['AddItem'])) {
 	// Determine the next line number by retrieving the line number of the last item (if it exists) and incrementing it by one
 	$next_line_no = count($existing_data) > 0 ? $existing_data[count($existing_data) - 1]['line_no'] + 1 : 1;
 	$plan_data['pp_id'] =null;
+	$plan_data['cpp_id'] =null;
 	
 	// Push the values of each form field into the array, including the new line number
 	$plan_data['line_no'] = $next_line_no;
@@ -68,15 +77,20 @@ if(isset($_POST['AddItem'])) {
 	$plan_data['description'] = get_description($_POST['stock_id']);
 	$plan_data['ini_qty']  = get_style_qty($order_no, $_POST['style_id']);
 	$plan_data['units'] = get_unit($_POST['stock_id']);
-	$plan_data['perpc'] = $_POST['perpc'];
+	$plan_data['perpc'] = $_POST['pcs'];
 	$plan_data['waste'] = $_POST['waste'];
-	$plan_data['total_req']  = total_req($plan_data['ini_qty'], $_POST['perpc'], $_POST['waste'] );
+	$perpc = get_perpc($_POST['stock_id'], $_POST['pcs']);
+	$plan_data['total_req']  = total_req($plan_data['ini_qty'], $perpc, $_POST['waste'] );
 	$plan_data['stk_extra'] = $_POST['stk_extra'];
 	$plan_data['stk_total'] = net_req($plan_data['total_req'], $_POST['stk_extra']);
 	//gfab data ----------------------------------------------
-	$plan_data['cstock_id'] = $_POST['cstock_id'];
+	$fstock_id = get_gfab($order_no, $_POST['stock_id'], $maincat_id, 'const_id');
+	$plan_data['cstock_id'] = $fstock_id;
+	$plan_data['cmaincat_id'] = 3;
 	$plan_data['cstk_extra'] = $_POST['cstk_extra'];
-	$plan_data['ctotal_req']  = total_req($plan_data['ini_qty'], $_POST['perpc'], 0 );
+	$plan_data['cwaste'] = $_POST['cwaste'];
+	$cperpc = 1;
+	$plan_data['ctotal_req']  = total_req($plan_data['stk_total'], $cperpc, $_POST['cwaste'] );
 	$plan_data['cstk_total'] = net_req($plan_data['ctotal_req'], $_POST['cstk_extra']);
 	$plan_data['req_date'] = $_POST['req_date'];
 	$plan_data['ufilename'] = '';
@@ -90,7 +104,7 @@ if(isset($_POST['AddItem'])) {
 }
 
 if(isset($_POST['add_plan'])){
-	add_to_database($_SESSION['plan_data'], $order_no, $_POST['comment'], $maincat_id);
+	add_to_database($_SESSION['plan_data'], $order_no, $_POST['comment'], $maincat_id,1 );
 	display_notification(_('New order plan has been added'));
 	get_plan_data($order_no, $maincat_id,true);
 }
@@ -109,12 +123,16 @@ function edit(&$order, $order_no, $line, $maincat_id) {
 				hidden('edit_id', $key);
 				$_POST['style_id'] = $value['style_id'];
 				$_POST['stock_id'] = $value['stock_id'];
-				$_POST['cstock_id'] = $value['cstock_id'];
-				$_POST['perpc'] = $value['perpc'];
+				$_POST['pcs'] = $value['perpc'];
 				$_POST['waste'] = $value['waste'];
 				$_POST['stk_extra'] = $value['stk_extra'];
 				$_POST['stk_total'] = $value['stk_total'];
 				$_POST['ufilename'] = $value['ufilename'];
+				$_POST['cstock_id'] = $value['cstock_id'];
+				$_POST['cwaste'] = $value['cwaste'];
+				$_POST['cstk_extra'] = $value['cstk_extra'];
+				$_POST['cstk_total'] = $value['cstk_total'];
+
 				break;
 			}
 		}
@@ -124,28 +142,26 @@ function edit(&$order, $order_no, $line, $maincat_id) {
 		label_cell(get_description($_POST['stock_id']));
 		label_cell(get_unit($_POST['stock_id']));
 		qty_cell($ini_qty);
-		small_qty_cells_ex(null, 'perpc', 0,false);
-		small_qty_cells_ex(null, 'waste', 0,false);
-		$total_req = total_req($ini_qty, $_POST['perpc'], $_POST['waste']);
-		qty_cell($total_req);
-		small_qty_cells_ex(null, 'stk_extra', 0, false);
-		$stk_total = net_req($total_req, $_POST['stk_extra']);
-		qty_cell($stk_total);
-		// date_cells(null, 'req_date', null, null, 0, 0, 0, null, false);
-		// gfab data ----------------------------------------------------
-//		small_qty_cells_ex(null, 'perpc', 0,false);
-		//need to change $perpc as per requirement
-		label_cell($_POST['cstock_id']);
-		label_cell(get_description($_POST['cstock_id']));
-
-		$perpc =1;
+		small_qty_cells_ex(null, 'pcs', 1,false);
+		small_qty_cells_ex(null, 'waste', 0, false);
+		$perpc = get_perpc($_POST['stock_id'], $_POST['pcs']);
 		$total_req = total_req($ini_qty, $perpc, $_POST['waste']);
 		qty_cell($total_req);
-		hidden('total_req', $total_req);
 		small_qty_cells_ex(null, 'stk_extra', 0, false);
 		$stk_total = net_req($total_req, $_POST['stk_extra']);
 		qty_cell($stk_total);
-		hidden('stk_total', $stk_total);
+		// gfab data ----------------------------------------------------
+		$fstock_id = get_gfab($order_no, $_POST['stock_id'], $maincat_id, 'const_id');
+		label_cell($fstock_id);
+		small_qty_cells_ex(null, 'cwaste', 0, false);
+		$perpc =1;
+		$ctotal_req = total_req($total_req, $perpc, $_POST['cwaste']);
+		qty_cell($ctotal_req);
+		hidden('ctotal_req', $ctotal_req);
+		small_qty_cells_ex(null, 'cstk_extra', 0, false);
+		$cstk_total = net_req($total_req, $_POST['cstk_extra']);
+		qty_cell($cstk_total);
+		hidden('cstk_total', $cstk_total);
 		date_cells(null, 'req_date', null, null, 0, 0, 0, null, false);
 		//		file_cells(null, 'image','image');
 	}
@@ -156,10 +172,11 @@ function edit(&$order, $order_no, $line, $maincat_id) {
 		hidden('ini_qty', $ini_qty);
 		label_cell(get_unit($_POST['stock_id']));
 		qty_cell($ini_qty);
-		small_qty_cells_ex(null, 'perpc', 1,true);
+		small_qty_cells_ex(null, 'pcs', 1,true);
 		small_qty_cells_ex(null, 'waste', 0, true);
 		//need to change $perpc as per requirement
-		$total_req = total_req($ini_qty, $_POST['perpc'], $_POST['waste']);
+		$perpc = get_perpc($_POST['stock_id'], $_POST['pcs']);
+		$total_req = total_req($ini_qty, $perpc, $_POST['waste']);
 		qty_cell($total_req);
 		hidden('total_req', $total_req);
 		small_qty_cells_ex(null, 'stk_extra', 0, true);
@@ -169,19 +186,21 @@ function edit(&$order, $order_no, $line, $maincat_id) {
 
 		//gfab data---------------------------------------------------------------------------------------------
 
-		plan_sales_items_list_cells(null,'cstock_id', null, false, true, true, 3);
+		// plan_sales_items_list_cells(null,'cstock_id', null, false, true, true, 3);
+		$fstock_id = get_gfab($order_no, $_POST['stock_id'], $maincat_id, 'const_id');
+		label_cell($fstock_id);
 //		small_qty_cells_ex(null, 'perpc', 0,false);
 		//need to change $perpc as per requirement
 		small_qty_cells_ex(null, 'cwaste', 0, true);
 
 		$perpc =1;
-		$ctotal_req = total_req($ini_qty, $perpc, $_POST['cwaste']);
+		$ctotal_req = total_req($total_req, $perpc, $_POST['cwaste']);
 		qty_cell($ctotal_req);
-		hidden('total_req', $total_req);
+		hidden('ctotal_req', $ctotal_req);
 		small_qty_cells_ex(null, 'cstk_extra', 0, true);
-		$stk_total = net_req($total_req, $_POST['cstk_extra']);
-		qty_cell($stk_total);
-		hidden('cstk_total', $stk_total);
+		$cstk_total = net_req($ctotal_req, $_POST['cstk_extra']);
+		qty_cell($cstk_total);
+		hidden('cstk_total', $cstk_total);
 		date_cells(null, 'req_date', null, null, 0, 0, 0, null, true);
 		// date_cells(null, 'req_date', null, null, 0, 0, 0, null, true);
 		//		file_cells(null, 'image','image');
@@ -201,15 +220,13 @@ end_row();
 start_form(true);
 
 div_start('items_table');
-if (list_updated('style_id') || list_updated('stock_id') ||list_updated('cstock_id') || isset($_REQUEST['perpc'])){
+if (list_updated('style_id') || list_updated('stock_id')){
 	$unset = false;
 }
-$composite_id = 1;
-get_plan_data($order_no, $composite_id , $unset, '',1);
-// var_dump($_SESSION['plan_data']);
+get_plan_data($order_no, $maincat_id , $unset,2);
 display_heading("Plan Dyed Fabrics Against Sales Order");
 start_table(TABLESTYLE, "width='90%'");
-$th = array(_('Style Id'), _('Dyed Fab Code'), _('Fabric Desc'), _('UoM'), _('Tot St Items'), _('Qty/Pc'), _('Cut Waste %'), _('Total Qty'), _('Extra Qty %'), _('Req Qty'), _('Greige Fab Code'), _('Fabric Desc'),_('Fabric Waste'), _('Total Qty'), _('Ex Qty %'), _('Req Qty'), _('Req by'), '', '');
+$th = array(_('Style Id'), _('Dyed Fab Code'), _('Fabric Desc'), _('UoM'), _('Tot St Items'), _('Pcs'), _('Cut Waste %'), _('Total Qty'), _('Extra Qty %'), _('Req Qty'), _('Greige Fab Code'), _('Fabric Waste'), _('Total Qty'), _('Ex Qty %'), _('Req Qty'), _('Req by'), '', '');
 table_header($th);
 start_row();
 	$id = find_row('Edit');
@@ -219,6 +236,7 @@ start_row();
 		foreach ($_SESSION['plan_data'] as $key => $value) {
 			start_row();
 			if($id != $key || !$editable_items){
+				// if($value['maincat_id']){
 			label_cell($value['style_id']);
 			label_cell($value['stock_id']);
 			label_cell(get_description($value['stock_id']));
@@ -227,25 +245,24 @@ start_row();
 			qty_cell($ini_qty);
 			qty_cell($value['perpc']);
 			qty_cell($value['waste']);
-//Need to change perpc as per requirement
-			$total_req = total_req($ini_qty, $value['perpc'], $value['waste']);
+			//Need to change perpc as per requirement
+			$perpc = get_perpc($value['stock_id'], $value['perpc']);
+			$total_req = total_req($ini_qty, $perpc, $value['waste']);
 			qty_cell($total_req);
 			qty_cell($value['stk_extra']);
 			qty_cell($value['stk_total']);
+			//gfab data---------------------------------------------------------------------------------------------
 			label_cell($value['cstock_id']);
-//gfab data---------------------------------------------------------------------------------------------
-			label_cell(get_description($value['cstock_id']));
 			qty_cell($value['cwaste']);
-
-			$ctotal_req = total_req($ini_qty, 1, $value['cwaste']);
+			$cperpc =1;
+			$ctotal_req = total_req($total_req, $cperpc, $value['cwaste']);
 			qty_cell($ctotal_req);
 			qty_cell($value['cstk_extra']);
 			qty_cell($value['cstk_total']);
 
 
 			label_cell($value['req_date']);
-
-//label_cell($value['ufilename']);						
+			//label_cell($value['ufilename']);						
 			edit_button_cell('Edit'.$value['line_no'], _('Edit'), _('Edit document line'));
 			delete_button_cell('Delete'.$value['line_no'], _('Delete'), _('Remove line from document'));
 			if(isset($_POST['Delete'.$value['line_no']])){
@@ -253,7 +270,8 @@ start_row();
 				$Ajax->activate('items_table');
 			}
 			end_row();
-			}
+		}
+		// }
 			else
 				edit($_SESSION['plan_data'], $order_no, $key, $maincat_id);
 		}

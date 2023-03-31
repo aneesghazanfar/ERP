@@ -74,38 +74,21 @@ function small_qty_cells_ex($label, $name, $init=null, $submit_on_change=false, 
 	amount_cells_ex_new($label, $name, 7, 12, $init, $submit_on_change, $params, $post_label, $dec);
 }
 //--------------------------------------------------------------------------------------
-function get_plan_data($order_no, $maincat_id, $unset=false, $col=null,$com=null){
-	echo $com;
+function get_plan_data($order_no, $maincat_id, $unset=false, $col=null){
 	if($unset){
-		//echo "in ha bhai";
 		unset($_SESSION['plan_data']);
 	}
-	if($col){
+	if($col == 1){
 		$result = get_col_detail($order_no, $maincat_id);
 	}
-	else if($com){
-		$result = get_comp_detail($order_no, $maincat_id);
-	}
 	else
-		$result = get_style_detail($order_no, $maincat_id);
+		$result = get_style_detail($order_no, $maincat_id,null, $col);
 $line_no = 1;
 while ($myrow = db_fetch($result)) {
     $plan_data['line_no'] = $line_no++;
     $plan_data['maincat_id'] = $myrow['maincat_id'];
     $plan_data['pp_id'] = $myrow['pp_id'];
     $plan_data['style_id'] = $myrow['style_id'];
-	if($maincat_id == 1 && $myrow['maincat_id'] == 3){
-		$plan_data['cstock_id'] = $myrow['stk_code'];
-		$plan_data['cwaste'] = $myrow['waste'];
-		$plan_data['cstk_extra'] = $myrow['stk_extra'];
-		$plan_data['cstk_total'] = $myrow['stk_total'];
-	}
-	else{
-		$plan_data['cstock_id'] = $plan_data['cstock_id'];
-		$plan_data['cwaste'] = $plan_data['cwaste'];
-		$plan_data['cstk_extra'] = $plan_data['cstk_extra'];
-		$plan_data['cstk_total'] = $plan_data['cstk_total'];
-		}
     $plan_data['stock_id'] = $myrow['stk_code'];
     $plan_data['description'] = get_description($myrow['stk_code']);
     $plan_data['ini_qty'] = 0;
@@ -117,7 +100,21 @@ while ($myrow = db_fetch($result)) {
     $plan_data['stk_total'] = $myrow['stk_total'];
     $plan_data['req_date'] = $myrow['req_date'];
     $plan_data['ufilename'] = $myrow['ufilename'];
+	// for composite items 
+	if(($col == 2) ){
+		$plan_data['cstock_id'] = get_gfab($order_no, $myrow['stk_code'], $maincat_id, 'const_id');
+		$com_data = get_comp_detail($plan_data['cstock_id']);
+		while ($comrow = db_fetch($com_data)) {
+			$plan_data['cpp_id'] = $comrow['pp_id'];
+			$plan_data['cstock_id'] = $comrow['stk_code'];
+			$plan_data['cwaste'] = $comrow['waste'];
+			$plan_data['cstk_extra'] = $comrow['stk_extra'];
+			$plan_data['cstk_total'] = $comrow['stk_total'];
+			$plan_data['cperpc'] = $comrow['perpc'];
+		}
+	}
 
+	
     $existing_data = isset($_SESSION['plan_data']) ? $_SESSION['plan_data'] : array();
  // Check if pp_id already exists in session
 $index = array_search($plan_data['pp_id'], array_column($existing_data, 'pp_id'));

@@ -91,17 +91,57 @@ return $row[0];
 }
 
 //Sum end--------------------------------------------------------------------------------------
-function add_to_database (&$item , $order_no , $comment , $maincat_id){
+function add_to_database (&$item , $order_no , $comment , $maincat_id, $comp_id=null){
 foreach($item as $key => $row) {
 	$req_date = date('y/m/d', strtotime($row['req_date']));
-    if($row['pp_id'] == null ) {
-		$comp_id = 0;
-		if($row['maincat_id'] == 4 || $row['maincat_id'] == 3)
-			$comp_id = 1;
-			
 
-    $sql = "INSERT INTO ".TB_PREF."purch_plan_details (comp_id,sorder_no,  style_id, maincat_id, stk_code, perpc, waste, stk_extra, stk_total, ufilename, req_date)
-			VALUES (".db_escape($comp_id).",".db_escape($order_no).", ".db_escape($row['style_id']).", ".db_escape($row['maincat_id']).", ".db_escape($row['stock_id']).",
+	if($comp_id){
+		if($row['pp_id'] == null || $row['cpp_id'] == null ) {
+   $sql1 = "INSERT INTO " . TB_PREF . "purch_plan_details (sorder_no, comp_id, style_id, maincat_id, stk_code, perpc, waste, stk_extra, stk_total, ufilename, req_date)
+        SELECT " . db_escape($order_no) . ", " . db_escape(1) . ", " . db_escape($row['style_id']) . ", " . db_escape($row['maincat_id']) . ", " . db_escape($row['stock_id']) . ",
+                " . db_escape($row['perpc']) . ", " . db_escape($row['waste']) . ", " . db_escape($row['stk_extra']) . ",
+                " . db_escape($row['stk_total']) . ", " . db_escape($row['ufilename']) . ", " . db_escape($req_date) . "
+        UNION ALL
+        SELECT " . db_escape($order_no) . ", " . db_escape(1) . ", " . db_escape($row['style_id']) . ", " . db_escape($row['cmaincat_id']) . ", " . db_escape($row['cstock_id']) . ",
+                " . db_escape(1) . ", " . db_escape($row['cwaste']) . ", " . db_escape($row['cstk_extra']) . ",
+                " . db_escape($row['cstk_total']) . ", " . db_escape($row['ufilename']) . ", " . db_escape($req_date) . ";";
+
+
+		}
+		else {
+
+	$sql1 = "UPDATE " . TB_PREF . "purch_plan_details SET
+comp_id = " . db_escape(1) . ",
+style_id = " . db_escape($row['style_id']) . ",
+maincat_id = CASE WHEN pp_id = " . db_escape($row['pp_id']) . " THEN " . db_escape($row['maincat_id']) . " ELSE " . db_escape(3) . " END,
+stk_code = CASE WHEN pp_id = " . db_escape($row['pp_id']) . " THEN " . db_escape($row['stock_id']) . " ELSE " . db_escape($row['cstock_id']) . " END,
+perpc = CASE WHEN pp_id = " . db_escape($row['pp_id']) . " THEN " . db_escape($row['perpc']) . " ELSE " . db_escape(1) . " END,
+waste = CASE WHEN pp_id = " . db_escape($row['pp_id']) . " THEN " . db_escape($row['waste']) . " ELSE " . db_escape($row['cwaste']) . " END,
+stk_extra = CASE WHEN pp_id = " . db_escape($row['pp_id']) . " THEN " . db_escape($row['stk_extra']) . " ELSE " . db_escape($row['cstk_extra']) . " END,
+stk_total = CASE WHEN pp_id = " . db_escape($row['pp_id']) . " THEN " . db_escape($row['stk_total']) . " ELSE " . db_escape($row['cstk_total']) . " END,
+ufilename = " . db_escape($row['ufilename']) . ",
+req_date = " . db_escape($req_date) . "
+WHERE pp_id IN (" . db_escape($row['pp_id']) . ", " . db_escape($row['cpp_id']) . ")";
+
+	}
+	db_query($sql1, 'order Cannot be Added');
+
+
+	}
+
+
+
+
+
+
+
+
+
+
+	else{
+    if($row['pp_id'] == null ) {
+    $sql = "INSERT INTO ".TB_PREF."purch_plan_details (sorder_no,  style_id, maincat_id, stk_code, perpc, waste, stk_extra, stk_total, ufilename, req_date)
+			VALUES (".db_escape($order_no).", ".db_escape($row['style_id']).", ".db_escape($row['maincat_id']).", ".db_escape($row['stock_id']).",
             ".db_escape($row['perpc']).", ".db_escape($row['waste']).", ".db_escape($row['stk_extra']).",
             ".db_escape($row['stk_total']).", ".db_escape($row['ufilename'])." , ".db_escape($req_date).")";
 }
@@ -112,7 +152,9 @@ else {
     ufilename = ".db_escape($row['ufilename']).", req_date = ".db_escape($req_date)."  WHERE pp_id = ".db_escape($row['pp_id']);
 }
 
+	}
     db_query($sql, 'order Cannot be Added');
+		
 }
 
 if($maincat_id == 4)
@@ -148,16 +190,32 @@ function get_col_detail($order_no,$maincat_id, $maincat_id_2 = null){
 	return db_query($sql, "could not get all detail");
 }
 //--------------------------------------------------------------------------------------
-function get_comp_detail($order_no,$comp_id){
-$sql = "SELECT * FROM ".TB_PREF."purch_plan_details 
-        WHERE sorder_no = ".db_escape($order_no)." AND comp_id = ".db_escape($comp_id)." ";
-      //  ORDER BY maincat_id ASC";
-	return db_query($sql, "could not get all detail");
+function get_gfab($order_no, $stock_id ,$maincat_id, $col_id){
+	
+$sql = "SELECT s.stock_id
+
+FROM ".TB_PREF."stock_master s, ".TB_PREF."stock_master m
+WHERE m.stock_id = ".db_escape($stock_id)."
+AND s.".$col_id." = m.".$col_id."
+AND m.maincat_id = ".db_escape($maincat_id)."
+AND s.maincat_id = 3";
+$result = db_query($sql, 'Could not retreive quantity');
+$row = db_fetch_row($result);
+return $row[0];
 }
 //--------------------------------------------------------------------------------------
-function get_style_detail($order_no,$maincat_id, $maincat_id_2 = null){
+function get_style_detail($order_no,$maincat_id, $maincat_id_2 = null, $col=null){
 	$sql = "SELECT * FROM ".TB_PREF."purch_plan_details WHERE sorder_no = ".db_escape($order_no)." AND (maincat_id = ".db_escape($maincat_id)." OR maincat_id = ".db_escape($maincat_id_2).") AND style_id != ''";
+if($col)
+    $sql .= " AND comp_id = 1";
+else
+    $sql .= " AND comp_id = 0";
 	return db_query($sql, "could not get all detail");
+}
+function get_comp_detail($stock_id){
+	$sql = "SELECT * FROM ".TB_PREF."purch_plan_details WHERE stk_code = ".db_escape($stock_id);
+	return db_query($sql, "could not get all detail");
+
 }
 //16mar--------------------------------------------------------------------------------------
 function get_ord_qty($order_no){
@@ -184,6 +242,13 @@ function get_description($stock_id){
 function get_unit($stock_id){
 	$sql = "SELECT units FROM ".TB_PREF."stock_master WHERE stock_id = ".db_escape($stock_id);
 	$result = db_query($sql, "could not get unit");
+	$row = db_fetch_row($result);
+	return $row[0];
+}
+//--------------------------------------------------------------------------------------
+function get_perpc($stock_id,$pcs){
+	$sql = "SELECT ((f.length * f.width * f.gsm)/$pcs/1550000) FROM ".TB_PREF."stock_master s , ".TB_PREF."fabric_qlty f WHERE s.stock_id = ".db_escape($stock_id)." AND f.fabric_qlty_id = s.qlty_id";
+	$result = db_query($sql, "could not get perpc");
 	$row = db_fetch_row($result);
 	return $row[0];
 }
@@ -216,5 +281,4 @@ $result = db_query($sql, 'Could not retreive quantity');
 $row = db_fetch_row($result);
 return $row[0];
 }
-
 //--------------------------------------------------------------------------------------

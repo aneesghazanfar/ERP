@@ -34,12 +34,12 @@ if(isset($_POST['Edit'.$lineNo])){
 		$edit_id = $_POST['edit_id'];
 		foreach($_SESSION['plan_data'] as $key => $value) {
 			if($key == $edit_id) {
-				$ini_qty= get_style_qty($order_no, $_POST['style_id']);
+				$ini_qty= get_style_qty($order_no, $value['style_id']);
 				$_SESSION['plan_data'][$key]['perpc'] = $_POST['perpc'];
 				$_SESSION['plan_data'][$key]['waste'] = $_POST['waste'];
 				$total_req = total_req($ini_qty, $_POST['perpc'], $_POST['waste'] );
 				$_SESSION['plan_data'][$key]['stk_extra'] = $_POST['stk_extra'];
-				$_SESSION['plan_data'][$key]['stk_total'] = net_req($total_req, $perpc , $_POST['stk_extra']);
+				$_SESSION['plan_data'][$key]['stk_total'] = net_req($total_req, $_POST['perpc'] , $_POST['stk_extra']);
 				$_SESSION['plan_data'][$key]['req_date']  = $_POST['req_date'];
 				$_SESSION['plan_data'][$key]['ufilename']  = $_POST['ufilename'];
 				display_notification(_('Order plan has been updated'));

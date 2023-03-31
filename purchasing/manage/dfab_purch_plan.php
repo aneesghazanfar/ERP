@@ -31,9 +31,10 @@ if(isset($_POST['update_item'])) {
 	foreach($_SESSION['plan_data'] as $key => $value) {
 		if($key == $edit_id) {
 			$ini_qty= get_style_qty($order_no, $value['style_id']);
-			$_SESSION['plan_data'][$key]['perpc'] = $_POST['perpc'];
+			$_SESSION['plan_data'][$key]['perpc'] = $_POST['pcs'];
 			$_SESSION['plan_data'][$key]['waste'] = $_POST['waste'];
-			$total_req = total_req($ini_qty, $_POST['perpc'], $_POST['waste'] );
+			$perpc = get_perpc($value['stock_id'], $_POST['pcs']);
+			$total_req = total_req($ini_qty, $perpc, $_POST['waste']);
 			$_SESSION['plan_data'][$key]['stk_extra'] = $_POST['stk_extra'];
 			$_SESSION['plan_data'][$key]['stk_total'] = net_req($total_req , $_POST['stk_extra']);
 			$_SESSION['plan_data'][$key]['req_date']  = $_POST['req_date'];
@@ -68,9 +69,10 @@ if(isset($_POST['AddItem'])) {
 	$plan_data['description'] = get_description($_POST['stock_id']);
 	$plan_data['ini_qty']  = get_style_qty($order_no, $_POST['style_id']);
 	$plan_data['units'] = get_unit($_POST['stock_id']);
-	$plan_data['perpc'] = $_POST['perpc'];
+	$plan_data['perpc'] = $_POST['pcs'];
 	$plan_data['waste'] = $_POST['waste'];
-	$plan_data['total_req']  = total_req($plan_data['ini_qty'], $_POST['perpc'], $_POST['waste'] );
+	$perpc = get_perpc($_POST['stock_id'], $_POST['pcs']);
+	$plan_data['total_req']  = total_req($plan_data['ini_qty'], $perpc, $_POST['waste'] );
 	$plan_data['stk_extra'] = $_POST['stk_extra'];
 	$plan_data['stk_total'] = net_req($plan_data['total_req'], $_POST['stk_extra']);
 	$plan_data['req_date'] = $_POST['req_date'];
@@ -118,9 +120,10 @@ function edit(&$order, $order_no, $line, $maincat_id) {
 		label_cell(get_description($_POST['stock_id']));
 		label_cell(get_unit($_POST['stock_id']));
 		qty_cell($ini_qty);
-		small_qty_cells_ex(null, 'perpc', 0,false);
+		small_qty_cells_ex(null, 'pcs', 0,false);
 		small_qty_cells_ex(null, 'waste', 0,false);
-		$total_req = total_req($ini_qty, $_POST['perpc'], $_POST['waste']);
+		$perpc = get_perpc($_POST['stock_id'], $_POST['pcs']);
+		$total_req = total_req($ini_qty, $perpc, $_POST['waste']);
 		qty_cell($total_req);
 		small_qty_cells_ex(null, 'stk_extra', 0, false);
 		$stk_total = net_req($total_req, $_POST['stk_extra']);
@@ -135,10 +138,11 @@ function edit(&$order, $order_no, $line, $maincat_id) {
 		hidden('ini_qty', $ini_qty);
 		label_cell(get_unit($_POST['stock_id']));
 		qty_cell($ini_qty);
-		small_qty_cells_ex(null, 'perpc', 1,true);
+		small_qty_cells_ex(null, 'pcs', 1,true);
 		small_qty_cells_ex(null, 'waste', 0, true);
 		//need to change $perpc as per requirement
-		$total_req = total_req($ini_qty, $_POST['perpc'], $_POST['waste']);
+		$perpc = get_perpc($_POST['stock_id'], $_POST['pcs']);
+		$total_req = total_req($ini_qty, $perpc, $_POST['waste']);
 		qty_cell($total_req);
 		hidden('total_req', $total_req);
 		small_qty_cells_ex(null, 'stk_extra', 0, true);
@@ -188,7 +192,8 @@ start_row();
 			qty_cell($value['perpc']);
 			qty_cell($value['waste']);
 //Need to change perpc as per requirement
-			$total_req = total_req($ini_qty, $value['perpc'], $value['waste']);
+			$perpc = get_perpc($value['stock_id'], $value['perpc']);
+			$total_req = total_req($ini_qty, $perpc, $value['waste']);
 			qty_cell($total_req);
 			qty_cell($value['stk_extra']);
 			qty_cell($value['stk_total']);
