@@ -174,6 +174,7 @@ function plan_sales_items_list($name, $selected_id=null, $all_option=false, $sub
 			'search_submit' => true,
 			'size'=>15,
 			'select_submit'=> $submit_on_change,
+			'async' => false,
 			'category' => 2,
 			'order' => array('c.description','i.item_code'),
 			'editlink' => $editkey ? add_edit_combo('item', $name) : false,
