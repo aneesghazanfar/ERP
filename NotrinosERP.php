@@ -18,6 +18,8 @@ include_once($path_to_root.'/applications/suppliers.php');
 include_once($path_to_root.'/applications/inventory.php');
 include_once($path_to_root.'/applications/fixed_assets.php');
 include_once($path_to_root.'/applications/manufacturing.php');
+
+include_once($path_to_root.'/applications/plan.php');
 include_once($path_to_root.'/applications/dimensions.php');
 include_once($path_to_root.'/applications/generalledger.php');
 include_once($path_to_root.'/applications/setup.php');
@@ -73,6 +75,7 @@ class NotrinosErp {
 		$this->add_application(new InventoryApp());
 		if ($SysPrefs->prefs['use_manufacturing'])
 			$this->add_application(new ManufacturingApp());
+		$this->add_application(new PlanApp());
 		if ($SysPrefs->prefs['use_fixed_assets'])
 			$this->add_application(new AssetsApp());
 		$this->add_application(new DimensionsApp());

@@ -10,17 +10,6 @@
 	See the License here <http://www.gnu.org/licenses/gpl-3.0.html>.
 ***********************************************************************/
 include_once($path_to_root.'/includes/ui.inc');
-//Start - MUZZAMMIL - 29-Mar-2023
-//Added mo_entry_items links
-include_once($path_to_root . '/purchasing/includes/supp_trans_class.inc');
-include_once($path_to_root . '/includes/date_functions.inc');
-
-include_once($path_to_root . '/includes/ui.inc');
-
-include_once($path_to_root . '/purchasing/includes/ui/invoice_ui.inc');
-include_once($path_to_root . '/manufacturing/includes/ui/mo_ui.inc');
-include_once($path_to_root . '/purchasing/includes/ui/grn_ui.inc');
-//End - MUZZAMMIL - 29-Mar-2023
 
 //--------------------------------------------------------------------------------------
 

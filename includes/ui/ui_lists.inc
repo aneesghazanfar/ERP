@@ -776,8 +776,8 @@ function dimensions_list_row($label, $name, $selected_id=null, $no_option=false,
 
 
 
-/*
-old function start
+
+//old function start
 
 function stock_items_list($name, $selected_id=null, $all_option=false, $submit_on_change=false, $opts=array(), $editkey=false, $type='stock') {
 	$sql = "SELECT stock_id, s.description, c.description, s.inactive, s.editable
@@ -830,8 +830,8 @@ function stock_items_list_cells($label, $name, $selected_id=null, $all_option=fa
 
 }
 
+/*
 old function end
-*/
 
 // new function start
 
@@ -903,7 +903,7 @@ function stock_items_list_cells($label, $sale_ord_detail, $name, $selected_id=nu
 // new function end
 
 // end
-
+*/
 
 //---------------------------------------------------------------------------------------------------
 //
