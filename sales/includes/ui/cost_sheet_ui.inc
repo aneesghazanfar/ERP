@@ -27,33 +27,14 @@ function style_list_cells( $name, $selected_id=null, $submit_on_change=false) {
 	echo "</td>\n";
 }
 
-function amount($yconsumption, $yrate){
-    return ($yconsumption * $yrate/100);
-   //     return 2+2;
 
-}
-// not used when final
-function amount1(){
-    return 2+2;
-}
-// not used when final
-
-
-function knitt_bag_formula(){
+function amount(){
     return 2+2;
 }
 
-function total_formula(){
-    return 2+2;
-}
 
-function total_cost(){
-    return 2+2;
-}
 
-function total_rate(){
-    return 2+2;
-}
+
 
 function fab_total($Per_total, $rate, $waste, $consumption){
     echo $Per_total . "<br>" . $rate . "<br>" . $waste . "<br>" . $consumption;
@@ -66,8 +47,34 @@ function label_cell_text($label, $name) {
         <input class='searchbox' class='amount' type=\"text\" name=\"$name\" value=\"$value\">
     </td>";
 }
+function get_cost_data($maincat_id , $unset = false){
+    if($unset)
+		unset($_SESSION['cost_data']);
+    $result = get_cost_detail($maincat_id);
+    $line_no = 1;
+     while ($myrow = db_fetch($result)) {
+        $cost_data['line_no'] = $line_no++;
+        $cost_data['id'] = $myrow['id'];
+        $cost_data['cs_id'] = $myrow['cs_id'];
+        $cost_data['fab_id'] = $myrow['fab_id'];
+        $cost_data['stk_code'] = $myrow['stk_code'];
+        $cost_data['consume'] = $myrow['consume'];
+        $cost_data['rate'] = $myrow['rate'];
+        $cost_data['processing'] = $myrow['processing'];
+        $cost_data['waste'] = $myrow['waste'];
 
-function get_data_data($maincat_id , $unset = false){
+     $existing_data[] = $cost_data;
+        $_SESSION['cost_data'] = $existing_data;
+
+
+
+
+     }
+
+
+}
+// below function is here for help it will be remove after complete the task
+function get_cost_data1($maincat_id , $unset = false){
     if($unset)
 		unset($_SESSION['cost_data']);
     $existing_data = isset($_SESSION['cost_data']) ? $_SESSION['cost_data'] : array();

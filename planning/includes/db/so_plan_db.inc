@@ -195,8 +195,7 @@ function get_style_detail($order_no,$maincat_id, $maincat_id_2 = null, $col=null
 	$sql = "SELECT * FROM ".TB_PREF."purch_plan_details WHERE sorder_no = ".db_escape($order_no)." AND (maincat_id = ".db_escape($maincat_id)." OR maincat_id = ".db_escape($maincat_id_2).") AND style_id != ''";
 if($col)
     $sql .= " AND comp_id = 1";
-else
-    $sql .= " AND comp_id = 0";
+
 	return db_query($sql, "could not get all detail");
 }
 function get_comp_detail($stock_id){

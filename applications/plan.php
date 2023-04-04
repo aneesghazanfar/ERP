@@ -13,10 +13,9 @@ class PlanApp extends application {
 	function __construct() {
 		parent::__construct('plan', _($this->help_context = '&P_QAMS'));
 
-		// $this->add_module(_('Transactions'));
-		// $this->add_lapp_function(0, _('Cpst Sheet'), 'manufacturing/work_order_entry.php?', 'SA_WORKORDERENTRY', MENU_TRANSACTION);
+		$this->add_module(_('Transactions'));
+		$this->add_lapp_function(0, _('Cost Sheet'), 'planning/cost_sheet.php?', 'SA_WORKORDERENTRY', MENU_TRANSACTION);
 		// $this->add_lapp_function(0, _('&Outstanding Work Orders'), 'manufacturing/search_work_orders.php?outstanding_only=1', 'SA_MANUFTRANSVIEW', MENU_TRANSACTION);
-
 		$this->add_module(_('Inquiries and Reports'));
 		$this->add_lapp_function(1, _('Manufacturing Orders Stock Inquiry'), 'planning/inquiry/mo_search.php?', 'SA_WORKORDERCOST', MENU_INQUIRY);
 		// $this->add_lapp_function(1, _('Inventory Item Where Used &Inquiry'), 'manufacturing/inquiry/where_used_inquiry.php?', 'SA_WORKORDERANALYTIC', MENU_INQUIRY);
@@ -24,7 +23,8 @@ class PlanApp extends application {
 		// $this->add_rapp_function(1, _('Manufacturing &Reports'), 'reporting/reports_main.php?Class=3', 'SA_MANUFTRANSVIEW', MENU_REPORT);
 
 		// $this->add_module(_('Maintenance'));
-		// $this->add_lapp_function(2, _('&Bills Of Material'), 'manufacturing/manage/bom_edit.php?', 'SA_BOM', MENU_ENTRY);
+		$this->add_lapp_function(2, _('Demand Plan from Sales Order'), 'planning/purchase_order_plan.php?', 'SA_BOM', MENU_ENTRY);
+		// C:\xampp\htdocs\ERP\planning\purchase_order_plan.php
 		// $this->add_lapp_function(2, _('&Work Centres'), 'manufacturing/manage/work_centres.php?', 'SA_WORKCENTRES', MENU_MAINTENANCE);
 
 		$this->add_extensions();

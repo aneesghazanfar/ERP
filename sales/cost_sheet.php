@@ -31,12 +31,12 @@ hidden('cs_id', $cs_id);
 if (isset($_POST['add_Cost'])) {
 	add_cost_data_to_db($_SESSION['cost_data'],$_POST['cs_id'], $_SESSION['wa_current_user']->user,date('y/m/d'),$_POST['style'],$_POST['shipping_terms'], $_POST['sp_ins'],$_POST['status']
 ,$_POST['overhead'],$_POST['local_freight'],$_POST['container_freight'],$_POST['insurance'],$_POST['commission'],$_POST['profit'],$_POST['exchange_rate'],$_POST['ufilename']);
-get_data_data(1,true);
-get_data_data(2,true);
-get_data_data(3,true);
-get_data_data(4,true);
-get_data_data(5,true);
-get_data_data(6,true);
+get_cost_data(1,true);
+get_cost_data(2,true);
+get_cost_data(3,true);
+get_cost_data(4,true);
+get_cost_data(5,true);
+get_cost_data(6,true);
 }
 
 if (isset($_FILES['image']) && $_FILES['image']['name'] != '') {	
@@ -162,7 +162,7 @@ function edit_yan(&$order,  $line, $maincat_id, $maincat_id_2)
 		label_cell(get_unit($_POST['ystk_code']));
 		small_qty_cells_ex(null, 'yconsumption', 0, false);
 		small_qty_cells_ex(null, 'yrate', 0, false);
-		qty_cell(amount1());
+		qty_cell(amount());
 	} else {
 		plan_sales_items_list_cells(null, 'ystk_code', null, false, true, true, $maincat_id, $maincat_id_2);
 		label_cell(get_unit($_POST['ystk_code']));
@@ -200,7 +200,7 @@ if (isset($_POST['Addfabric'])) {
 	$cost_data['waste'] = $_POST['fwaste'];
 	$cost_data['consumption'] = $_POST['fconsumption'];
 	$cost_data['rate'] = $_POST['frate'];
-	$cost_data['amount1'] = amount1();
+	$cost_data['amount'] = amount();
 
 	// Add the new form data to the existing array of data
 	$existing_data[] = $cost_data;
@@ -246,14 +246,14 @@ function edit_Fabric(&$order,  $line, $maincat_id)
 		small_qty_cells_ex(null, 'frate', 0, false);
 		small_qty_cells_ex(null, 'fwaste', 0, false);
 		small_qty_cells_ex(null, 'fconsumption', 0, false);
-		qty_cell(amount1());
+		qty_cell(amount());
 	} else {
 		plan_sales_items_list_cells(null, 'fstk_code', null, false, true, true, $maincat_id);
 		label_cell(get_unit($_POST['fstk_code']));
 		small_qty_cells_ex(null, 'frate', 0, false);
 		small_qty_cells_ex(null, 'fwaste', 0, false);
 		small_qty_cells_ex(null, 'fconsumption', 0, false);
-		qty_cell(amount1());
+		qty_cell(amount());
 		// qty_cell(fab_total($yarn_total, $_POST['frate'], $_POST['fwaste'], $_POST['fconsumption']));
 
 	}
@@ -285,8 +285,8 @@ if (isset($_POST['AddDyed'])) {
 	$cost_data['description'] = get_description($_POST['pstk_code']);
 	$cost_data['units'] = get_unit($_POST['pstk_code']);
 	$cost_data['consumption'] = $_POST['pconsumption'];
-	$cost_data['rate'] = amount1();
-	$cost_data['amount1'] = amount1();
+	$cost_data['rate'] = amount();
+	$cost_data['amount'] = amount();
 
 	// Add the new form data to the existing array of data
 	$existing_data[] = $cost_data;
@@ -328,15 +328,15 @@ function edit_perpcFabric(&$order,  $line, $maincat_id)
 		label_cell($_POST['pstk_code']);
 		label_cell(get_description($_POST['pstk_code']));
 		label_cell(get_unit($_POST['pstk_code']));
-		qty_cell(amount1());
+		qty_cell(amount());
 		small_qty_cells_ex(null, 'pconsumption', 0, false);
-		qty_cell(amount1());
+		qty_cell(amount());
 	} else {
 		plan_sales_items_list_cells(null, 'pstk_code', null, false, true, true, $maincat_id);
 		label_cell(get_unit($_POST['pstk_code']));
-		qty_cell(amount1());
+		qty_cell(amount());
 		small_qty_cells_ex(null, 'pconsumption', 0, true);
-		qty_cell(amount1());
+		qty_cell(amount());
 	}
 	if ($id != -1) {
 		button_cell('update_Dyed', _('Update'), _('Confirm changes'), ICON_UPDATE);
@@ -366,8 +366,8 @@ if (isset($_POST['AddAcc'])) {
 	$cost_data['description'] = get_description($_POST['accstk_code']);
 	$cost_data['units'] = get_unit($_POST['accstk_code']);
 	$cost_data['consumption'] = $_POST['accconsumption'];
-	$cost_data['rate'] = amount1();
-	$cost_data['amount1'] = amount1();
+	$cost_data['rate'] = amount();
+	$cost_data['amount'] = amount();
 
 	// Add the new form data to the existing array of data
 	$existing_data[] = $cost_data;
@@ -407,15 +407,15 @@ function edit_acc(&$order,  $line, $maincat_id, $accabric_maincat_2)
 		label_cell($_POST['accstk_code']);
 		label_cell(get_description($_POST['accstk_code']));
 		label_cell(get_unit($_POST['accstk_code']));
-		qty_cell(amount1());
+		qty_cell(amount());
 		small_qty_cells_ex(null, 'accconsumption', 0, false);
-		qty_cell(amount1());
+		qty_cell(amount());
 	} else {
 		plan_sales_items_list_cells(null, 'accstk_code', null, false, true, true, $maincat_id , $accabric_maincat_2);
 		label_cell(get_unit($_POST['accstk_code']));
-		qty_cell(amount1());
+		qty_cell(amount());
 		small_qty_cells_ex(null, 'accconsumption', 0, true);
-		qty_cell(amount1());
+		qty_cell(amount());
 	}
 	if ($id != -1) {
 		button_cell('update_Acc', _('Update'), _('Confirm changes'), ICON_UPDATE);
@@ -479,12 +479,12 @@ end_table();
 echo "<br>";
 //Yarn Table----------------------------------------------------------------------------------------------
 start_table(TABLESTYLE, "width=90%");
-get_data_data(1);
-get_data_data(2);
-get_data_data(3);
-get_data_data(4);
-get_data_data(5);
-get_data_data(6);
+get_cost_data(1);
+get_cost_data(2);
+get_cost_data(3);
+get_cost_data(4);
+get_cost_data(5);
+get_cost_data(6);
 $th = array(_('Yarn Code'), _('Yarn Desc'), _('UoM'), _('Percentage Consumption'), _('Yarn Rate/Bag'), _('amount'), '', '');
 table_header($th);
 start_row();
@@ -563,8 +563,8 @@ foreach ($_SESSION['cost_data'] as $key => $value) {
 	}
 }
 start_row();
-label_row(_('Dyeing Cost/kg'), amount1(), "colspan=6 align='right'");
-label_row(_('Dyed Fabric Cost/kg'), knitt_bag_formula(), "colspan=6 align='right'");
+label_row(_('Dyeing Cost/kg'), amount(), "colspan=6 align='right'");
+label_row(_('Dyed Fabric Cost/kg'), amount(), "colspan=6 align='right'");
 end_row();
 
 end_table(1);
@@ -590,7 +590,7 @@ foreach ($_SESSION['cost_data'] as $key => $value) {
 			label_cell(get_unit($value['stk_code']));
 			qty_cell($value['rate']);
 			qty_cell($value['consumption']);
-			qty_cell(amount1());
+			qty_cell(amount());
 			edit_button_cell('Edit' . $value['line_no'], _('Edit'), _('Edit document line'));
 			delete_button_cell('Delete' . $value['line_no'], _('Delete'), _('Remove line from document'));
 			if (isset($_POST['Delete' . $value['line_no']])) {
@@ -603,7 +603,7 @@ foreach ($_SESSION['cost_data'] as $key => $value) {
 		}
 	}
 }
-label_row(_('Per Piece Fabric Cost'), amount1(), "colspan=5 align='right'");
+label_row(_('Per Piece Fabric Cost'), amount(), "colspan=5 align='right'");
 end_table(1);
 //-----------------------------------------------------------------------------------------------------------
 
@@ -628,7 +628,7 @@ foreach ($_SESSION['cost_data'] as $key => $value) {
 			label_cell(get_unit($value['stk_code']));
 			qty_cell($value['rate']);
 			qty_cell($value['consumption']);
-			qty_cell(amount1());
+			qty_cell(amount());
 			edit_button_cell('Edit' . $value['line_no'], _('Edit'), _('Edit document line'));
 			delete_button_cell('Delete' . $value['line_no'], _('Delete'), _('Remove line from document'));
 			if (isset($_POST['Delete' . $value['line_no']])) {
@@ -641,9 +641,9 @@ foreach ($_SESSION['cost_data'] as $key => $value) {
 		}
 	}
 }
-label_row(_('Per Piece Fabric Cost'), amount1(), "colspan=5 align='right'");
-label_row(_('Total Labor Cost'), amount1(), "colspan=5 align='right'");
-label_row(_('Total Per Piece Cost'), amount1(), "colspan=5 align='right'");
+label_row(_('Per Piece Fabric Cost'), amount(), "colspan=5 align='right'");
+label_row(_('Total Labor Cost'), amount(), "colspan=5 align='right'");
+label_row(_('Total Per Piece Cost'), amount(), "colspan=5 align='right'");
 end_table(1);
 
 //Footer table-----------------------------------------------------------------------------------------------
@@ -655,29 +655,29 @@ echo '<tr><td>';
 start_table(TABLESTYLE, "width='95%'");
 
 label_cell_text('Overhead/Piece','over_persentage');
-qty_cell(amount1());
-hidden('overhead', amount1());
+qty_cell(amount());
+hidden('overhead', amount());
 
-label_row(_('Net Manufacturing Cost'), total_cost());
+label_row(_('Net Manufacturing Cost'), amount());
 qty_row(_('Local Freight Charges'),'local_freight') ;
 qty_row(_('Container Freight'), 'container_freight');
 qty_row(_('Insurance Charges'), 'insurance');
-label_row(_('Total Price per Piece'), total_cost());
+label_row(_('Total Price per Piece'), amount());
 end_table();
 echo "</td><td>";
 
 start_table(TABLESTYLE,"width='95%'");
 label_cell_text('Commission','com_persentage');
-hidden('commission', amount1());
-qty_cell(amount1());
+hidden('commission', amount());
+qty_cell(amount());
 end_row();
 $tab = "&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp";
 label_cell_text('Profit'.$tab,'pro_persentage');
-hidden('profit', amount1());
-qty_cell(amount1());
-label_row(_('PKR Sale Price per Piece'), total_cost());
+hidden('profit', amount());
+qty_cell(amount());
+label_row(_('PKR Sale Price per Piece'), amount());
 qty_row(_('Exchange Rate'), 'exchange_rate');
-qty_row(_('Sale Price in Foreign Currency'), total_formula());
+qty_row(_('Sale Price in Foreign Currency'), amount());
 end_table();
 
 echo '</td></tr>';

@@ -17,6 +17,9 @@ include($path_to_root."/includes/session.inc");
 include($path_to_root."/purchasing/includes/purchasing_ui.inc");
 include_once($path_to_root."/reporting/includes/reporting.inc");
 
+
+include_once($path_to_root."/planning/includes/ui/issuance_ui.inc");
+
 $js = "";
 if ($SysPrefs->use_popup_windows)
 	$js .= get_js_open_window(900, 500);
@@ -84,9 +87,15 @@ function trans_view($trans)
 	return get_trans_view_str(ST_PURCHORDER, $trans["order_no"]);
 }
 
-function edit_link($row) 
+function edit_stock($row) 
 {
-	return trans_editor_link(ST_PURCHORDER, $row["order_no"]);
+	$main =  get_item_cat($row['order_no']);
+	if($main == '00-01')
+		$maincat_id = 3;
+	else if($main == '00-02')
+		$maincat_id = 4;
+	// echo $maincat_id;
+	return trans_edit_stock(ST_PURCHORDER, $row["order_no"], $maincat_id);
 }
 
 function prt_link($row)
@@ -109,7 +118,6 @@ function check_overdue($row)
 //figure out the sql required from the inputs available
 $sql = get_sql_for_po_search(get_post('OrdersAfterDate'), get_post('OrdersToDate'), get_post('supplier_id'), get_post('StockLocation'),
 	$_POST['order_number'], get_post('SelectStockFromList'));
-echo $sql;
 //$result = db_query($sql,"No orders were returned");
 
 /*show a table of the orders returned by the sql */
@@ -122,7 +130,7 @@ $cols = array(
 		_("Order Date") => array('name'=>'ord_date', 'type'=>'date', 'ord'=>'desc'),
 		_("Currency") => array('align'=>'center'), 
 		_("Order Total") => 'amount',
-		array('insert'=>true, 'fun'=>'edit_link'),
+		array('insert'=>true, 'fun'=>'edit_stock'),
 		array('insert'=>true, 'fun'=>'receive_link'),
 		array('insert'=>true, 'fun'=>'prt_link')
 );

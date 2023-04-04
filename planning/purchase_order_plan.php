@@ -21,18 +21,13 @@ if (isset($_GET['OrderNumber'])){
 $order_no= $_GET['OrderNumber'];
 unset($_SESSION['plan_data']);
 }
-else
+else {
 	$order_no = $_POST['order_no'];
-	if ($order_no < 1) {
-		display_error(_('This page can only be opened if an order has been selected. Please select an ordder.'));
-		hyperlink_params($path_to_root.'/planning/inquiry/sales_orders_view.php', _('Select a Sales Order to Plan'), 'OutstandingOnly=1');
-		end_page();
-		exit;
-	}
+}
 hidden('order_no', $order_no);
 
 	$sql = "SELECT * FROM ".TB_PREF."sales_orders WHERE order_no=".db_escape($order_no);
-	$o_result = db_query($sql, 'could not get sales order details');
+	$o_result = db_query($sql, 'could not get item print');
 	$ordrow = db_fetch($o_result);
 
 start_table(TABLESTYLE2, "width='95%'", 5);
@@ -65,12 +60,12 @@ end_table(1); // outer table
 //----------------------------------------------------------------------------------------------
 start_form(true);
 tabbed_content_start('tabs', array(
-	'dyed' => array(_('Dyed Fab Purchase Plan'), true),
-	'greige' => array(_('Greige Fab Purchase Plan'), true),
-	'comp' => array(_('Comp Fab Purchase Plan'), true),
+	'dyed' => array(_('Dyed Fabric Purchase Plan'), true),
+	'greige' => array(_('Greige Fabric Purchase Plan'), true),
 	'yarn' => array(_('Yarn Purchase Plan'), true),
-	'acs' => array(_('Acs Purchase Plan (Sty)'), true),
-	'col' => array(_('Acs Purchase Plan (Col)'), true),
+	'com' => array(_('Composite Purchase Plan'), true),
+	'acs' => array(_('Accessories Purchase Plan (by Style)'), true),
+	'col' => array(_('Accessories Purchase Plan (by Collection)'), true),
 	'sum' => array(_('Purchase Demand'), true),
 	));
 	switch (get_post('_tabs_sel')) {
@@ -78,23 +73,23 @@ tabbed_content_start('tabs', array(
 		case 'dyed':
 		include_once($path_to_root.'/planning/manage/dfab_purch_plan.php');
 			break;
-			case 'greige':
+		case 'greige':
 			include_once($path_to_root.'/planning/manage/gfab_purch_plan.php');
-		break;
-		case 'comp':
+			break;
+		case 'com':
 			include_once($path_to_root.'/planning/manage/com_purch_plan.php');
 			break;
-			case 'yarn':
+		case 'yarn':
 			include_once($path_to_root.'/planning/manage/yarn_purch_plan.php');
-		break;
-	case 'acs':
- 			include_once($path_to_root.'/planning/manage/acs_purch_plan.php');
-		break;
-	case 'col':
+			break;
+		case 'acs':
+			include_once($path_to_root.'/planning/manage/acs_purch_plan.php');
+			break;
+		case 'col':
 			include_once($path_to_root.'/planning/manage/acs_col_purch_plan.php');
-		break;
-	case 'sum':
- 			include_once($path_to_root.'/planning/manage/summary_purch_plan.php');
+			break;
+		case 'sum':
+			include_once($path_to_root.'/planning/manage/summary_purch_plan.php');
 	};
 br();
 tabbed_content_end();

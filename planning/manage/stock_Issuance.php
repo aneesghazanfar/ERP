@@ -15,8 +15,9 @@ $path_to_root = '../..';
 include_once($path_to_root . '/includes/session.inc');
 include_once($path_to_root . '/includes/ui.inc');
 include_once($path_to_root . '/includes/ui/ui_lists.inc');
-include_once($path_to_root . '/manufacturing/includes/issuance_ui.inc');
-include_once($path_to_root . '/manufacturing/includes/db/issuance_db.inc');
+include_once($path_to_root . '/planning/includes/ui/issuance_ui.inc');
+include_once($path_to_root . '/planning/includes/db/issuance_db.inc');
+
 
 include($path_to_root . '/purchasing/includes/ui/so_plan_ui.inc');
 include($path_to_root . '/purchasing/includes/db/so_plan_db.inc');
@@ -31,18 +32,30 @@ if ($SysPrefs->use_popup_windows)
 $js .= get_js_open_window(900, 600);
 if (user_use_date_picker())
 $js .= get_js_date_picker();
-page(_($help_context = 'Yarn Issuance'), @$_REQUEST['popup'], false, '', $js);
-if (isset($_GET['mo_no'])) {
-    unset($_SESSION['issuance_data']);
+page(_($help_context = 'Stock Issuance'), @$_REQUEST['popup'], false, '', $js);
+if (isset($_GET['mo_no']) && $_GET['maincat_id']) {
+	unset($_SESSION['issuance_data']);
+	$main = $_GET['maincat_id'];
     $mo_no = $_GET['mo_no'];
     get_issuance_data($maincat_id);
 }
 hidden('mo_no', $mo_no);
-if($_POST['mo_no'])
+hidden('main', $main);
+if($_POST['mo_no'] && $_POST['main']){
     $mo_no = $_POST['mo_no'];
+	$main = $_POST['main'];
+}
+if ($main == 3){
+	$maincat_id = 1;
+	$Contract = "Knitting";
+
+}
+elseif ($main == 4){
+	$maincat_id = 4;
+	$Contract = "Dyeing";
+}
 $maincat_id = 1;
 hidden('maincat_id', $maincat_id);
-echo $mo_no;
 //function ---------------------------------------------------------------------------------------------
 if(isset($_POST['add_yarn'])){
 	add_issuance_database($_SESSION['issuance_data'], $mo_no, $maincat_id,$_POST['ogp'], $_POST['comment'],$_SESSION['wa_current_user']->user,form_no());
@@ -80,7 +93,8 @@ if (isset($_POST['Add_Issuance'])) {
     $issuance_data['qoh'] = get_qoh_on_date($_POST['stk_code']);
     $issuance_data['required'] = required_bags($_POST['stk_code'],$maincat_id);
     $issuance_data['issued'] = $_POST['issued'];
-    //$issuance_data['lot_no'] = $myrow['lot_no'];
+
+    $issuance_data['lot_no'] = $_POST['lot_no'];
 	
 	// Add the new form data to the existing array of data
 	$existing_data[] = $issuance_data;
@@ -95,6 +109,7 @@ if (isset($_POST['update_Issuance'])) {
 	foreach ($_SESSION['issuance_data'] as $key => $value) {
 		if ($key == $edit_id) {
 			$_SESSION['issuance_data'][$key]['issued'] = $_POST['issued'];
+			$_SESSION['issuance_data'][$key]['lot_no'] = $_POST['lot_no'];
 		}
 	}
 	$Ajax->activate('items_table');
@@ -106,8 +121,8 @@ start_table(TABLESTYLE_NOBORDER, "width='70%'");
 
 echo '<tr><td>';
 start_table(TABLESTYLE, "width='95%'");
-label_row(_('Knitting Contract'), $mo_no);
-label_row(_('Knitting Party'), get_sup_name($mo_no));
+label_row(_($Contract.' Contract'), $mo_no);
+label_row(_($Contract.' Party'), get_sup_name($mo_no));
 label_row(_('Date'), date('d-m-Y'), "class='label'", 0, 0, null, true);
 textarea_row(_('Out Gate Pass'), 'ogp', null, 20, 1);
 
@@ -130,31 +145,67 @@ function edit(&$order,  $line, $maincat_id)
 {
     global $Ajax;
 	global $id;
+	global $mo_no;
+	global $main;
+
 	
 	if ($id == $line && $line != -1) {
-        foreach ($order as $key => $value) {
-            if ($key == $line) {
-                hidden('edit_id', $key);
+		foreach ($order as $key => $value) {
+			if ($key == $line) {
+				hidden('edit_id', $key);
 				$_POST['stk_code'] = $value['stk_code'];
 				$_POST['issued'] = $value['issued'];
 				$_POST['required'] = $value['required'];
 				$_POST['qoh'] = $value['qoh'];
+				$_POST['lot_no'] = $value['lot_no'];
 				$Ajax->activate('items_table');
 				break;
 			}
 		}
+		if($main == 3){
 		label_cell($_POST['stk_code']);
 		label_cell(get_description($_POST['stk_code']));
 		label_cell(get_unit($_POST['stk_code']));
         qty_cell($_POST['required']);
+		qty_cell(already_issuse($mo_no));
         qty_cell($_POST['qoh']);
         small_qty_cells_ex(null, 'issued', 0, false);
+		}
+		elseif($main == 4){
+			lot_no_item_list_cells(null, 'lot_no', false, $mo_no);
+
+			qty_cell(get_Rolls_count($_POST['lot_no']));
+			qty_cell(get_weight($_POST['lot_no']));
+			hidden('issued', 0);
+
+		}
 	} else {
+		if($main == 3){
         plan_sales_items_list_cells(null, 'stk_code', null, false, true, true, $maincat_id);
 		label_cell(get_unit($_POST['stk_code']));
         qty_cell(required_bags($_POST['stk_code'],$maincat_id));
+		foreach ($order as $key => $value) {
+			$sum_issued += (float) $value["issued"];
+		}
+		$already_issuse = already_issuse($mo_no) + $sum_issued;
+		qty_cell($already_issuse);
+		
         qty_cell(get_qoh_on_date($_POST['stk_code']));
-		small_qty_cells_ex(null, 'issued', 0, true);
+		if(get_qoh_on_date($_POST['stk_code'])<0)
+			display_warning(_('Insufficient quantity in hand for selected item.'));
+		small_qty_cells_ex(null, 'issued', 1, true);
+
+		if(($_POST['issued']>=required_bags($_POST['stk_code'],$maincat_id)))
+			display_warning(_('You can not issue more than required  bags.'));
+	}
+	elseif($main == 4){
+		lot_no_item_list_cells(null, 'lot_no', true, $mo_no);
+		qty_cell(get_Rolls_count($_POST['lot_no']));
+		qty_cell(get_weight($_POST['lot_no']));
+		hidden('issued', 0);
+
+
+	}
 	}
 	if ($id != -1) {
         button_cell('update_Issuance', _('Update'), _('Confirm changes'), ICON_UPDATE);
@@ -163,12 +214,15 @@ function edit(&$order,  $line, $maincat_id)
         submit_cells('Add_Issuance', _('Add Item'), "colspan=2 align='center'", _('Add new item to document'), true);
 	}
 	end_row();
+
 }
-//I----------------------------------------------------------------------------------------
+
+//------------------------------------------------------------------------------------------
 
 // var_dump($_SESSION['issuance_data']);
+if($main == 3){
 start_table(TABLESTYLE, "width='70%'");
-$th = array(_('Yarn Code'), _('Yarn Description'), _('UoM'), _('Required Bags'), _('Available in Inventory'), _('Issued Bags'), '', '');
+$th = array(_('Yarn Code'), _('Yarn Description'), _('UoM'), _('Required Bags'), _('Already issuse'), _('Available in Inventory'), _('Issued Bags'), '', '');
 table_header($th);
 start_row();
 $id = find_row('Edit');
@@ -184,6 +238,7 @@ foreach ($_SESSION['issuance_data'] as $key => $value) {
 			label_cell(get_description($value['stk_code']));
 			label_cell(get_unit($value['stk_code']));
 			qty_cell($value['required']);
+			qty_cell(already_issuse($mo_no));
 			qty_cell($value['qoh']);
 			qty_cell($value['issued']);
 			edit_button_cell('Edit' . $value['line_no'], _('Edit'), _('Edit document line'));
@@ -197,17 +252,50 @@ foreach ($_SESSION['issuance_data'] as $key => $value) {
 			edit($_SESSION['issuance_data'], $key, $maincat_id);
 		}
 	}
+}
 
+elseif($main == 4){
+	start_table(TABLESTYLE, "width='70%'");
+	$th = array(_('LOT number'), _('Number of Rolls'), _('Total Weigth'), '', '');
+	table_header($th);
+	start_row();
+	$id = find_row('Edit');
+	
+	hidden('maincat_id', $maincat_id);
+	$editable_items = true;
+	if ($id == -1 && $editable_items)
+		edit($_SESSION['issuance_data'],  -1, $maincat_id);
+	foreach ($_SESSION['issuance_data'] as $key => $value) {
+		start_row();
+			if (($id != $key || !$editable_items)) {
+				label_cell($value['lot_no']);
+				qty_cell(get_Rolls_count($value['lot_no']));
+				qty_cell(get_weight($value['lot_no']));
+				edit_button_cell('Edit' . $value['line_no'], _('Edit'), _('Edit document line'));
+				delete_button_cell('Delete' . $value['line_no'], _('Delete'), _('Remove line from document'));
+				if (isset($_POST['Delete' . $value['line_no']])) {
+					unset($_SESSION['issuance_data'][$key]);
+					$Ajax->activate('items_table');
+				}
+				end_row();
+			} else {
+				edit($_SESSION['issuance_data'], $key, $maincat_id);
+
+
+			}
+
+		}
+
+}
 
 end_table();
-
 
 echo '<br>';
 
 start_table(TABLESTYLE2);
 textarea_row(_('Special Instructions:'), 'comment', null, 70, 4);
 end_table(1);
-submit_center_first('add_yarn',_('Add Yarn'),  _('Check entered data and save document'), 'default');
+submit_center_first('add_yarn',_('Issuse Stock'),  _('Check entered data and save document'), 'default');
 end_form();
 div_end();
 end_page();

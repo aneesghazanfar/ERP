@@ -369,6 +369,7 @@ function get_sql_for_po_search($from, $to, $supplier_id=ALL_TEXT, $location=ALL_
 		AND location.loc_code = porder.into_stock_location
 		AND (line.quantity_ordered > line.quantity_received) ";
 
+	/*
 	if ($order_number != '')
 		$sql .= "AND porder.reference LIKE ".db_escape('%'.$order_number.'%');
 	else {
@@ -381,6 +382,7 @@ function get_sql_for_po_search($from, $to, $supplier_id=ALL_TEXT, $location=ALL_
 		if ($supplier_id != ALL_TEXT)
 			$sql .= " AND supplier.supplier_id=".db_escape($supplier_id);
 	} //end not order number selected
+	*/
 
 	$sql .= " GROUP BY porder.order_no";
 

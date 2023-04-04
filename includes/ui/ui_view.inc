@@ -1543,3 +1543,21 @@ function trans_edit_table_link($type, $trans_no) {
 }
 
 // end
+
+// start 
+// Anees Ghazanfar 3/4/2023
+// Description: add new function to open stock_Issuance
+
+function trans_edit_stock($type, $order_no, $maincat_id){
+	global $path_to_root;
+
+	$editor_url = array(
+				ST_PURCHORDER => "/planning/manage/stock_Issuance.php?mo_no=".$order_no."&maincat_id=".$maincat_id,
+				
+	);
+	   // $editor_url = sprintf($editor_url[ST_PURCHORDER], $order_no, $maincat_id);
+
+	return !isset($editor_url[$type]) ? '--' :
+			(is_closed_trans($type, $order_no) ? set_icon(ICON_CLOSED, _('Closed')) :
+				pager_link(_('Edit'), sprintf($editor_url[$type], $order_no, $type), ICON_EDIT));
+}
