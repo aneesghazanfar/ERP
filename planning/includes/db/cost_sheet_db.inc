@@ -1,5 +1,5 @@
 <?php
-function get_cost_detail($maincat_id){
+function get_cost_detail(){
 	$sql = "SELECT * FROM ".TB_PREF."cost_sheet_details";
 	return db_query($sql, "could not get all detail");
 }

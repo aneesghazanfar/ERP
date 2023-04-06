@@ -19,8 +19,8 @@ include_once($path_to_root . '/planning/includes/ui/issuance_ui.inc');
 include_once($path_to_root . '/planning/includes/db/issuance_db.inc');
 
 
-include($path_to_root . '/purchasing/includes/ui/so_plan_ui.inc');
-include($path_to_root . '/purchasing/includes/db/so_plan_db.inc');
+include($path_to_root . '/planning/includes/ui/so_plan_ui.inc');
+include($path_to_root . '/planning/includes/db/so_plan_db.inc');
 
 
 
@@ -33,19 +33,21 @@ $js .= get_js_open_window(900, 600);
 if (user_use_date_picker())
 $js .= get_js_date_picker();
 page(_($help_context = 'Stock Issuance'), @$_REQUEST['popup'], false, '', $js);
-if (isset($_GET['mo_no']) && $_GET['maincat_id']) {
+if (isset($_GET['mo_no']) && $_GET['svc']) {
 	unset($_SESSION['issuance_data']);
-	$main = $_GET['maincat_id'];
+	$main = $_GET['svc'];
     $mo_no = $_GET['mo_no'];
-    get_issuance_data($maincat_id);
+    get_issuance_data();
 }
+echo $main;
+
 hidden('mo_no', $mo_no);
 hidden('main', $main);
 if($_POST['mo_no'] && $_POST['main']){
     $mo_no = $_POST['mo_no'];
 	$main = $_POST['main'];
 }
-if ($main == 3){
+if ($main == '00-01'){
 	$maincat_id = 1;
 	$Contract = "Knitting";
 
@@ -54,8 +56,6 @@ elseif ($main == 4){
 	$maincat_id = 4;
 	$Contract = "Dyeing";
 }
-$maincat_id = 1;
-hidden('maincat_id', $maincat_id);
 //function ---------------------------------------------------------------------------------------------
 if(isset($_POST['add_yarn'])){
 	add_issuance_database($_SESSION['issuance_data'], $mo_no, $maincat_id,$_POST['ogp'], $_POST['comment'],$_SESSION['wa_current_user']->user,form_no());
@@ -118,11 +118,15 @@ if (isset($_POST['update_Issuance'])) {
 div_start('items_table');
 start_form(true);
 start_table(TABLESTYLE_NOBORDER, "width='70%'");
+if($main == '00-01'){
+	display_heading("Knitting");
+
+}
 
 echo '<tr><td>';
 start_table(TABLESTYLE, "width='95%'");
-label_row(_($Contract.' Contract'), $mo_no);
-label_row(_($Contract.' Party'), get_sup_name($mo_no));
+label_row(_('Contract'), $mo_no);
+label_row(_('Manufacturer'), get_sup_name($mo_no));
 label_row(_('Date'), date('d-m-Y'), "class='label'", 0, 0, null, true);
 textarea_row(_('Out Gate Pass'), 'ogp', null, 20, 1);
 
@@ -220,7 +224,7 @@ function edit(&$order,  $line, $maincat_id)
 //------------------------------------------------------------------------------------------
 
 // var_dump($_SESSION['issuance_data']);
-if($main == 3){
+if($main == '00-01'){
 start_table(TABLESTYLE, "width='70%'");
 $th = array(_('Yarn Code'), _('Yarn Description'), _('UoM'), _('Required Bags'), _('Already issuse'), _('Available in Inventory'), _('Issued Bags'), '', '');
 table_header($th);

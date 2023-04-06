@@ -175,6 +175,7 @@ function plan_sales_items_list($name, $selected_id=null, $all_option=false, $sub
 			'order' => array('c.description','i.item_code'),
 			'editlink' => $editkey ? add_edit_combo('item', $name) : false,
 			'editable' => 30,
+			'async' => false,
 			'max' => 255
 		  ), $opts), $type == 'kits' ? $type : "stock_sales" );
 }

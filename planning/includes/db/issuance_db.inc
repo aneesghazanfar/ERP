@@ -65,7 +65,7 @@ function check_status($mo_no){
         return  Approved;
 }
 //---------------------------------------------------------------------------------
-function get_issuance_detail($form_no, $maincat_id){
+function get_issuance_detail($form_no){
     $sql = "SELECT * FROM ".TB_PREF."stock_issue_details WHERE si_id = ".db_escape($form_no);
     return db_query($sql, "could not get issuance detail");
 }

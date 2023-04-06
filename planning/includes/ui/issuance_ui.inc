@@ -1,11 +1,11 @@
 <?php
 
-function get_issuance_data($maincat_id, $unset=false){
+function get_issuance_data($unset=false){
     if ($unset) {
         unset($_SESSION['issuance_data']);
     }
 
-    $result = get_issuance_detail(form_no(), $maincat_id);
+    $result = get_issuance_detail(form_no());
     $line_no = 1;
     while ($myrow = db_fetch($result)) {
         $issuance_data['line_no'] = $line_no++;

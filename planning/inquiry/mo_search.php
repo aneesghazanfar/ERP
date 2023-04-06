@@ -89,13 +89,10 @@ function trans_view($trans)
 
 function edit_stock($row) 
 {
-	$main =  get_item_cat($row['order_no']);
-	if($main == '00-01')
-		$maincat_id = 3;
-	else if($main == '00-02')
-		$maincat_id = 4;
-	// echo $maincat_id;
-	return trans_edit_stock(ST_PURCHORDER, $row["order_no"], $maincat_id);
+	$svc =  get_item_cat($row['order_no']);
+	echo $svc;
+
+	return trans_edit_stock(ST_PURCHORDER, $row["order_no"], $svc);
 }
 
 function prt_link($row)

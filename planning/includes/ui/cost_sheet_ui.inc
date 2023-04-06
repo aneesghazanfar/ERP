@@ -27,6 +27,30 @@ function style_list_cells( $name, $selected_id=null, $submit_on_change=false) {
 	echo "</td>\n";
 }
 
+function yarn_amount($rate, $consumption){
+    return  ($rate * ($consumption / 100));
+}
+
+function gfab_cost_kg($yarn_cost, $Knitting_Charges, $Knitting_waste){
+    return ((($yarn_cost+ $Knitting_Charges)/45.36)*100)/(100-$Knitting_waste);
+}
+
+function dfab_cost($gfab_cost_kg, $Dyeing_Charges, $dfab_cost_perpc, $Dyeing_waste){
+
+return ((($gfab_cost_kg+$Dyeing_Charges)*$dfab_cost_perpc)*100)/(100-$Dyeing_waste);
+}
+
+
+function acc_amount($rate, $consumption){
+    return  ($rate * $consumption);
+}
+
+function total_perpc_cost($dfab_cost, $labour, $acc_cost){
+    return ($dfab_cost + $labour + $acc_cost);
+    
+}
+
+
 
 function amount(){
     return 2+2;
@@ -47,15 +71,16 @@ function label_cell_text($label, $name) {
         <input class='searchbox' class='amount' type=\"text\" name=\"$name\" value=\"$value\">
     </td>";
 }
-function get_cost_data($maincat_id , $unset = false){
+function get_cost_data($unset = false){
     if($unset)
 		unset($_SESSION['cost_data']);
-    $result = get_cost_detail($maincat_id);
+    $result = get_cost_detail();
     $line_no = 1;
      while ($myrow = db_fetch($result)) {
         $cost_data['line_no'] = $line_no++;
         $cost_data['id'] = $myrow['id'];
         $cost_data['cs_id'] = $myrow['cs_id'];
+        $cost_data['maincat_id'] = $myrow['maincat_id'];
         $cost_data['fab_id'] = $myrow['fab_id'];
         $cost_data['stk_code'] = $myrow['stk_code'];
         $cost_data['consume'] = $myrow['consume'];
