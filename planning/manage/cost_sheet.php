@@ -4,7 +4,7 @@
 	contact@march7.group
 ***********************************************************************/
 $page_security = 'SA_SALESORDER';
-$path_to_root = '..';
+$path_to_root = '../..';
 include_once($path_to_root.'/includes/session.inc');
 include_once($path_to_root.'/includes/ui.inc');
 include($path_to_root . '/planning/includes/db/so_plan_db.inc');
@@ -232,7 +232,6 @@ small_qty_cells_ex(_('Dyeing Waste %'), 'Dyeing_Waste', '', true, "colspan=5 ali
 start_row();
 small_qty_cells_ex(_('Dyed Fab / Piece (Kg)'), 'dfab_cost_perpc', '', true, "colspan=5 align='right'");
 $dfab_cost= dfab_cost($gfab_cost_kg,$_POST['Dyeing_Charges'],$_POST['dfab_cost_perpc'],$_POST['Dyeing_Waste']);
-// $dfab_cost = 110;
 label_row(_('Dyed Fabric Cost'), number_format($dfab_cost,2), "colspan=5 align='right'");
 
 

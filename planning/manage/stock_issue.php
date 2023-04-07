@@ -39,7 +39,6 @@ if (isset($_GET['mo_no']) && $_GET['svc']) {
     $mo_no = $_GET['mo_no'];
     get_issuance_data();
 }
-echo $main;
 
 hidden('mo_no', $mo_no);
 hidden('main', $main);
@@ -47,18 +46,10 @@ if($_POST['mo_no'] && $_POST['main']){
     $mo_no = $_POST['mo_no'];
 	$main = $_POST['main'];
 }
-if ($main == '00-01'){
-	$maincat_id = 1;
-	$Contract = "Knitting";
-
-}
-elseif ($main == 4){
-	$maincat_id = 4;
-	$Contract = "Dyeing";
-}
 //function ---------------------------------------------------------------------------------------------
-if(isset($_POST['add_yarn'])){
-	add_issuance_database($_SESSION['issuance_data'], $mo_no, $maincat_id,$_POST['ogp'], $_POST['comment'],$_SESSION['wa_current_user']->user,form_no());
+if(isset($_POST['add_issue'])){
+
+	add_issuance_database($_SESSION['issuance_data'], $mo_no, $_POST['maincat'],$_POST['ogp'], $_POST['comment'],$_SESSION['wa_current_user']->user,form_no());
 	display_notification(_('New order plan has been added'));
     get_issuance_data($mo_no, $maincat_id,true);
 	$Ajax->activate('items_table');
@@ -72,7 +63,8 @@ function line_start_focus()
 	$Ajax->activate('items_table');
 }
 if (isset($_POST['CancelItemChanges']))
-line_start_focus();
+	line_start_focus();
+
 if (isset($_POST['Add_Issuance'])) {
 	// Create an empty array to store the form data
 	$issuance_data = array();
@@ -122,13 +114,16 @@ if($main == '00-01'){
 	display_heading("Knitting");
 
 }
+elseif($main == '00-02'){
+	display_heading("Dyeing");
+}
 
 echo '<tr><td>';
 start_table(TABLESTYLE, "width='95%'");
 label_row(_('Contract'), $mo_no);
 label_row(_('Manufacturer'), get_sup_name($mo_no));
-label_row(_('Date'), date('d-m-Y'), "class='label'", 0, 0, null, true);
-textarea_row(_('Out Gate Pass'), 'ogp', null, 20, 1);
+label_row(_('Date'), get_date(form_no()), "class='label'", 0, 0, null, true);
+text_row(_('Out Gate Pass'), 'ogp', null, 20, 20);
 
 
 end_table();
@@ -136,7 +131,7 @@ echo "</td><td>";
 start_table(TABLESTYLE, "width='95%'");
 label_row(_('Form No'), form_no());
 label_row(_('Status'), check_status($mo_no));
-label_row(_('User'), $_SESSION['wa_current_user']->user, "class='label'", 0, 0, null, true);
+label_row(_('Entry By'), get_user_name(form_no()), "class='label'", 0, 0, null, true);
 label_row(_('Delivery Address'), get_del_add($mo_no));
 end_table();
 
@@ -145,7 +140,7 @@ echo '</td></tr>';
 end_table();
 //----------------------------------------------------------------------------------------
 
-function edit(&$order,  $line, $maincat_id)
+function edit(&$order,  $line, $maincat_id, $maincat_id_2)
 {
     global $Ajax;
 	global $id;
@@ -166,8 +161,8 @@ function edit(&$order,  $line, $maincat_id)
 				break;
 			}
 		}
-		if($main == 3){
-		label_cell($_POST['stk_code']);
+		if($main == '00-01'){
+			label_cell($_POST['stk_code']);
 		label_cell(get_description($_POST['stk_code']));
 		label_cell(get_unit($_POST['stk_code']));
         qty_cell($_POST['required']);
@@ -175,7 +170,7 @@ function edit(&$order,  $line, $maincat_id)
         qty_cell($_POST['qoh']);
         small_qty_cells_ex(null, 'issued', 0, false);
 		}
-		elseif($main == 4){
+		else if($main == '00-02'){
 			lot_no_item_list_cells(null, 'lot_no', false, $mo_no);
 
 			qty_cell(get_Rolls_count($_POST['lot_no']));
@@ -184,8 +179,8 @@ function edit(&$order,  $line, $maincat_id)
 
 		}
 	} else {
-		if($main == 3){
-        plan_sales_items_list_cells(null, 'stk_code', null, false, true, true, $maincat_id);
+		if($main == '00-01'){
+		plan_sales_items_list_cells(null, 'stk_code', null, false, true, true, $maincat_id, $maincat_id_2);
 		label_cell(get_unit($_POST['stk_code']));
         qty_cell(required_bags($_POST['stk_code'],$maincat_id));
 		foreach ($order as $key => $value) {
@@ -201,12 +196,14 @@ function edit(&$order,  $line, $maincat_id)
 
 		if(($_POST['issued']>=required_bags($_POST['stk_code'],$maincat_id)))
 			display_warning(_('You can not issue more than required  bags.'));
+		hidden('maincat',1);
 	}
-	elseif($main == 4){
+	elseif($main == '00-02'){
 		lot_no_item_list_cells(null, 'lot_no', true, $mo_no);
 		qty_cell(get_Rolls_count($_POST['lot_no']));
 		qty_cell(get_weight($_POST['lot_no']));
 		hidden('issued', 0);
+		hidden('maincat',4);
 
 
 	}
@@ -230,11 +227,19 @@ $th = array(_('Yarn Code'), _('Yarn Description'), _('UoM'), _('Required Bags'),
 table_header($th);
 start_row();
 $id = find_row('Edit');
-
+if($main == '00-01'){
+	$maincat_id = 3;
+	$maincat_id_2 = 4;
+}
+elseif($main == '00-02'){
+	$maincat_id = 2;
+	$maincat_id_2 = 4;
+}
 hidden('maincat_id', $maincat_id);
+hidden('maincat_id_2', $maincat_id_2);
 $editable_items = true;
 if ($id == -1 && $editable_items)
-	edit($_SESSION['issuance_data'],  -1, $maincat_id);
+	edit($_SESSION['issuance_data'],  -1, $maincat_id, $maincat_id_2);
 foreach ($_SESSION['issuance_data'] as $key => $value) {
 	start_row();
 		if (($id != $key || !$editable_items)) {
@@ -253,12 +258,16 @@ foreach ($_SESSION['issuance_data'] as $key => $value) {
 			}
 			end_row();
 		} else {
-			edit($_SESSION['issuance_data'], $key, $maincat_id);
+			edit($_SESSION['issuance_data'], $key, $maincat_id, $maincat_id_2);
 		}
 	}
 }
 
-elseif($main == 4){
+elseif($main == '00-02'){
+	$maincat_id = 2;
+$maincat_id_2 = 4;
+hidden('maincat_id', $maincat_id);
+hidden('maincat_id_2', $maincat_id_2);
 	start_table(TABLESTYLE, "width='70%'");
 	$th = array(_('LOT number'), _('Number of Rolls'), _('Total Weigth'), '', '');
 	table_header($th);
@@ -268,7 +277,8 @@ elseif($main == 4){
 	hidden('maincat_id', $maincat_id);
 	$editable_items = true;
 	if ($id == -1 && $editable_items)
-		edit($_SESSION['issuance_data'],  -1, $maincat_id);
+		edit($_SESSION['issuance_data'],  -1, $maincat_id, $maincat_id_2);
+
 	foreach ($_SESSION['issuance_data'] as $key => $value) {
 		start_row();
 			if (($id != $key || !$editable_items)) {
@@ -283,7 +293,7 @@ elseif($main == 4){
 				}
 				end_row();
 			} else {
-				edit($_SESSION['issuance_data'], $key, $maincat_id);
+				edit($_SESSION['issuance_data'], $key, $maincat_id, $maincat_id_2);
 
 
 			}
@@ -299,7 +309,8 @@ echo '<br>';
 start_table(TABLESTYLE2);
 textarea_row(_('Special Instructions:'), 'comment', null, 70, 4);
 end_table(1);
-submit_center_first('add_yarn',_('Issuse Stock'),  _('Check entered data and save document'), 'default');
+submit_center_first('add_issue',_('Issuse Stock'),  _('Check entered data and save document'), 'default');
+
 end_form();
 div_end();
 end_page();

@@ -1552,12 +1552,13 @@ function trans_edit_stock($type, $order_no, $svc){
 	global $path_to_root;
 
 	$editor_url = array(
-				ST_PURCHORDER => "/planning/manage/stock_Issuance.php?mo_no=".$order_no."&svc=".$svc,
+				ST_PURCHORDER => "/planning/manage/stock_issue.php?mo_no=".$order_no."&svc=".$svc,
+
 				
 	);
 	   // $editor_url = sprintf($editor_url[ST_PURCHORDER], $order_no, $maincat_id);
 
 	return !isset($editor_url[$type]) ? '--' :
 			(is_closed_trans($type, $order_no) ? set_icon(ICON_CLOSED, _('Closed')) :
-				pager_link(_('Edit'), sprintf($editor_url[$type], $order_no, $type), ICON_EDIT));
+				pager_link(_('Edit'), sprintf($editor_url[$type], $order_no, $type), ICON_DOC));
 }

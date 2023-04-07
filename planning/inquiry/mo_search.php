@@ -87,10 +87,9 @@ function trans_view($trans)
 	return get_trans_view_str(ST_PURCHORDER, $trans["order_no"]);
 }
 
-function edit_stock($row) 
+function issue_link($row) 
 {
 	$svc =  get_item_cat($row['order_no']);
-	echo $svc;
 
 	return trans_edit_stock(ST_PURCHORDER, $row["order_no"], $svc);
 }
@@ -100,11 +99,35 @@ function prt_link($row)
 	return print_document_link($row['order_no'], _("Print"), true, ST_PURCHORDER, ICON_PRINT);
 }
 
+// Start - MUZZAMMIL - 06-Apr-2023 - Added for stock issue
+// function issue_link($row) 
+// {
+//   return pager_link( _("Stock Issue"),
+// 	"/purchasing/po_receive_items.php?PONumber=" . $row["order_no"], ICON_DOC);
+// }
+// End - MUZZAMMIL - 06-Apr-2023 - Added for stock issue
+
+//Start - MUZZAMMIL - 29-Mar-2023
+//Added new function for approval
+function issue_approve_link($row) {
+	$order_no = $row['order_no'];
+	return '<a target="_blank" href="../../purchasing/view/approve_po.php?trans_no='.$row["order_no"].'" onclick="javascript:openWindow(this.href,this.target); return false;" title="Approve Stock Issue"><i class="'.ICON_SUBMIT.'"></i></a>';
+}
+//End - MUZZAMMIL - 29-Mar-2023
+
 function receive_link($row) 
 {
-  return pager_link( _("Receive"),
+  return pager_link( _("Stock Receive"),
 	"/purchasing/po_receive_items.php?PONumber=" . $row["order_no"], ICON_RECEIVE);
 }
+
+//Start - MUZZAMMIL - 29-Mar-2023
+//Added new function for approval
+function recieve_approve_link($row) {
+	$order_no = $row['order_no'];
+	return '<a target="_blank" href="../../purchasing/view/approve_po.php?trans_no='.$row["order_no"].'" onclick="javascript:openWindow(this.href,this.target); return false;" title="Approve Stock Recieve"><i class="'.ICON_SUBMIT.'"></i></a>';
+}
+//End - MUZZAMMIL - 29-Mar-2023
 
 function check_overdue($row)
 {
@@ -114,8 +137,17 @@ function check_overdue($row)
 
 //figure out the sql required from the inputs available
 $sql = get_sql_for_po_search(get_post('OrdersAfterDate'), get_post('OrdersToDate'), get_post('supplier_id'), get_post('StockLocation'),
-	$_POST['order_number'], get_post('SelectStockFromList'));
+	$_POST['order_number'], get_post('SelectStockFromList'), true);
 //$result = db_query($sql,"No orders were returned");
+
+//Start
+//MUZZAMMIL HUSSAIN - 2023-Mar-30
+//Added for showing the feedback message
+if (isset($_SESSION['message'])) {
+	display_notification($_SESSION['message']);
+	unset($_SESSION['message']);
+}
+//End
 
 /*show a table of the orders returned by the sql */
 $cols = array(
@@ -127,8 +159,17 @@ $cols = array(
 		_("Order Date") => array('name'=>'ord_date', 'type'=>'date', 'ord'=>'desc'),
 		_("Currency") => array('align'=>'center'), 
 		_("Order Total") => 'amount',
-		array('insert'=>true, 'fun'=>'edit_stock'),
+		// array('insert'=>true, 'fun'=>'edit_stock'),
+		array('insert'=>true, 'fun'=>'issue_link'),
+		//Start - MUZZAMMIL - 29-Mar-2023
+		//Added new column for stock_recieve approval
+		array('insert'=>true, 'fun'=>'issue_approve_link'),
+		//End - MUZZAMMIL - 29-Mar-2023
 		array('insert'=>true, 'fun'=>'receive_link'),
+		//Start - MUZZAMMIL - 29-Mar-2023
+		//Added new column for stock_recieve approval
+		array('insert'=>true, 'fun'=>'recieve_approve_link'),
+		//End - MUZZAMMIL - 29-Mar-2023
 		array('insert'=>true, 'fun'=>'prt_link')
 );
 

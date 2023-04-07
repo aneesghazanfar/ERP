@@ -1,6 +1,6 @@
 <?php
 
-function get_issuance_data($unset=false){
+function get_issuance_data( $unset=false){
     if ($unset) {
         unset($_SESSION['issuance_data']);
     }
@@ -75,6 +75,21 @@ function get_weight($lot_no){
 
 //---------------------------------------------------------------------------------------------
 
+function get_date($form_no){
+    $sql = "SELECT issue_date FROM ".TB_PREF."stock_issue WHERE si_id = ".db_escape($form_no);
+    $result = db_query($sql, "could not get date");
+    $row = db_fetch_row($result);
+    return $row[0];
+}
+
+//---------------------------------------------------------------------------------------------
+
+function get_user_name($form){
+    $sql = "SELECT u.real_name FROM ".TB_PREF."stock_issue s , ".TB_PREF."users u WHERE s.si_id = ".db_escape($form)." AND s.entry_by = u.id";
+    $result = db_query($sql, "could not get user");
+    $row = db_fetch_row($result);
+    return $row[0];
+}
 
 function lot_no_item_list($name, $submit_on_change=false, $mo_no,$selected_id=null ) {
     $sql = "SELECT lot_no, lot_no FROM ".TB_PREF."lot WHERE mo_no = ".db_escape($mo_no);

@@ -1,17 +1,10 @@
 <?php
 
 function add_issuance_database($items, $mo_no, $maincat_id,  $ogp, $cmt, $entry_by, $form_no){
-    if($form_no == (form_no()-1)){
-        $sql = "UPDATE ".TB_PREF."stock_issue 
-        SET mo_no = ".db_escape($mo_no).", maincat_id = ".db_escape($maincat_id).", ogp = ".db_escape($ogp).", 
-            cmt = ".db_escape($cmt).", entry_by = ".db_escape($entry_by)."
-        WHERE si_id = ".db_escape($form_no);
-    }
-    else{
+
             $sql = "INSERT INTO ".TB_PREF."stock_issue (mo_no,maincat_id,  ogp, cmt, entry_by)
             VALUES (".db_escape($mo_no).",".db_escape($maincat_id).", ".db_escape($ogp).", ".db_escape($cmt).",
             ".db_escape($entry_by).")";
-    }
     db_query($sql, 'order Cannot be Added');
 
 
@@ -67,5 +60,6 @@ function check_status($mo_no){
 //---------------------------------------------------------------------------------
 function get_issuance_detail($form_no){
     $sql = "SELECT * FROM ".TB_PREF."stock_issue_details WHERE si_id = ".db_escape($form_no);
+
     return db_query($sql, "could not get issuance detail");
 }
