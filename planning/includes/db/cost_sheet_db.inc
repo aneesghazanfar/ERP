@@ -11,7 +11,6 @@ function get_cs_id(){
     }
 //-----------------------------------------------------------------------------------
 function add_cost_data_to_db(&$cost_data, &$fab_data, $cs_id, $style, $shipping, $cmt, $labour, $overhead, $freight, $container, $insurance, $commission, $profit, $curr, $exch, $ufilename, $entry_by){
-
     foreach($cost_data as $key => $row) {
         foreach($fab_data as $key1 => $row1){
             if($row['fab_id'] == $row1['fab_id']){

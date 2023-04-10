@@ -21,15 +21,24 @@ if (user_use_date_picker())
 	$js .= get_js_date_picker();
 page(_($help_context = 'Manage Purchase Plans'), @$_REQUEST['popup'], false, '', $js);
 
-if (isset($_GET['cs_id'])) {
+if (isset($_GET['cs'])) {
 	// $cs_id = $_GET['cs_id'];
-	unset($_SESSION['cost_data']);
-	unset($_SESSION['fab_data']);
 	
-	get_cost_data();
 }
-
+$_SESSION['fab_data'];
+// unset($_SESSION['cost_data']);
+$unset = true;
+if (list_updated('ystk_code') || list_updated('accstk_code') || isset($_REQUEST['1_dye_stk_code']) || isset($_REQUEST['2_dye_stk_code'])
+|| isset($_REQUEST['3_dye_stk_code']) || isset($_REQUEST['4_dye_stk_code']) || isset($_REQUEST['5_dye_stk_code'])
+|| isset($_REQUEST['shipping_terms']) || isset($_REQUEST['style']) || isset($_REQUEST['currency'])){
+	$unset = false;
+}
+get_cost_data($unset);
 $lineNo = find_submit('Edit');
+
+if(isset($_POST['Edit'.$lineNo])){
+	$unset = false;
+}
 
 $cs_id = get_cs_id();
 hidden('cs_id', $cs_id);
@@ -38,7 +47,61 @@ simple_page_mode(true);
 //function-------------------------------------------------------------------------------------------
 
 if (isset($_POST['add_Cost'])){
-	// add_cost_data_to_db($_SESSION['cost_data'],);
+	add_cost_data_to_db($_SESSION['cost_data'], $_SESSION['fab_data'], $cs_id, $_POST['style'], $_POST['shipping_terms'], $_POST['sp_ins'],
+	$_POST['total_labor_cost'], $_POST['overhead_cost'], $_POST['local_freight'], $_POST['container_freight'] , $_POST['insurance']
+	, $_POST['com_persentage'], $_POST['pro_persentage'], $_POST['currency'], $_POST['exchange_rate'], $_POST['ufilename']
+	,$_SESSION['wa_current_user']->user );
+}
+if (isset($_FILES['image']) && $_FILES['image']['name'] != '') {
+	$order_no = $_POST['order_no'];
+	$result = $_FILES['image']['error'];
+	$upload_file = 'Yes'; //Assume all is well to start off with
+	$filename = company_path().'/images';
+
+	if (!file_exists($filename))
+	mkdir($filename);
+	$fname = "image_". get_cs_id();
+	hidden('ufilename', $fname);
+
+	$filename .= '/'. item_img_name($fname).(substr(trim($_FILES['image']['name']), strrpos($_FILES['image']['name'], '.')));
+
+
+	if ($_FILES['image']['error'] == UPLOAD_ERR_INI_SIZE) {
+		display_error(_('The file size is over the maximum allowed.'));
+		$upload_file = 'No';
+	}
+	elseif ($_FILES['image']['error'] > 0) {
+		display_error(_('Error uploading file.'));
+		$upload_file = 'No';
+	}
+
+	//But check for the worst
+	if ((list($width, $height, $type, $attr) = getimagesize($_FILES['image']['tmp_name'])) !== false)
+	$imagetype = $type;
+	else
+	$imagetype = false;
+
+	if ($imagetype != IMAGETYPE_GIF && $imagetype != IMAGETYPE_JPEG && $imagetype != IMAGETYPE_PNG) {
+		display_warning( _('Only graphics files can be uploaded'));
+		$upload_file = 'No';
+	}
+	elseif (!in_array(strtoupper(substr(trim($_FILES['image']['name']), strlen($_FILES['image']['name']) - 3)), array('JPG','PNG','GIF'))) {
+		display_warning(_('Only graphics files are supported - a file extension of .jpg, .png or .gif is expected'));
+		$upload_file = 'No';
+	}
+	elseif ( $_FILES['image']['size'] > ($SysPrefs->max_image_size * 1024)) { //File Size Check
+		display_warning(_('The file size is over the maximum allowed. The maximum size allowed in KB is').' '.$SysPrefs->max_image_size);
+		$upload_file = 'No';
+	}
+	elseif ( $_FILES['image']['type'] == 'text/plain' ) {  //File type Check
+		display_warning( _('Only graphics files can be uploaded'));
+		$upload_file = 'No';
+	}
+
+	if ($upload_file == 'Yes') {
+		$result  =  move_uploaded_file($_FILES['image']['tmp_name'], $filename);
+		$upload_file = 'No';
+	}
 }
 if(isset($_POST['update_yarn'])) {
 	$edit_id = $_POST['edit_id'];
@@ -47,6 +110,7 @@ if(isset($_POST['update_yarn'])) {
 			$_SESSION['cost_data'][$key]['rate'] = $_POST['yrate'];
 			$_SESSION['cost_data'][$key]['consume'] = $_POST['yconsumption'];
 			display_notification(_('Order plan has been updated'));
+			$unset = false;
 			break;
 
 		}
@@ -63,6 +127,7 @@ if(isset($_POST['update_Acc'])) {
 			$_SESSION['cost_data'][$key]['rate'] = $_POST['accrate'];
 			$_SESSION['cost_data'][$key]['consume'] = $_POST['accconsumption'];
 			display_notification(_('Order plan has been updated'));
+			$unset = false;
 			break;
 
 		}
@@ -109,7 +174,7 @@ function edit_yan(&$order,  $line, $maincat_id, $maincat_id_2)
 	end_row();
 }
 if(isset($_POST['Addyarn'])){
-	// $unset = false;
+	$unset = false;
 	// unset($_SESSION['cost_data']);
 
 	// Create an empty array to store the cost data
@@ -131,7 +196,8 @@ if(isset($_POST['Addyarn'])){
 	$cost_data['stk_code'] = $_POST['ystk_code'];
 	$cost_data['consume'] = $_POST['yconsumption'];
 	$cost_data['rate'] = $_POST['yrate'];
-	$cost_data['processing'] = 0;
+	$cost_data['processing'] = 'Yarn';
+
 	$cost_data['waste'] = 0;
 	$existing_data[] = $cost_data;
 
@@ -141,7 +207,7 @@ if(isset($_POST['Addyarn'])){
 }
 
 if(isset($_POST['AddAcc'])){
-	// $unset = false;
+	$unset = false;
 	// unset($_SESSION['cost_data']);
 
 	// Create an empty array to store the cost data
@@ -163,7 +229,7 @@ if(isset($_POST['AddAcc'])){
 	$cost_data['stk_code'] = $_POST['accstk_code'];
 	$cost_data['consume'] = $_POST['accconsumption'];
 	$cost_data['rate'] = $_POST['accrate'];
-	$cost_data['processing'] = 0;
+	$cost_data['processing'] = 'Accessories';
 	$cost_data['waste'] = 0;
 	$existing_data[] = $cost_data;
 
@@ -214,7 +280,8 @@ function edit_acc(&$order,  $line, $maincat_id, $accabric_maincat_2)
 //tabs function-------------------------------------------------------------------------------------------
 function fabric_1() {
 	global $Ajax;
-
+	global $unset;
+	// get_cost_data($unset);
 	echo "<br>";
 	$fab_id = 1;
 	hidden('fab_id', $fab_id);
@@ -260,7 +327,19 @@ function fabric_1() {
 	if($consume_persentage != 100){
 		display_error("Yarn consumption percentage should be 100");
 	}
-
+	// foreach ($_SESSION['fab_data'] as $key => $value) {
+	// 	if($value['fab_id']== $fab_id){
+	// 		$_POST[$fab_id.'_Knitting_Charges'] = $value['Knitting_Charges'];
+	// 		$_POST[$fab_id.'_Knitting_waste'] = $value['Knitting_waste'];
+	// 		$_POST[$fab_id.'_dye_stk_code'] = $value['dye_stk_code'];
+	// 		$_POST[$fab_id.'_Dyeing_Charges'] = $value['Dyeing_Charges'];
+	// 		$_POST[$fab_id.'_Dyeing_Waste'] = $value['Dyeing_Waste'];
+	// 		$_POST[$fab_id.'_dfab_cost_perpc'] = $value['dfab_cost_perpc'];
+	// 		// $dfab_cost = $value['dfab_cost'];
+	// 		$Ajax->activate('items_table');
+	// 			break;
+	// 	}
+	// }
 	
 	start_row();
 	label_row(_('Yarn Cost'), $yarn_cost, "colspan=5 align='right'");
@@ -285,12 +364,12 @@ $dfab_cost= dfab_cost($gfab_cost_kg,$_POST[$fab_id.'_Dyeing_Charges'],$_POST[$fa
 hidden($fab_id.'_dfab_cost', $dfab_cost);
 
 label_row(_('Dyed Fabric Cost'), number_format($dfab_cost,2), "colspan=5 align='right'");
-// var_dump(list_updated($_POST[$fab_id.'_dfab_cost']));
-if($_REQUEST[$fab_id.'_dfab_cost'] >0){
-	echo "ok ha";
+
+if($dfab_cost >0){
+	// echo "working";
 
 	$fab_data = array();
-	$existing_data = isset($_SESSION['fab_data']) ? $_SESSION['fab_data'] : array();
+	// $existing_data = isset($_SESSION['fab_data']) ? $_SESSION['fab_data'] : array();
 
 	$fab_data['fab_id'] = $fab_id;
 	$fab_data['Knitting_Charges'] = $_POST[$fab_id.'_Knitting_Charges'];
@@ -298,23 +377,36 @@ if($_REQUEST[$fab_id.'_dfab_cost'] >0){
 	$fab_data['dye_stk_code'] = $_POST[$fab_id.'_dye_stk_code'];
 	$fab_data['Dyeing_Charges'] =$_POST[$fab_id.'_Dyeing_Charges'];
 	$fab_data['Dyeing_Waste'] = $_POST[$fab_id.'_Dyeing_Waste'];
-	$fab_data['dfab_cost'] = $_POST[$fab_id.'_dfab_cost'];
+	$fab_data['processing'] = 'dying';
+	$fab_data['dfab_cost_perpc'] = $_POST[$fab_id.'_dfab_cost_perpc'];
+	$fab_data['dfab_cost'] = $dfab_cost;
 
 	$existing_data[] = $fab_data;
-	$existing_data = array_unique($existing_data, SORT_REGULAR);
-
-	// Store the updated array data in the session variable
-	$_SESSION['fab_data'] = $existing_data;
-	$Ajax->activate('items_table');
-
+    $existing_data = isset($_SESSION['fab_data']) ? $_SESSION['fab_data'] : array();
+ // Check if pp_id already exists in session
+$index = array_search($fab_data['fab_id'], array_column($existing_data, 'fab_id'));
+if ($index !== false) {
+// Data already in session, do nothing
 }
+else {
+// Add new data to session
+    $existing_data[] = $fab_data;
+    $_SESSION['fab_data'] = $existing_data;
+}
+	// Store the updated array data in the session variable
+	// $_SESSION['fab_data'] = $existing_data;
+	
+}
+$Ajax->activate('items_table');
 
 end_row();
 end_table(1);
 div_end();
 }
+
 function fabric_2() {
 	global $Ajax;
+
 	echo "<br>";
 	$fab_id = 2;
 	hidden('fab_id', $fab_id);
@@ -360,13 +452,25 @@ function fabric_2() {
 	if($consume_persentage != 100){
 		display_error("Yarn consumption percentage should be 100");
 	}
+	// foreach ($_SESSION['fab_data'] as $key => $value) {
+	// 	if($value['fab_id']== $fab_id){
+	// 		$_POST[$fab_id.'_Knitting_Charges'] = $value['Knitting_Charges'];
+	// 		$_POST[$fab_id.'_Knitting_waste'] = $value['Knitting_waste'];
+	// 		$_POST[$fab_id.'_dye_stk_code'] = $value['dye_stk_code'];
+	// 		$_POST[$fab_id.'_Dyeing_Charges'] = $value['Dyeing_Charges'];
+	// 		$_POST[$fab_id.'_Dyeing_Waste'] = $value['Dyeing_Waste'];
+	// 		$_POST[$fab_id.'_dfab_cost_perpc'] = $value['dfab_cost_perpc'];
+	// 		// $dfab_cost = $value['dfab_cost'];
+	// 		$Ajax->activate('items_table');
+	// 			break;
+	// 	}
+	// }
 	
 	start_row();
 	label_row(_('Yarn Cost'), $yarn_cost, "colspan=5 align='right'");
 	small_qty_cells_ex(_('Knitting Charges/Bag'), $fab_id.'_Knitting_Charges', '', true, "colspan=5 align='right'");
 	start_row();
 	small_qty_cells_ex(_('Knitting Waste %'), $fab_id.'_Knitting_waste', '', true, "colspan=5 align='right'");
-	
 	end_row();
 	start_row();
 	$th = array(_('Dyed Fab Code'), _('Dyed Fab Description'), _('UoM'));
@@ -382,13 +486,15 @@ small_qty_cells_ex(_('Dyeing Waste %'), $fab_id.'_Dyeing_Waste', '', true, "cols
 start_row();
 small_qty_cells_ex(_('Dyed Fab / Piece (Kg)'), $fab_id.'_dfab_cost_perpc', '', true, "colspan=5 align='right'");
 $dfab_cost= dfab_cost($gfab_cost_kg,$_POST[$fab_id.'_Dyeing_Charges'],$_POST[$fab_id.'_dfab_cost_perpc'],$_POST[$fab_id.'_Dyeing_Waste']);
-hidden($fab_id.'_dfab_cost', 3);
+hidden($fab_id.'_dfab_cost', $dfab_cost);
+
 label_row(_('Dyed Fabric Cost'), number_format($dfab_cost,2), "colspan=5 align='right'");
-if($_REQUEST[$fab_id.'_dfab_cost'] >0){
-	echo "ok ha";
+
+if($dfab_cost >0){
+	// echo "working";
 
 	$fab_data = array();
-	$existing_data = isset($_SESSION['fab_data']) ? $_SESSION['fab_data'] : array();
+	// $existing_data = isset($_SESSION['fab_data']) ? $_SESSION['fab_data'] : array();
 
 	$fab_data['fab_id'] = $fab_id;
 	$fab_data['Knitting_Charges'] = $_POST[$fab_id.'_Knitting_Charges'];
@@ -396,21 +502,35 @@ if($_REQUEST[$fab_id.'_dfab_cost'] >0){
 	$fab_data['dye_stk_code'] = $_POST[$fab_id.'_dye_stk_code'];
 	$fab_data['Dyeing_Charges'] =$_POST[$fab_id.'_Dyeing_Charges'];
 	$fab_data['Dyeing_Waste'] = $_POST[$fab_id.'_Dyeing_Waste'];
-	$fab_data['dfab_cost'] = $_POST[$fab_id.'_dfab_cost'];
+	$fab_data['processing'] = 'dying';
+	$fab_data['dfab_cost_perpc'] = $_POST[$fab_id.'_dfab_cost_perpc'];
+	$fab_data['dfab_cost'] = $dfab_cost;
 
 	$existing_data[] = $fab_data;
-
-	// Store the updated array data in the session variable
-	$_SESSION['fab_data'] = $existing_data;
-	$Ajax->activate('items_table');
-
+    $existing_data = isset($_SESSION['fab_data']) ? $_SESSION['fab_data'] : array();
+ // Check if pp_id already exists in session
+$index = array_search($fab_data['fab_id'], array_column($existing_data, 'fab_id'));
+if ($index !== false) {
+// Data already in session, do nothing
 }
+else {
+// Add new data to session
+    $existing_data[] = $fab_data;
+    $_SESSION['fab_data'] = $existing_data;
+}
+	// Store the updated array data in the session variable
+	// $_SESSION['fab_data'] = $existing_data;
+	
+}
+$Ajax->activate('items_table');
 
 end_row();
 end_table(1);
 div_end();
 }
 function fabric_3() {
+	global $Ajax;
+
 	echo "<br>";
 	$fab_id = 3;
 	hidden('fab_id', $fab_id);
@@ -440,7 +560,6 @@ function fabric_3() {
 				qty_cell($amount);
 				$yarn_cost += $amount;
 				$consume_persentage += $value['consume'];
-
 				edit_button_cell('Edit' . $value['line_no'], _('Edit'), _('Edit document line'));
 				delete_button_cell('Delete' . $value['line_no'], _('Delete'), _('Remove line from document'));
 				if (isset($_POST['Delete' . $value['line_no']])) {
@@ -454,16 +573,28 @@ function fabric_3() {
 		}
 		
 	}
-
 	if($consume_persentage != 100){
 		display_error("Yarn consumption percentage should be 100");
 	}
+	// foreach ($_SESSION['fab_data'] as $key => $value) {
+	// 	if($value['fab_id']== $fab_id){
+	// 		$_POST[$fab_id.'_Knitting_Charges'] = $value['Knitting_Charges'];
+	// 		$_POST[$fab_id.'_Knitting_waste'] = $value['Knitting_waste'];
+	// 		$_POST[$fab_id.'_dye_stk_code'] = $value['dye_stk_code'];
+	// 		$_POST[$fab_id.'_Dyeing_Charges'] = $value['Dyeing_Charges'];
+	// 		$_POST[$fab_id.'_Dyeing_Waste'] = $value['Dyeing_Waste'];
+	// 		$_POST[$fab_id.'_dfab_cost_perpc'] = $value['dfab_cost_perpc'];
+	// 		// $dfab_cost = $value['dfab_cost'];
+	// 		$Ajax->activate('items_table');
+	// 			break;
+	// 	}
+	// }
+	
 	start_row();
 	label_row(_('Yarn Cost'), $yarn_cost, "colspan=5 align='right'");
 	small_qty_cells_ex(_('Knitting Charges/Bag'), $fab_id.'_Knitting_Charges', '', true, "colspan=5 align='right'");
 	start_row();
 	small_qty_cells_ex(_('Knitting Waste %'), $fab_id.'_Knitting_waste', '', true, "colspan=5 align='right'");
-	
 	end_row();
 	start_row();
 	$th = array(_('Dyed Fab Code'), _('Dyed Fab Description'), _('UoM'));
@@ -480,17 +611,51 @@ start_row();
 small_qty_cells_ex(_('Dyed Fab / Piece (Kg)'), $fab_id.'_dfab_cost_perpc', '', true, "colspan=5 align='right'");
 $dfab_cost= dfab_cost($gfab_cost_kg,$_POST[$fab_id.'_Dyeing_Charges'],$_POST[$fab_id.'_dfab_cost_perpc'],$_POST[$fab_id.'_Dyeing_Waste']);
 hidden($fab_id.'_dfab_cost', $dfab_cost);
+
 label_row(_('Dyed Fabric Cost'), number_format($dfab_cost,2), "colspan=5 align='right'");
 
+if($dfab_cost >0){
+	// echo "working";
+
+	$fab_data = array();
+	// $existing_data = isset($_SESSION['fab_data']) ? $_SESSION['fab_data'] : array();
+
+	$fab_data['fab_id'] = $fab_id;
+	$fab_data['Knitting_Charges'] = $_POST[$fab_id.'_Knitting_Charges'];
+	$fab_data['Knitting_waste'] = $_POST[$fab_id.'_Knitting_waste'];
+	$fab_data['dye_stk_code'] = $_POST[$fab_id.'_dye_stk_code'];
+	$fab_data['Dyeing_Charges'] =$_POST[$fab_id.'_Dyeing_Charges'];
+	$fab_data['Dyeing_Waste'] = $_POST[$fab_id.'_Dyeing_Waste'];
+	$fab_data['processing'] = 'dying';
+	$fab_data['dfab_cost_perpc'] = $_POST[$fab_id.'_dfab_cost_perpc'];
+	$fab_data['dfab_cost'] = $dfab_cost;
+
+	$existing_data[] = $fab_data;
+    $existing_data = isset($_SESSION['fab_data']) ? $_SESSION['fab_data'] : array();
+ // Check if pp_id already exists in session
+$index = array_search($fab_data['fab_id'], array_column($existing_data, 'fab_id'));
+if ($index !== false) {
+// Data already in session, do nothing
+}
+else {
+// Add new data to session
+    $existing_data[] = $fab_data;
+    $_SESSION['fab_data'] = $existing_data;
+}
+	// Store the updated array data in the session variable
+	// $_SESSION['fab_data'] = $existing_data;
+	
+}
+$Ajax->activate('items_table');
 
 end_row();
 end_table(1);
 div_end();
 }
 function fabric_4() {
+	global $Ajax;
+
 	echo "<br>";
-	
-	
 	$fab_id = 4;
 	hidden('fab_id', $fab_id);
 	start_table(TABLESTYLE, "width=90%");
@@ -532,16 +697,28 @@ function fabric_4() {
 		}
 		
 	}
-
 	if($consume_persentage != 100){
 		display_error("Yarn consumption percentage should be 100");
 	}
+	// foreach ($_SESSION['fab_data'] as $key => $value) {
+	// 	if($value['fab_id']== $fab_id){
+	// 		$_POST[$fab_id.'_Knitting_Charges'] = $value['Knitting_Charges'];
+	// 		$_POST[$fab_id.'_Knitting_waste'] = $value['Knitting_waste'];
+	// 		$_POST[$fab_id.'_dye_stk_code'] = $value['dye_stk_code'];
+	// 		$_POST[$fab_id.'_Dyeing_Charges'] = $value['Dyeing_Charges'];
+	// 		$_POST[$fab_id.'_Dyeing_Waste'] = $value['Dyeing_Waste'];
+	// 		$_POST[$fab_id.'_dfab_cost_perpc'] = $value['dfab_cost_perpc'];
+	// 		// $dfab_cost = $value['dfab_cost'];
+	// 		$Ajax->activate('items_table');
+	// 			break;
+	// 	}
+	// }
+	
 	start_row();
 	label_row(_('Yarn Cost'), $yarn_cost, "colspan=5 align='right'");
 	small_qty_cells_ex(_('Knitting Charges/Bag'), $fab_id.'_Knitting_Charges', '', true, "colspan=5 align='right'");
 	start_row();
 	small_qty_cells_ex(_('Knitting Waste %'), $fab_id.'_Knitting_waste', '', true, "colspan=5 align='right'");
-	
 	end_row();
 	start_row();
 	$th = array(_('Dyed Fab Code'), _('Dyed Fab Description'), _('UoM'));
@@ -558,17 +735,51 @@ start_row();
 small_qty_cells_ex(_('Dyed Fab / Piece (Kg)'), $fab_id.'_dfab_cost_perpc', '', true, "colspan=5 align='right'");
 $dfab_cost= dfab_cost($gfab_cost_kg,$_POST[$fab_id.'_Dyeing_Charges'],$_POST[$fab_id.'_dfab_cost_perpc'],$_POST[$fab_id.'_Dyeing_Waste']);
 hidden($fab_id.'_dfab_cost', $dfab_cost);
+
 label_row(_('Dyed Fabric Cost'), number_format($dfab_cost,2), "colspan=5 align='right'");
 
+if($dfab_cost >0){
+	// echo "working";
+
+	$fab_data = array();
+	// $existing_data = isset($_SESSION['fab_data']) ? $_SESSION['fab_data'] : array();
+
+	$fab_data['fab_id'] = $fab_id;
+	$fab_data['Knitting_Charges'] = $_POST[$fab_id.'_Knitting_Charges'];
+	$fab_data['Knitting_waste'] = $_POST[$fab_id.'_Knitting_waste'];
+	$fab_data['dye_stk_code'] = $_POST[$fab_id.'_dye_stk_code'];
+	$fab_data['Dyeing_Charges'] =$_POST[$fab_id.'_Dyeing_Charges'];
+	$fab_data['Dyeing_Waste'] = $_POST[$fab_id.'_Dyeing_Waste'];
+	$fab_data['processing'] = 'dying';
+	$fab_data['dfab_cost_perpc'] = $_POST[$fab_id.'_dfab_cost_perpc'];
+	$fab_data['dfab_cost'] = $dfab_cost;
+
+	$existing_data[] = $fab_data;
+    $existing_data = isset($_SESSION['fab_data']) ? $_SESSION['fab_data'] : array();
+ // Check if pp_id already exists in session
+$index = array_search($fab_data['fab_id'], array_column($existing_data, 'fab_id'));
+if ($index !== false) {
+// Data already in session, do nothing
+}
+else {
+// Add new data to session
+    $existing_data[] = $fab_data;
+    $_SESSION['fab_data'] = $existing_data;
+}
+	// Store the updated array data in the session variable
+	// $_SESSION['fab_data'] = $existing_data;
+	
+}
+$Ajax->activate('items_table');
 
 end_row();
 end_table(1);
 div_end();
 }
 function fabric_5() {
+	global $Ajax;
+
 	echo "<br>";
-	
-	
 	$fab_id = 5;
 	hidden('fab_id', $fab_id);
 	start_table(TABLESTYLE, "width=90%");
@@ -610,16 +821,28 @@ function fabric_5() {
 		}
 		
 	}
-
 	if($consume_persentage != 100){
 		display_error("Yarn consumption percentage should be 100");
 	}
+	// foreach ($_SESSION['fab_data'] as $key => $value) {
+	// 	if($value['fab_id']== $fab_id){
+	// 		$_POST[$fab_id.'_Knitting_Charges'] = $value['Knitting_Charges'];
+	// 		$_POST[$fab_id.'_Knitting_waste'] = $value['Knitting_waste'];
+	// 		$_POST[$fab_id.'_dye_stk_code'] = $value['dye_stk_code'];
+	// 		$_POST[$fab_id.'_Dyeing_Charges'] = $value['Dyeing_Charges'];
+	// 		$_POST[$fab_id.'_Dyeing_Waste'] = $value['Dyeing_Waste'];
+	// 		$_POST[$fab_id.'_dfab_cost_perpc'] = $value['dfab_cost_perpc'];
+	// 		// $dfab_cost = $value['dfab_cost'];
+	// 		$Ajax->activate('items_table');
+	// 			break;
+	// 	}
+	// }
+	
 	start_row();
 	label_row(_('Yarn Cost'), $yarn_cost, "colspan=5 align='right'");
 	small_qty_cells_ex(_('Knitting Charges/Bag'), $fab_id.'_Knitting_Charges', '', true, "colspan=5 align='right'");
 	start_row();
 	small_qty_cells_ex(_('Knitting Waste %'), $fab_id.'_Knitting_waste', '', true, "colspan=5 align='right'");
-	
 	end_row();
 	start_row();
 	$th = array(_('Dyed Fab Code'), _('Dyed Fab Description'), _('UoM'));
@@ -636,8 +859,42 @@ start_row();
 small_qty_cells_ex(_('Dyed Fab / Piece (Kg)'), $fab_id.'_dfab_cost_perpc', '', true, "colspan=5 align='right'");
 $dfab_cost= dfab_cost($gfab_cost_kg,$_POST[$fab_id.'_Dyeing_Charges'],$_POST[$fab_id.'_dfab_cost_perpc'],$_POST[$fab_id.'_Dyeing_Waste']);
 hidden($fab_id.'_dfab_cost', $dfab_cost);
+
 label_row(_('Dyed Fabric Cost'), number_format($dfab_cost,2), "colspan=5 align='right'");
 
+if($dfab_cost >0){
+	// echo "working";
+
+	$fab_data = array();
+	// $existing_data = isset($_SESSION['fab_data']) ? $_SESSION['fab_data'] : array();
+
+	$fab_data['fab_id'] = $fab_id;
+	$fab_data['Knitting_Charges'] = $_POST[$fab_id.'_Knitting_Charges'];
+	$fab_data['Knitting_waste'] = $_POST[$fab_id.'_Knitting_waste'];
+	$fab_data['dye_stk_code'] = $_POST[$fab_id.'_dye_stk_code'];
+	$fab_data['Dyeing_Charges'] =$_POST[$fab_id.'_Dyeing_Charges'];
+	$fab_data['Dyeing_Waste'] = $_POST[$fab_id.'_Dyeing_Waste'];
+	$fab_data['processing'] = 'dying';
+	$fab_data['dfab_cost_perpc'] = $_POST[$fab_id.'_dfab_cost_perpc'];
+	$fab_data['dfab_cost'] = $dfab_cost;
+
+	$existing_data[] = $fab_data;
+    $existing_data = isset($_SESSION['fab_data']) ? $_SESSION['fab_data'] : array();
+ // Check if pp_id already exists in session
+$index = array_search($fab_data['fab_id'], array_column($existing_data, 'fab_id'));
+if ($index !== false) {
+// Data already in session, do nothing
+}
+else {
+// Add new data to session
+    $existing_data[] = $fab_data;
+    $_SESSION['fab_data'] = $existing_data;
+}
+	// Store the updated array data in the session variable
+	// $_SESSION['fab_data'] = $existing_data;
+	
+}
+$Ajax->activate('items_table');
 
 end_row();
 end_table(1);
@@ -645,16 +902,20 @@ div_end();
 }
 function acc() {
 	echo "<br>";
-//acc table-------------------------------------------------------------------------------------------
+	global $Ajax;
+	//acc table-------------------------------------------------------------------------------------------
 start_table(TABLESTYLE, "width=50%");
-$th = array( _('Fab no'), _('Dyed Fab Code'), _('Dyed Fab Description'), _('UoM'));
+$th = array( _('Fab no'), _('Dyed Fab Code'), _('Dyed Fab Description'), _('UoM'), _('Dyed Fab Cost'));
 table_header($th);
+$dfab_cost_sum = 0;
 foreach ($_SESSION['fab_data'] as $key => $value) {
 	start_row();
 	label_cell($value['fab_id']);
 	label_cell($value['dye_stk_code']);
 	label_cell(get_description($value['dye_stk_code']));
 	label_cell(get_unit($value['dye_stk_code']));
+	label_cell(number_format($value['dfab_cost'],2));
+	$dfab_cost_sum += $value['dfab_cost'];
 	end_row();
 
 }
@@ -710,35 +971,33 @@ end_table(1);
 
 
 start_table(TABLESTYLE_NOBORDER, "width='93%'");
-// global $Ajax;
 
 echo '<tr><td>';
-// $dfab_cost = 110.96;
-// $acc_cost = 70;
+
 start_table(TABLESTYLE, "width='95%'");
 // plan_sales_items_list_cells(null, 'accstk_code', null, false, true, true, 1 );
 
 small_qty_cells_ex(_('Total Labor Cost'), 'total_labor_cost', 0, true);
-// var_dump($_POST['total_labor_cost']);
-$total_dfab_cost = $_POST['1_dfab_cost'] + $_POST['2_dfab_cost'] + $_POST['3_dfab_cost'] + $_POST['4_dfab_cost'] + $_POST['5_dfab_cost'];
-$total_perpc_cost = addition($total_dfab_cost, $_POST['total_labor_cost'], $acc_cost);
-label_row(_('Total Per Piece Cost'), $total_perpc_cost);
+$total_perpc_cost = addition($dfab_cost_sum, $_POST['total_labor_cost'], $acc_cost);
+label_row(_('Total Per Piece Cost'), number_format($total_perpc_cost,2));
 
 label_cell_text('Overhead/Piece','over_persentage');
 $overhead_cost = overhead_cost($total_perpc_cost, $_POST['over_persentage']);
+hidden('overhead_cost', $overhead_cost);
 qty_cell($overhead_cost);
-hidden('overhead', amount());
 $net_manuf = addition($total_perpc_cost,$overhead_cost);
-label_row(_('Net Manufacturing Cost'),$net_manuf);
-qty_row(_('Local Freight Charges'),'local_freight') ;
-qty_row(_('Container Freight'), 'container_freight');
-qty_row(_('Insurance Charges'), 'insurance');
+label_row(_('Net Manufacturing Cost'),number_format($net_manuf,2));
+small_qty_cells_ex(_('Local Freight Charges'),'local_freight', 0, true) ;
+start_row();
+small_qty_cells_ex(_('Container Freight'), 'container_freight',0 , true);
+start_row();
+small_qty_cells_ex(_('Insurance Charges'), 'insurance',0 , true);
 end_table();
 echo "</td><td>";
 
 $total_perpc = addition($net_manuf, $_POST['local_freight'], $_POST['container_freight'], $_POST['insurance']);
 start_table(TABLESTYLE,"width='95%'");
-label_row(_('Total Price per Piece'), $total_perpc);
+label_row(_('Total Price per Piece'), number_format($total_perpc,2));
 label_cell_text('Commission','com_persentage');
 hidden('commission', multiply($_POST['pkr_sale_price'] , $_POST['com_persentage']));
 qty_cell($_POST['commission']);
@@ -752,18 +1011,24 @@ $pkr_sale_price = pkr_sale_price($total_perpc, $_POST['pro_persentage'], $_POST[
 hidden('pkr_sale_price', $pkr_sale_price);
 label_row(_('PKR Sale Price per Piece'), number_format($pkr_sale_price,2));
 currencies_list_row(_('Foreign Currency'), 'currency', null, true);
-qty_row(_('Exchange Rate(for example 1 Dollar=283.65'), 'exchange_rate');
+small_qty_cells_ex(_('Exchange Rate(for example 1 Dollar=283.65'), 'exchange_rate',0 , true);
 
 label_row(_('Sale Price in Foreign Currency'), number_format(sale_price_in_FC($pkr_sale_price , $_POST['exchange_rate']),2));
 
 end_table();
 
 echo '</td></tr>';
+$Ajax->activate('items_table');
 end_table();
+
+echo '<br>';
+submit_center_first('add_Cost',_('Place Cost'),  _('Check entered data and save document'), 'default');
+echo '<br>';
 }
 
 //Header Table -----------------------------------------------------------------------------------------
 start_form(true);
+div_start('items_table');
 start_table(TABLESTYLE_NOBORDER, "width='93%'");
 
 echo '<tr><td>';
@@ -794,9 +1059,10 @@ label_cell("Image", "class='label'");
 file_cells(null, 'image', 'image');
 foreach (array('jpg', 'png', 'gif') as $ext) {
 	if($_POST['cs_id']!=null)
-	$filename = $_POST['cs_id'];
+	$filename = 'image_'. $_POST['cs_id'];
 	else
-	$filename = $cs_id;
+	$filename = 'image_'.$cs_id;
+	hidden('filename', $filename);
 	
 	$file = company_path().'/images/'. $filename .'.'.$ext;
 	
@@ -805,7 +1071,7 @@ foreach (array('jpg', 'png', 'gif') as $ext) {
 		break;
 	}
 }
-// label_cell( $stock_img_link,);
+label_cell($stock_img_link);
 end_table();
 
 
@@ -813,12 +1079,7 @@ end_table();
 echo '</td></tr>';
 end_table();
 //Header Table End----------------------------------------------------------------------------------------------
-//tabs-----------------------------------------------------------------------------------------------
-
-div_start('items_table');
-var_dump($_SESSION['fab_data']);
-// var_dump($_SESSION['cost_data']);
-
+//tabs----------------------------------------------------------------------------------------------------------
 tabbed_content_start('tabs', array(
 	'fab1' => array(_('Dyed Fab 1'), true),
 	'fab2' => array(_('Dyed Fab 2'), true),
@@ -832,12 +1093,9 @@ switch (get_post('_tabs_sel')) {
 	default:
 	case 'fab1':
 		fabric_1();
-		// include_once($path_to_root.'/planning/manage/fabric_1.php');
 		break;
 	case 'fab2':
 		fabric_2();
-		// include_once($path_to_root.'/planning/manage/fabric_2.php');
-
 		break;
 	case 'fab3':
 		fabric_3();
@@ -855,9 +1113,10 @@ switch (get_post('_tabs_sel')) {
 tabbed_content_end();					
 						
 
-echo '<br>';
-submit_center_first('add_Cost',_('Place Cost'),  _('Check entered data and save document'), 'default');
 
+// echo '<br>';
+// submit_center_first('add_Cost',_('Place Cost'),  _('Check entered data and save document'), 'default');
+// echo '<br>';
 
 
 div_end();

@@ -1,5 +1,4 @@
 <?php
-
 function shipping_terms($label , $name, $selected=null) {
 echo "<tr><td class='label'>".$label."</td>\n<td>";
 $allocs = array(
@@ -27,42 +26,42 @@ function style_list_cells( $name, $selected_id=null, $submit_on_change=false) {
 	echo "</td>\n";
 }
 
+//formula functions-----------------------------------------------------------------------------
 function multiply($first, $second){
     return  ($first * ($second / 100));
 }
-
+//----------------------------------------------------------------------------------------------
 function gfab_cost_kg($yarn_cost, $Knitting_Charges, $Knitting_waste){
     return ((($yarn_cost+ $Knitting_Charges)/45.36)*100)/(100-$Knitting_waste);
 }
-
+//----------------------------------------------------------------------------------------------
 function dfab_cost($gfab_cost_kg, $Dyeing_Charges, $dfab_cost_perpc, $Dyeing_waste){
 
 return ((($gfab_cost_kg+$Dyeing_Charges)*$dfab_cost_perpc)*100)/(100-$Dyeing_waste);
 }
-
-
+//----------------------------------------------------------------------------------------------
 function acc_amount($rate, $consumption){
     return  ($rate * $consumption);
 }
-
+//----------------------------------------------------------------------------------------------
 function addition($first, $second, $third=0,$forth=0){
     return ($first + $second + $third + $forth);
     
 }
-
+//----------------------------------------------------------------------------------------------
 function overhead_cost($total_perpc_cost, $overhead){
     return ($total_perpc_cost * $overhead)/100;
 }
-
+//----------------------------------------------------------------------------------------------
 function pkr_sale_price($total_perpc, $profit, $commission){
 return ($total_perpc / (100 - $profit - $commission)) * 100;
 
 }
-
+//----------------------------------------------------------------------------------------------
 function sale_price_in_FC($pkr_sale_price, $exchange_rate){
     return $pkr_sale_price / $exchange_rate;
 }
-
+//----------------------------------------------------------------------------------------------
 function check_cost_status($cs_id){
     $sql = "SELECT approval_date FROM ".TB_PREF."cost_sheet WHERE cs_id = ".db_escape($cs_id);
     $result = db_query($sql, "could not get cost_sheet status");
@@ -72,16 +71,12 @@ function check_cost_status($cs_id){
     else
         return  'Approved';
 }
-
-
-
-
-
+//----------------------------------------------------------------------------------------------
 function fab_total($Per_total, $rate, $waste, $consumption){
     echo $Per_total . "<br>" . $rate . "<br>" . $waste . "<br>" . $consumption;
     return (($Per_total + $rate) * ($waste/100) + $consumption);
 }
-
+//----------------------------------------------------------------------------------------------
 function label_cell_text($label, $name) {
     $value = isset($_POST[$name]) ? $_POST[$name] : '';
     echo "<td class='label'>$label
@@ -101,8 +96,6 @@ function get_cost_data($unset = false){
         $cost_data['id'] = $myrow['id'];
         $cost_data['cs_id'] = $myrow['cs_id'];
         $cost_data['maincat_id'] =substr($myrow['stk_code'], 1, 1);
-
-        //$cost_data['maincat_id'] = $myrow['maincat_id'];
         $cost_data['fab_id'] = $myrow['fab_id'];
         $cost_data['stk_code'] = $myrow['stk_code'];
         $cost_data['consume'] = $myrow['consume'];
@@ -110,11 +103,8 @@ function get_cost_data($unset = false){
         $cost_data['processing'] = $myrow['processing'];
         $cost_data['waste'] = $myrow['waste'];
 
-     $existing_data[] = $cost_data;
+        $existing_data[] = $cost_data;
         $_SESSION['cost_data'] = $existing_data;
 
      }
-
-
-
 }
