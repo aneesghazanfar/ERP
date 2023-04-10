@@ -27,8 +27,8 @@ function style_list_cells( $name, $selected_id=null, $submit_on_change=false) {
 	echo "</td>\n";
 }
 
-function yarn_amount($rate, $consumption){
-    return  ($rate * ($consumption / 100));
+function multiply($first, $second){
+    return  ($first * ($second / 100));
 }
 
 function gfab_cost_kg($yarn_cost, $Knitting_Charges, $Knitting_waste){
@@ -45,15 +45,32 @@ function acc_amount($rate, $consumption){
     return  ($rate * $consumption);
 }
 
-function total_perpc_cost($dfab_cost, $labour, $acc_cost){
-    return ($dfab_cost + $labour + $acc_cost);
+function addition($first, $second, $third=0,$forth=0){
+    return ($first + $second + $third + $forth);
     
 }
 
+function overhead_cost($total_perpc_cost, $overhead){
+    return ($total_perpc_cost * $overhead)/100;
+}
 
+function pkr_sale_price($total_perpc, $profit, $commission){
+return ($total_perpc / (100 - $profit - $commission)) * 100;
 
-function amount(){
-    return 2+2;
+}
+
+function sale_price_in_FC($pkr_sale_price, $exchange_rate){
+    return $pkr_sale_price / $exchange_rate;
+}
+
+function check_cost_status($cs_id){
+    $sql = "SELECT approval_date FROM ".TB_PREF."cost_sheet WHERE cs_id = ".db_escape($cs_id);
+    $result = db_query($sql, "could not get cost_sheet status");
+    $row = db_fetch_row($result);
+    if (strtotime($row[0]) === false)
+        return  'Draft';
+    else
+        return  'Approved';
 }
 
 
@@ -71,16 +88,21 @@ function label_cell_text($label, $name) {
         <input class='searchbox' class='amount' type=\"text\" name=\"$name\" value=\"$value\">
     </td>";
 }
+//----------------------cost sheet-------------------------------------------------------------
 function get_cost_data($unset = false){
-    if($unset)
+    if($unset){
 		unset($_SESSION['cost_data']);
-    $result = get_cost_detail();
+        unset($_SESSION['fab_data']);
+    }
+    $result = get_cost_detail('Yarn');
     $line_no = 1;
      while ($myrow = db_fetch($result)) {
         $cost_data['line_no'] = $line_no++;
         $cost_data['id'] = $myrow['id'];
         $cost_data['cs_id'] = $myrow['cs_id'];
-        $cost_data['maincat_id'] = $myrow['maincat_id'];
+        $cost_data['maincat_id'] =substr($myrow['stk_code'], 1, 1);
+
+        //$cost_data['maincat_id'] = $myrow['maincat_id'];
         $cost_data['fab_id'] = $myrow['fab_id'];
         $cost_data['stk_code'] = $myrow['stk_code'];
         $cost_data['consume'] = $myrow['consume'];
@@ -91,49 +113,8 @@ function get_cost_data($unset = false){
      $existing_data[] = $cost_data;
         $_SESSION['cost_data'] = $existing_data;
 
-
-
-
      }
 
 
+
 }
-// below function is here for help it will be remove after complete the task
-function get_cost_data1($maincat_id , $unset = false){
-    if($unset)
-		unset($_SESSION['cost_data']);
-    $existing_data = isset($_SESSION['cost_data']) ? $_SESSION['cost_data'] : array();
-	$line_no = count($existing_data) > 0 ? $existing_data[count($existing_data) - 1]['line_no'] + 1 : 1;
-    $result = get_cost_detail($maincat_id);
-    $yarn_amount = 0;
-    while ($myrow = db_fetch($result)) {
-        $cost_data['line_no'] = $line_no++;
-        $cost_data['id'] = $myrow['id'];
-        $cost_data['cs_id'] = $myrow['cs_id'];
-        $cost_data['maincat_id'] = $myrow['maincat_id'];
-        $cost_data['stk_code'] = $myrow['stk_code'];
-        $cost_data['description'] = get_description($myrow['stk_code']);
-        $cost_data['units'] = get_unit($myrow['stk_code']);
-        $cost_data['waste'] = $myrow['waste'];
-        $cost_data['consumption'] = $myrow['consumption'];
-        $cost_data['rate'] = $myrow['rate'];
-        if($myrow['maincat_id'] == 1 || $myrow['maincat_id'] == 2){
-            $cost_data['amount'] = amount($myrow['consumption'], $myrow['rate']);
-            $yarn_amount = $cost_data['amount'];
-        }
-        else if($myrow['maincat_id'] == 3 ){
-            $cost_data['amount'] = fab_total($yarn_amount, $myrow['rate'], $myrow['waste'], $myrow['consumption']);
-        }
-        $existing_data = isset($_SESSION['cost_data']) ? $_SESSION['cost_data'] : array();
-     // Check if pp_id already exists in session
-    $index = array_search($cost_data['id'], array_column($existing_data, 'id'));
-    if ($index !== false) {
-    // Data already in session, do nothing
-    }
-    else {
-    // Add new data to session
-        $existing_data[] = $cost_data;
-        $_SESSION['cost_data'] = $existing_data;
-    }
-    }
-    }

@@ -1,6 +1,6 @@
 <?php
-function get_cost_detail(){
-	$sql = "SELECT * FROM ".TB_PREF."cost_sheet_details";
+function get_cost_detail($check){
+	$sql = "SELECT * FROM ".TB_PREF."cost_sheet_details WHERE processing != ".db_escape($check);
 	return db_query($sql, "could not get all detail");
 }
 function get_cs_id(){
@@ -9,78 +9,42 @@ function get_cs_id(){
     $row = db_fetch_row($result);
     return ($row[0] + 1);
     }
-function add_cost_data_to_db(&$cost_data, $cs_id, $user, $cost_date, $style, $shipping_terms, $cmt, $status,$overhead, $freight, $container, $insurance
-,$commission, $profit, $exchange_rate, $ufilename){
+//-----------------------------------------------------------------------------------
+function add_cost_data_to_db(&$cost_data, &$fab_data, $cs_id, $style, $shipping, $cmt, $labour, $overhead, $freight, $container, $insurance, $commission, $profit, $curr, $exch, $ufilename, $entry_by){
 
-	foreach($cost_data as $key => $row) {
+    foreach($cost_data as $key => $row) {
+        foreach($fab_data as $key1 => $row1){
+            if($row['fab_id'] == $row1['fab_id']){
+                $waste = $row1['Knitting_waste'];
+            }
+        }
+        if($row['id'] == null ) {
+            $sql = "INSERT INTO ".TB_PREF."cost_sheet_details (cs_id, fab_id, stk_code, consume, rate, processing, waste) VALUES
+                    (".db_escape($row['cs_id']).", ".db_escape($row['fab_id']).", ".db_escape($row['stk_code']).", ".db_escape($row['consume']).", ".db_escape($row['rate']).", ".db_escape($row['processing']).", ".db_escape($waste).")";
 
-			if($row['id'] == null ) 
-				{
-					$sql = "INSERT INTO ".TB_PREF."cost_sheet_details (cs_id, maincat_id, stk_code, waste, consumption, rate) VALUES 
-					(".db_escape($row['cs_id']).", ".db_escape($row['maincat_id']).", ".db_escape($row['stk_code']).", ".db_escape($row['waste']).", ".db_escape($row['consumption']).", ".db_escape($row['rate']).")";
-						
-				}
-				else {
-					$sql = "UPDATE ".TB_PREF."cost_sheet_details SET waste=".db_escape($row['waste']).", consumption=".db_escape($row['consumption']).", rate=".db_escape($row['rate'])." WHERE id=".db_escape($row['id'])."";
-				
-				}
+        } else {
+            $sql = "UPDATE ".TB_PREF."cost_sheet_details SET 
+                    consume = ".db_escape($row['consume']).", 
+                    rate = ".db_escape($row['rate']).", 
+                    processing = ".db_escape($row['processing']).", 
+                    waste = ".db_escape($row['waste'])." 
+                    
+                    WHERE cs_id = ".db_escape($row['cs_id'])." AND fab_id = ".db_escape($row['fab_id']);
+        }
+        db_query($sql, 'order Cannot be Added');
+    }
+    
+    foreach($fab_data as $key => $row){
+        $sql = "INSERT INTO ".TB_PREF."cost_sheet_details (cs_id, fab_id, stk_code, consume, rate, processing, waste) VALUES
+                (".db_escape($cs_id).", ".db_escape($row['fab_id']).", ".db_escape($row['dye_stk_code']).", ".db_escape($row['dfab_cost_perpc']).", ".db_escape(0).", ".db_escape($row['processing']).", ".db_escape($row['Dyeing_Waste']).")";
+        db_query($sql, 'order Cannot be Added');
+    }
+ 
+    $sql1 = "INSERT INTO ".TB_PREF."cost_sheet (style_id, shipping, cmt, labour, overhead, freight, container, insurance, commission, profit, curr, exch, ufilename, entry_by) VALUES
+            (".db_escape($style).", ".db_escape($shipping).", ".db_escape($cmt).", ".db_escape($labour).", 
+            ".db_escape($overhead).", ".db_escape($freight).", ".db_escape($container).", ".db_escape($insurance).", 
+            ".db_escape($commission).", ".db_escape($profit).", ".db_escape($curr).", ".db_escape($exch).", 
+            ".db_escape($ufilename).", ".db_escape($entry_by).")";
 
-		db_query($sql, 'order Cannot be Added');
-	}
-
-	$sql = "INSERT INTO ".TB_PREF."cost_sheet (
-            cs_id,
-            user,
-            cost_date,
-            style_id,
-            shipping,
-            cmt,
-            status,
-            overhead,
-            freight,
-            container,
-            insurance,
-            commission,
-            profit,
-            exch,
-			ufilename
-        ) VALUES (
-            ".db_escape($cs_id).",
-            ".db_escape($user).",
-            ".db_escape($cost_date).",
-            ".db_escape($style).",
-            ".db_escape($shipping_terms).",
-            ".db_escape($cmt).",
-            ".db_escape($status).",
-            ".db_escape($overhead).",
-            ".db_escape($freight).",
-            ".db_escape($container).",
-            ".db_escape($insurance).",
-            ".db_escape($commission).",
-            ".db_escape($profit).",
-            ".db_escape($exchange_rate).",
-			".db_escape($ufilename)."
-
-        ) ON DUPLICATE KEY UPDATE
-            user = ".db_escape($user).",
-            cost_date = ".db_escape($cost_date).",
-            style_id = ".db_escape($style).",
-            shipping = ".db_escape($shipping_terms).",
-            cmt = ".db_escape($cmt).",
-            status = ".db_escape($status).",
-            overhead = ".db_escape($overhead).",
-            freight = ".db_escape($freight).",
-            container = ".db_escape($container).",
-            insurance = ".db_escape($insurance).",
-            commission = ".db_escape($commission).",
-            profit = ".db_escape($profit).",
-            exch = ".db_escape($exchange_rate).",
-			ufilename = ".db_escape($ufilename);	
-
-
-			
-       // WHERE cs_id = ".db_escape($cs_id);
-	
-  db_query($sql, 'order Cannot be Added');
-
+    db_query($sql1, 'order Cannot be Added');
 }
