@@ -1,0 +1,299 @@
+function combo_input($name, $selected_id, $sql, $valfield, $namefield, $options=null, $type=null) {
+	global $Ajax, $path_to_root, $SysPrefs, $search_types;
+
+	$opts = array(		// default options
+		'where'=> array(),		// additional constraints
+		'order' => $namefield,	// list sort order
+		// special option parameters
+		'spec_option'=>false, 	// option text or false
+		'spec_id' => 0,		// option id
+		// submit on select parameters
+		'default' => '', // default value when $_POST is not set
+		'multi' => false,	// multiple select
+		'select_submit' => false, //submit on select: true/false
+		'async' => true,	// select update via ajax (true) vs _page_body reload
+		// search box parameters
+		'sel_hint' => null,
+		'search_box' => false, 	// name or true/false
+		'type' => 0,	// type of extended selector:
+		// 0 - with (optional) visible search box, search by fragment inside id
+		// 1 - with hidden search box, search by option text
+		// 2 - with (optional) visible search box, search by fragment at the start of id
+		// 3 - TODO reverse: box with hidden selector available via enter; this
+		// would be convenient for optional ad hoc adding of new item
+		'search_submit' => true, //search submit button: true/false
+		'size' => 8,	// size and max of box tag
+		'max' => 50,
+		'height' => false,	// number of lines in select box
+		'cells' => false,	// combo displayed as 2 <td></td> cells
+		'search' => array(), // sql field names to search
+		'format' => null, 	 // format functions for regular options
+		'disabled' => false,
+		'box_hint' => null, // box/selectors hints; null = std see below
+		'category' => false, // category column name or false
+		'show_inactive' => false, // show inactive records. 
+		'editable' => false, // false, or length of editable entry field
+		'editlink' => false // link to entity entry/edit page (optional)
+	);
+	// ------ merge options with defaults ----------
+	if($options != null)
+		$opts = array_merge($opts, $options);
+	if (!is_array($opts['where']))  $opts['where'] = array($opts['where']);
+
+	$search_box = $opts['search_box']===true ? '_'.$name.'_edit' : $opts['search_box'];
+	// select content filtered by search field:
+	$search_submit = $opts['search_submit']===true ? '_'.$name.'_button' : $opts['search_submit'];
+	// select set by select content field
+	$search_button = $opts['editable'] ? '_'.$name.'_button' : ($search_box ? $search_submit : false);
+	// datalist id
+	$datalist_id = $opts['search_box'] === true ? $name.'_datalist' : $opts['search_box'];
+
+	$select_submit = $opts['select_submit'];
+	$spec_id = $opts['spec_id'];
+	$spec_option = $opts['spec_option'];
+	if ($opts['type'] == 0) {
+		$by_id = true;
+		$class = 'combo';
+	}
+	elseif($opts['type'] == 1) {
+		$by_id = false;
+		$class = 'combo2';
+	}
+	else {
+		$by_id = true;
+		$class = 'combo3';
+	}
+
+	$disabled = $opts['disabled'] ? 'disabled' : '';
+	$multi = $opts['multi'];
+	
+	if(!count($opts['search']))
+		$opts['search'] = array($by_id ? $valfield : $namefield);
+	
+	if ($opts['sel_hint'] === null) 
+		$opts['sel_hint'] = $by_id || $search_box == false ? '' : _('Press Space tab for search pattern entry');
+
+	if ($opts['box_hint'] === null)
+		$opts['box_hint'] = $search_box && $search_submit != false ? ($by_id ? _('Enter code fragment to search or * for all') : _('Enter description fragment to search or * for all')) :'';
+
+	if ($selected_id == null)
+		$selected_id = get_post($name, (string)$opts['default']);
+
+	if(!is_array($selected_id))
+		$selected_id = array((string)$selected_id); // code is generalized for multiple selection support
+
+	$txt = get_post($search_box);
+	$rel = '';
+	$limit = '';
+
+	if (isset($_POST['_'.$name.'_update'])) { // select list or search box change
+		if ($by_id)
+			$txt = $_POST[$name];
+		if (!$opts['async'])
+			$Ajax->activate('_page_body');
+		else
+			$Ajax->activate($name);
+	}
+	if (isset($_POST[$search_button])) {
+		if (!$opts['async'])
+			$Ajax->activate('_page_body');
+		else
+			$Ajax->activate($name);
+	}
+	if ($search_box) {
+		// search related sql modifications
+
+		$rel = "rel='$search_box'"; // set relation to list
+		if ($opts['search_submit']) {
+			if (isset($_POST[$search_button])) {
+				$selected_id = array(); // ignore selected_id while search
+				if (!$opts['async'])
+					$Ajax->activate('_page_body');
+				else
+					$Ajax->activate($name);
+			}
+		}
+	}
+
+	// sql completion
+	if (count($opts['where'])) {
+		$where = strpos($sql, 'WHERE')==false ? ' WHERE ':' AND ';
+		$where .= '('. implode(' AND ', $opts['where']) . ')';
+		$group_pos = strpos($sql, 'GROUP BY');
+		if ($group_pos) {
+			$group = substr($sql, $group_pos);
+			$sql = substr($sql, 0, $group_pos) . $where.' '.$group;
+		}
+		else
+			$sql .= $where;
+	}
+	if ($opts['order'] != false) {
+		if (!is_array($opts['order']))
+			$opts['order'] = array($opts['order']);
+		$sql .= ' ORDER BY '.implode(',',$opts['order']);
+	}
+
+	$sql .= $limit;
+	// ------ make selector ----------
+	$selector = '';
+	$first_opt = '';
+	$data_options = '';
+	$first_id = false;
+	$found = false;
+	$lastcat = null;
+	$edit = false;
+	$pname = false;
+	if (($type === 'customer' || $type === 'supplier') && !empty($SysPrefs->prefs['shortname_name_in_list']))
+		$pname = true;
+
+	if($result = db_query($sql)) {
+		while ($contact_row = db_fetch($result)) {
+			$value = $contact_row[0];
+			$descr = $opts['format']==null ?  $contact_row[1] : call_user_func($opts['format'], $contact_row, $pname);
+			$sel = '';
+			if (get_post($search_button) && ($txt == $value))
+				$selected_id[] = $value;
+
+			if (in_array((string)$value, $selected_id, true)) {
+				$sel = 'selected';
+				$found = $value;
+				// get non-formatted description
+				$edit = $opts['editable'] && $contact_row['editable'] && (@$_POST[$search_box] == $value) ? $contact_row[1] : false;
+			}
+
+			if(!$edit) { // abandon list construction if selected field is editable.
+				// show selected option even if inactive 
+				if (!$opts['show_inactive'] && @$contact_row['inactive'] && $sel==='')
+					continue;
+				else 
+					$optclass = @$contact_row['inactive'] ? "class='inactive'" : '';
+
+				if ($first_id === false) {
+					$first_id = $value;
+					$first_opt = $descr;
+				}
+				$cat = $contact_row[$opts['category']];
+				if ($opts['category'] !== false && $cat != $lastcat) {
+					if ($lastcat!==null)
+						$selector .= '</optgroup>';
+					$selector .= "<optgroup label='".$cat."'>\n";
+					$lastcat = $cat;
+				}
+				$selector .= "<option ".$sel.' '.$optclass." value='".$value."'>".$descr."</option>\n";
+			}
+
+			$data_options .= "<option value='".$value."'>".$descr."</option>\n";
+		}
+		if ($lastcat!==null)
+			$selector .= '</optgroup>';
+		db_free_result($result);
+	}
+
+	// Prepend special option.
+	if ($spec_option !== false) { // if special option used - add it
+		$first_id = $spec_id;
+		$first_opt = $spec_option;
+		$sel = $found===false ? 'selected' : '';
+		$optclass = @$contact_row['inactive'] ? "class='inactive'" : '';
+		$selector = "<option ".$sel." value='".$first_id."'>".$first_opt."</option>\n".$selector;
+	}
+
+	if ($found===false)
+		$selected_id = array($first_id);
+	
+	$_POST[$name] = $multi ? $selected_id : $selected_id[0];
+
+	if ($SysPrefs->use_popup_search)
+		$selector = "<select id='$name' autocomplete='off' ".($multi ? 'multiple' : '')
+		. ($opts['height']!==false ? ' size="'.$opts['height'].'"' : '')
+		. "$disabled name='$name".($multi ? '[]':'')."' class='$class' title='"
+		. $opts['sel_hint']."' $rel>".$selector."</select>\n";
+	else
+		$selector = "<select autocomplete='off' ".($multi ? "multiple" : '')
+		. ($opts['height']!==false ? ' size="'.$opts['height'].'"' : '')
+		. "$disabled name='$name".($multi ? '[]':'')."' class='$class' title='"
+		. $opts['sel_hint']."' $rel>".$selector."</select>\n";
+	if ($by_id && ($search_box != false || $opts['editable']) ) {
+		// on first display show selector list
+		if (isset($_POST[$search_box]) && $opts['editable'] && $edit) {
+			$selector = "<input type='hidden' name='$name' value='".$_POST[$name]."'>"
+			."<input type='text' $disabled name='{$name}_text' id='{$name}_text' size='"
+			.$opts['editable']."' maxlength='".$opts['max']."' $rel value='$edit'>\n";
+
+			set_focus($name.'_text'); // prevent lost focus
+		}
+		else if (get_post($search_submit ? $search_submit : "_{$name}_button"))
+			set_focus($name); // prevent lost focus
+		if (!$opts['editable'])
+			$txt = $found;
+		$datalist = "<datalist id='$datalist_id'>".$data_options."</datalist>";
+		$Ajax->addUpdate($name, $search_box, $txt ? $txt : '');
+	}
+
+	$Ajax->addUpdate($name, "_{$name}_sel", $selector);
+
+	// span for select list/input field update
+	$selector = "<span id='_{$name}_sel'>".$selector."</span>\n";
+
+	// if selectable or editable list is used - add select button
+	if ($select_submit != false || $search_button) {
+	// button class selects form reload/ajax selector update
+		$selector .= sprintf(SELECT_BUTTON, $disabled, user_theme(),
+			(fallback_mode() ? '' : 'display:none;'),
+			 '_'.$name.'_update')."\n";
+	}
+
+	// ------ make combo ----------
+	$edit_entry = '';
+	if ($search_box != false) {
+		$edit_entry = "<input $disabled type='text' list='$datalist_id' name='$search_box' id='$search_box' size='".
+			$opts['size']."' maxlength='".$opts['max'].
+			"' value='$txt' class='$class' rel='$name' autocomplete='off' title='"
+			.$opts['box_hint']."'"
+			.(!fallback_mode() && !$by_id ? " style=display:none;":'')
+			.">\n";
+		if ($search_submit != false || $opts['editable']) {
+			$edit_entry .= sprintf(SEARCH_BUTTON, $disabled, user_theme(),
+				(fallback_mode() ? '' : 'display:none;'),
+				$search_submit ? $search_submit : "_{$name}_button")."\n";
+		}
+		if(!empty($datalist))
+			$edit_entry .= $datalist;
+	}
+	default_focus(($search_box && $by_id) ? $search_box : $name);
+
+	$search_btn = '';
+	if ($SysPrefs->use_popup_search && (!isset($opts['fixed_asset']) || !$opts['fixed_asset'])) {
+		$btn_title = '';
+		$link = '';
+		$id = $name;
+		if ($SysPrefs->use_popup_windows && !empty($type)) {
+			$type = strtolower($type);
+			if($type === 'component') {
+				$parent = $opts['parent'];
+				$link = $path_to_root.$search_types[$type][0].$parent.$search_types[$type][1].$id;
+				$btn_title = $search_types[$type][2];
+			}
+			elseif($type === 'branch') {
+				$link = $path_to_root.$search_types[$type][0].$id.$search_types[$type][1];
+				$btn_title = $search_types[$type][2];
+			}
+			else {
+				$link = $path_to_root.$search_types[$type][0].$id;
+				$btn_title = $search_types[$type][1];
+			}
+		}
+
+		if ($link !== '')
+			$search_btn = '<div hidden title="'.$btn_title.'" class="search_btn_container" id="_'.$name.'_search" onclick="javascript:lookupWindow(&quot;'.$link.'&quot;, &quot;&quot;);"><span class="search_btn_txt">'._('Advanced search')."</span><i class='fas fa-search'></i></div>";
+	}
+
+	if ($opts['editlink'])
+		$selector .= ' '.$opts['editlink'];
+	if ($search_box && $opts['cells'])
+		$str = ($edit_entry != '' ? '<td>'.$edit_entry.'</td>' : '')."<td nowrap><div class='list_container'>".$selector.$search_btn."</div></td>";
+	else
+		$str = $edit_entry."<div class='list_container'>".$selector.$search_btn."</div>";
+
+	return $str;
+}

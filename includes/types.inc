@@ -1,16 +1,9 @@
 <?php
 /**********************************************************************
-	Copyright (C) FrontAccounting, LLC.
-	Released under the terms of the GNU General Public License, GPL, 
-	as published by the Free Software Foundation, either version 3 
-	of the License, or (at your option) any later version.
-	This program is distributed in the hope that it will be useful,
-	but WITHOUT ANY WARRANTY; without even the implied warranty of
-	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
-	See the License here <http://www.gnu.org/licenses/gpl-3.0.html>.
+	Copyright (C) ASMIte Inc.
+	contact@march7.group
 ***********************************************************************/
 //----------------------------------------------------------------------------------
-//	NotrinosERP system transaction types
 //
 define('ST_JOURNAL', 0);
 
@@ -43,6 +36,7 @@ define('FA_MONTHLY', 0);
 define('FA_YEARLY', 1);
 
 define('ST_SALESORDER', 30);
+define('ST_SALESPLAN', 31);
 define('ST_SALESQUOTE', 32);
 define('ST_COSTUPDATE', 35);
 define('ST_DIMENSION', 40);
@@ -188,7 +182,7 @@ function get_class_type_convert($ctype) {
 
 	if (isset($SysPrefs->use_oldstyle_convert) && $SysPrefs->use_oldstyle_convert == 1)
 		return $ctype >= CL_INCOME ? -1 : 1;
-	else	
+	else
 		return ($ctype >= CL_LIABILITIES && $ctype <= CL_INCOME) ? -1 : 1;
 }
 //----------------------------------------------------------------------------------
@@ -245,9 +239,15 @@ include_once($path_to_root.'/includes/sysnames.inc');
 define('TR_OUTPUT', 0); // sales
 define('TR_INPUT', 1);	// purchase
 //---------------------------------------------------------------------------------
-// Constants optionally redefined locally
+// By Asim 13jan23
+defined('ICON_PLAN') || define('ICON_PLAN', 'fas fa-tasks');
+//defined('ICON_REPEAT') || define('ICON_REPEAT', 'fa fa-repeat');
+defined('ICON_REPEAT') || define('ICON_REPEAT', 'far fa-clone');
 //
 defined('ICON_EDIT') || define('ICON_EDIT', 'btn_warning fas fa-pen');
+//Start - MUZZAMMIL - Added icon-edit for stock_recieve added
+defined('ICON_SR_EDIT') || define('ICON_SR_EDIT', 'btn_ok fas fa-pen');
+//End - MUZZAMMIL - Added icon-edit for stock_recieve added
 defined('ICON_DELETE') || define('ICON_DELETE', 'btn_danger fas fa-trash-alt');
 defined('ICON_ADD')	|| define('ICON_ADD', 'btn_ok fas fa-check-circle');
 defined('ICON_UPDATE') || define('ICON_UPDATE', 'btn_ok fas fa-check-circle');
@@ -257,6 +257,10 @@ defined('ICON_GL') || define('ICON_GL', 'fas fa-book');
 defined('ICON_PRINT') || define('ICON_PRINT', 'btn_grey fas fa-print');
 defined('ICON_PDF') || define('ICON_PDF', 'fas fa-file-pdf');
 defined('ICON_DOC') || define('ICON_DOC', 'btn_ok fas fa-file-export');
+//Start - MUZZAMMIL - Added icon-send for stock_issue
+defined('ICON_SEND') || define('ICON_SEND', 'btn_warning fas fa-file-export');
+defined('ICON_SUBMIT_WARNING') || define('ICON_SUBMIT_WARNING', 'btn_warning fas fa-check-circle');
+//End - MUZZAMMIL - Added icon-send for stock_issue
 defined('ICON_CREDIT') || define('ICON_CREDIT', 'btn_green fas fa-file-import');
 defined('ICON_RECEIVE') || define('ICON_RECEIVE', 'btn_ok fas fa-file-import');
 defined('ICON_DOWN') || define('ICON_DOWN', 'btn_ok fas fa-cloud-download-alt');

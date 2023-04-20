@@ -62,8 +62,8 @@ start_form(true);
 tabbed_content_start('tabs', array(
 	'dyed' => array(_('Dyed Fabric Purchase Plan'), true),
 	'greige' => array(_('Greige Fabric Purchase Plan'), true),
-	'yarn' => array(_('Yarn Purchase Plan'), true),
 	'com' => array(_('Composite Purchase Plan'), true),
+	'yarn' => array(_('Yarn Purchase Plan'), true),
 	'acs' => array(_('Accessories Purchase Plan (by Style)'), true),
 	'col' => array(_('Accessories Purchase Plan (by Collection)'), true),
 	'sum' => array(_('Purchase Demand'), true),

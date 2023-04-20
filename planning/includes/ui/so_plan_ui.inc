@@ -137,10 +137,11 @@ function net_req($total_req, $stk_extra){
 		return ($total_req + ($total_req * ($stk_extra/100)));
 }
 //--------------------------------------------------------------------------------------
-function plan_sales_items_list($name, $selected_id=null, $all_option=false, $submit_on_change=false, $type='', $opts=array(), $editkey=false, $maincat_id,$maincat_id_2 ) {
+function plan_sales_items_list($name, $selected_id=null, $all_option=false, $submit_on_change=false, $type='', $opts=array(), $editkey=false, $maincat_id,$maincat_id_2, $mo_no , $sorder ) {
 	$sql = "SELECT i.item_code, i.description, c.description, count(*)>1 as kit,
 			 i.inactive, if(count(*)>1, '0', s.editable) as editable
 			FROM
+			".TB_PREF."purch_order_details pod,
 			".TB_PREF."stock_master s,
 			".TB_PREF."item_codes i
 			LEFT JOIN
@@ -156,6 +157,10 @@ function plan_sales_items_list($name, $selected_id=null, $all_option=false, $sub
 		$sql .=	" AND !i.is_foreign"; 
 	elseif ($type == 'kits') // sales kits
 		$sql .=	" AND !i.is_foreign AND i.item_code!=i.stock_id";
+
+	if($sorder)
+		$sql .= " AND pod.order_no = 1 AND pod.sorder_no = 1 AND s.stock_id=pod.stk_code ";
+
 	
 	$sql .= " AND !i.inactive AND !s.inactive AND !s.no_sale";
 	$sql .= " GROUP BY i.item_code";
@@ -180,7 +185,7 @@ function plan_sales_items_list($name, $selected_id=null, $all_option=false, $sub
 		  ), $opts), $type == 'kits' ? $type : "stock_sales" );
 }
 
-function plan_sales_items_list_cells($label, $name, $selected_id=null, $all_option=false, $submit_on_change=false, $editkey=false , $maincat_id = null ,$maincat_id_2 = null) {
+function plan_sales_items_list_cells($label, $name, $selected_id=null, $all_option=false, $submit_on_change=false, $editkey=false , $maincat_id = null ,$maincat_id_2 = null, $mo_no = null , $sorder = null) {
 	if ($editkey)
 		set_editor('item', $name, $editkey);
 
@@ -188,6 +193,6 @@ function plan_sales_items_list_cells($label, $name, $selected_id=null, $all_opti
 		echo "<td>".$label."</td>\n";
 
 	echo plan_sales_items_list($name, $selected_id, $all_option, $submit_on_change,
-		'', array('cells'=>true, 'max'=>50), $editkey, $maincat_id, $maincat_id_2); // maximum is set to 50 and not default 255.
+		'', array('cells'=>true, 'max'=>50), $editkey, $maincat_id, $maincat_id_2, $mo_no , $sorder); // maximum is set to 50 and not default 255.
 
 }

@@ -19,8 +19,8 @@ include_once($path_to_root . '/includes/date_functions.inc');
 include_once($path_to_root . '/sales/includes/sales_ui.inc');
 include_once($path_to_root . '/sales/includes/sales_db.inc');
 
-include($path_to_root.'/purchasing/includes/db/so_plan_db.inc');
-include($path_to_root.'/purchasing/includes/ui/so_plan_ui.inc');
+include($path_to_root.'/planning/includes/db/so_plan_db.inc');
+include($path_to_root.'/planning/includes/ui/so_plan_ui.inc');
 
 
 

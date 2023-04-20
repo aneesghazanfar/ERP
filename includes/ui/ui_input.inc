@@ -714,11 +714,16 @@ function password_row($label, $name, $value) {
 }	
 
 //-----------------------------------------------------------------------------------
-
+// start
+// Anees Ghazanfar 11/4/2023
+// Description: Added class searchbox for ajax on file upload
 function file_cells($label, $name, $id='') {
 	if ($id != '')
 		$id = "id='".$id."'";
-	label_cells($label, "<input type='file' name='".$name."' ".$id." >");
+	// old line
+	//label_cells($label, "<input type='file' name='".$name."' ".$id." >");
+	// new line
+	label_cells($label, "<input class='searchbox' type='file' name='".$name."' ".$id." >");
 }		
 function file_row($label, $name, $id = '') {
 	echo "<tr><td class='label'>".$label."</td>";

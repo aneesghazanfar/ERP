@@ -14,6 +14,7 @@ class PlanApp extends application {
 		parent::__construct('plan', _($this->help_context = '&P_QAMS'));
 
 		$this->add_module(_('Transactions'));
+		$this->add_lapp_function(0, _('Create Lot'), 'planning/manage/lot_make.php?', 'SA_WORKORDERENTRY', MENU_TRANSACTION);
 		$this->add_lapp_function(0, _('Cost Sheet'), 'planning/manage/cost_sheet.php?', 'SA_WORKORDERENTRY', MENU_TRANSACTION);
 		// $this->add_lapp_function(0, _('&Outstanding Work Orders'), 'manufacturing/search_work_orders.php?outstanding_only=1', 'SA_MANUFTRANSVIEW', MENU_TRANSACTION);
 		$this->add_module(_('Inquiries and Reports'));

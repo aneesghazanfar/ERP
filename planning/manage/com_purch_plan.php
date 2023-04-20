@@ -8,7 +8,7 @@ $page_security = 'SA_PURCHASEPLAN';
 hidden('order_no', $order_no);
 $maincat_id = 4;
 hidden('maincat_id', $maincat_id);
-
+// unset($_POST['comment']);
 
 $unset = true;
 $lineNo = find_submit('Edit');
@@ -84,7 +84,7 @@ if(isset($_POST['AddItem'])) {
 	$plan_data['cstock_id'] = $_POST['cstock_id'];
 	$plan_data['cstk_extra'] = $_POST['cstk_extra'];
 	$plan_data['cwaste'] = $_POST['cwaste'];
-
+	$plan_data['cmaincat_id'] = 3;	
 	$plan_data['ctotal_req']  = total_req($plan_data['ini_qty'], $_POST['perpc'], 0 );
 	$plan_data['cstk_total'] = net_req($plan_data['ctotal_req'], $_POST['cstk_extra']);
 	$plan_data['req_date'] = $_POST['req_date'];
@@ -99,12 +99,10 @@ if(isset($_POST['AddItem'])) {
 }
 
 if(isset($_POST['add_plan'])){
-	add_to_database($_SESSION['plan_data'], $order_no, $_POST['comment'], $maincat_id  );
+	add_to_database($_SESSION['plan_data'], $order_no, $_POST['comment'], $maincat_id ,1 );
 	display_notification(_('New order plan has been added'));
 	get_plan_data($order_no, $maincat_id,true);
 }
-
-
 
 if (isset($_POST['CancelItemChanges']))
 	line_start_focus();
@@ -183,6 +181,7 @@ function edit(&$order, $order_no, $line, $maincat_id) {
 		// plan_sales_items_list_cells(null,'cstock_id', null, false, true, true, 3);
 		$fstock_id = get_gfab($order_no, $_POST['stock_id'], $maincat_id, 'const_id');
 		label_cell($fstock_id);
+		hidden('cstock_id', $fstock_id);
 //		small_qty_cells_ex(null, 'perpc', 0,false);
 		//need to change $perpc as per requirement
 		small_qty_cells_ex(null, 'cwaste', 0, true);
@@ -245,9 +244,8 @@ start_row();
 			qty_cell($value['stk_total']);
 			//gfab data---------------------------------------------------------------------------------------------
 			$fstock_id = get_gfab($order_no, $value['stock_id'], $maincat_id, 'const_id');
-		label_cell($fstock_id);
+			label_cell($fstock_id);
 			qty_cell($value['cwaste']);
-
 			$ctotal_req = total_req($ini_qty, 1, $value['cwaste']);
 			qty_cell($ctotal_req);
 			qty_cell($value['cstk_extra']);

@@ -18,14 +18,16 @@ include($path_to_root."/purchasing/includes/purchasing_ui.inc");
 include_once($path_to_root."/reporting/includes/reporting.inc");
 
 
-include_once($path_to_root."/planning/includes/ui/issuance_ui.inc");
+include_once($path_to_root."/planning/includes/ui/stock_issue_ui.inc");
+
+include_once($path_to_root."/planning/includes/ui/receive_ui.inc");
 
 $js = "";
 if ($SysPrefs->use_popup_windows)
 	$js .= get_js_open_window(900, 500);
 if (user_use_date_picker())
 	$js .= get_js_date_picker();
-page(_($help_context = "Search Outstanding Purchase Orders"), false, false, "", $js);
+page(_($help_context = "Manufacturing Orders Stock Inquiry"), false, false, "", $js);
 
 if (isset($_GET['order_number']))
 {
@@ -84,14 +86,10 @@ end_table(1);
 //---------------------------------------------------------------------------------------------
 function trans_view($trans)
 {
-	return get_trans_view_str(ST_PURCHORDER, $trans["order_no"]);
-}
-
-function issue_link($row) 
-{
-	$svc =  get_item_cat($row['order_no']);
-
-	return trans_edit_stock(ST_PURCHORDER, $row["order_no"], $svc);
+	// return get_trans_view_str(ST_PURCHORDER, $trans["order_no"]);
+	//Start - MUZZAMMIL - path to view_mo page which is created to show Manuf Order details.
+	return '<a target="_blank" href="../../manufacturing/view/view_mo.php?trans_no='.$trans["order_no"].'" onclick="javascript:openWindow(this.href,this.target); return false;">'.$trans["order_no"].'</a>';
+	//End - MUZZAMMIL
 }
 
 function prt_link($row)
@@ -99,35 +97,82 @@ function prt_link($row)
 	return print_document_link($row['order_no'], _("Print"), true, ST_PURCHORDER, ICON_PRINT);
 }
 
-// Start - MUZZAMMIL - 06-Apr-2023 - Added for stock issue
-// function issue_link($row) 
-// {
-//   return pager_link( _("Stock Issue"),
-// 	"/purchasing/po_receive_items.php?PONumber=" . $row["order_no"], ICON_DOC);
-// }
-// End - MUZZAMMIL - 06-Apr-2023 - Added for stock issue
+//Start - MUZZAMMIL - 13-Apr-2023
+//Adding edit issue link
+function edit_issue_link($row) {
+	$svc = get_item_cat($row['order_no']);
+	return '<a href="../../planning/manage/stock_issue.php?mo_no='.$row["order_no"].'&svc='.$svc.'&ModifyIssuance=Yes" title="Edit Stock Issue"><i class="'.ICON_EDIT.'"></i></a>';
+}
+//Adding edit receive link
+function edit_receive_link($row) {
+	$svc = get_item_cat($row['order_no']);
+	return '<a href="../../planning/manage/stock_receive.php?mo_no='.$row["order_no"].'&cat='.$svc.'&ModifyReceive=Yes" title="Edit Stock Receive"><i class="'.ICON_SR_EDIT.'"></i></a>';
+}
+//End - MUZZAMMIL - 13-Apr-2023
+
+//Start - Anees - 06-Apr-2023
+//Added new function for issue link
+function issue_link($row) 
+{
+	$svc =  get_item_cat($row['order_no']);
+	$order_header = get_po($row['order_no']);
+	// $already_issued = already_issued($row['order_no']);
+	// $required = get_required($row['order_no']);
+	// || ($already_issued == $required && $required != 0)
+	if($order_header['approve_by'] == NULL)
+		return '<i class="'.ICON_SEND.'" style="color:grey;" disabled title="Manufacture Order pending approval or required quantity already issued, cannot issue stock"></i>';
+	else
+		return trans_issue_stock(ST_PURCHORDER, $row["order_no"], $svc);
+}
+//End - Anees - 06-Apr-2023
 
 //Start - MUZZAMMIL - 29-Mar-2023
 //Added new function for approval
 function issue_approve_link($row) {
-	$order_no = $row['order_no'];
-	return '<a target="_blank" href="../../purchasing/view/approve_po.php?trans_no='.$row["order_no"].'" onclick="javascript:openWindow(this.href,this.target); return false;" title="Approve Stock Issue"><i class="'.ICON_SUBMIT.'"></i></a>';
+	$svc = get_item_cat($row['order_no']);
+
+	return '<a target="_blank" href="../../planning/view/approve_si.php?mo_no='.$row["order_no"].'&svc='.$svc.'" onclick="javascript:openWindow(this.href,this.target); return false;" title="Approve Stock Issue"><i class="'.ICON_SUBMIT_WARNING.'"></i></a>';
 }
 //End - MUZZAMMIL - 29-Mar-2023
 
+//Start - MUZZAMMIL - 10-Apr-2023
+//Added new function for stock issue view
+function stock_issue_view($row) {
+	$order_no = $row['order_no'];
+	$form_no = get_form_no($order_no, 'stock_issue');
+	$svc =  get_item_cat($row['order_no']);
+	return '<a target="_blank" href="../../planning/view/view_si.php?mo_no='.$row["order_no"].'&svc='.$svc.'" onclick="javascript:openWindow(this.href,this.target); return false;" title="View Stock Issue">'.$form_no.'</a>';
+}
+//End - MUZZAMMIL - 10-Apr-2023
+
+//Start - Anees - modified receive link to open stock receive page
 function receive_link($row) 
 {
+	$svc =  get_item_cat($row['order_no']);
   return pager_link( _("Stock Receive"),
-	"/purchasing/po_receive_items.php?PONumber=" . $row["order_no"], ICON_RECEIVE);
+	"/planning/manage/stock_receive.php?mo_no=" . $row["order_no"].'&cat='.$svc, ICON_RECEIVE);
 }
+//End - Anees - modified receive link to open stock receive page
 
 //Start - MUZZAMMIL - 29-Mar-2023
 //Added new function for approval
-function recieve_approve_link($row) {
+function receive_approve_link($row) {
 	$order_no = $row['order_no'];
-	return '<a target="_blank" href="../../purchasing/view/approve_po.php?trans_no='.$row["order_no"].'" onclick="javascript:openWindow(this.href,this.target); return false;" title="Approve Stock Recieve"><i class="'.ICON_SUBMIT.'"></i></a>';
+	$svc = get_item_cat($row['order_no']);
+
+	return '<a target="_blank" href="../../planning/view/approve_sr.php?mo_no='.$row["order_no"].'&svc='.$svc.'" onclick="javascript:openWindow(this.href,this.target); return false;" title="Approve Stock Issue"><i class="'.ICON_SUBMIT_WARNING.'"></i></a>';
 }
 //End - MUZZAMMIL - 29-Mar-2023
+
+//Start - MUZZAMMIL - 10-Apr-2023
+//Added new function for stock issue view
+function stock_receive_view($row) {
+	$order_no = $row['order_no'];
+	$form_no = get_form_no($order_no, 'stock_rec');
+	$svc =  get_item_cat($row['order_no']);
+	return '<a target="_blank" href="../../planning/view/view_sr.php?mo_no='.$row["order_no"].'&svc='.$svc.'" onclick="javascript:openWindow(this.href,this.target); return false;" title="View Stock Issue">'.$form_no.'</a>';
+}
+//End - MUZZAMMIL - 10-Apr-2023
 
 function check_overdue($row)
 {
@@ -157,18 +202,24 @@ $cols = array(
 		_("Location"),
 		_("Supplier's Reference"), 
 		_("Order Date") => array('name'=>'ord_date', 'type'=>'date', 'ord'=>'desc'),
-		_("Currency") => array('align'=>'center'), 
+		//Start - MUZZAMMIL - 10-Apr-2023 - Removed the currency column
+		// _("Currency") => array('align'=>'center'), 
+		//End - MUZZAMMIL - Removed the currency column
 		_("Order Total") => 'amount',
-		// array('insert'=>true, 'fun'=>'edit_stock'),
+		//Start - MUZZAMMIL - 10-Apr-2023
+		//Added new column for stock_issue and receive view
+		_('Stock Issue') => array('fun'=>'stock_issue_view', 'align'=>'center'),
+		_('Stock Receive') => array('fun'=>'stock_receive_view', 'align'=>'center'),
+		//End - MUZZAMMIL - 10-Apr-2023
+		//Start - MUZZAMMIL - 29-Mar-2023
+		//Added new column for stock_issue and approval
 		array('insert'=>true, 'fun'=>'issue_link'),
-		//Start - MUZZAMMIL - 29-Mar-2023
-		//Added new column for stock_recieve approval
+		array('insert'=>true, 'fun'=>'edit_issue_link'),
 		array('insert'=>true, 'fun'=>'issue_approve_link'),
-		//End - MUZZAMMIL - 29-Mar-2023
+		//Added new column for stock_receive and approval
 		array('insert'=>true, 'fun'=>'receive_link'),
-		//Start - MUZZAMMIL - 29-Mar-2023
-		//Added new column for stock_recieve approval
-		array('insert'=>true, 'fun'=>'recieve_approve_link'),
+		array('insert'=>true, 'fun'=>'edit_receive_link'),
+		array('insert'=>true, 'fun'=>'receive_approve_link'),
 		//End - MUZZAMMIL - 29-Mar-2023
 		array('insert'=>true, 'fun'=>'prt_link')
 );

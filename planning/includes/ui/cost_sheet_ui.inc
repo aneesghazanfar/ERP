@@ -9,7 +9,7 @@ $allocs = array(
 echo array_selector($name, $selected, $allocs);
 echo "</td></tr>\n";
 }
-
+//----------------------------------------------------------------------------------------------
 function style_list($name, $selected_id=null, $submit_on_change=false) {
 $sql = "SELECT DISTINCT clt_style, CONCAT(clt_style,' | ',style_id) as style_ref FROM ".TB_PREF."stock_master";
 	return combo_input($name, $selected_id, $sql, 'clt_style', 'style_ref',
@@ -31,22 +31,23 @@ function multiply($first, $second){
     return  ($first * ($second / 100));
 }
 //----------------------------------------------------------------------------------------------
-function gfab_cost_kg($yarn_cost, $Knitting_Charges, $Knitting_waste){
-    return ((($yarn_cost+ $Knitting_Charges)/45.36)*100)/(100-$Knitting_waste);
+function gfab_cost_kg($yarn_cost, $knit_charge, $knit_waste){
+   // return ((($yarn_cost+ $knit_charge)/45.36)*100)/(100-$knit_waste);
+ return (($knit_charge / 45.36) + ((($yarn_cost / 45.36)*100)/(100-$knit_waste)));
 }
 //----------------------------------------------------------------------------------------------
-function dfab_cost($gfab_cost_kg, $Dyeing_Charges, $dfab_cost_perpc, $Dyeing_waste){
+function dfab_cost($gfab_cost_kg, $dye_charge, $dfab_cost_perpc, $dye_waste){
 
-return ((($gfab_cost_kg+$Dyeing_Charges)*$dfab_cost_perpc)*100)/(100-$Dyeing_waste);
+return ((($gfab_cost_kg+$dye_charge)*$dfab_cost_perpc)*100)/(100-$dye_waste);
 }
 //----------------------------------------------------------------------------------------------
-function acc_amount($rate, $consumption){
+function acs_amount($rate, $consumption){
     return  ($rate * $consumption);
 }
 //----------------------------------------------------------------------------------------------
 function addition($first, $second, $third=0,$forth=0){
     return ($first + $second + $third + $forth);
-    
+
 }
 //----------------------------------------------------------------------------------------------
 function overhead_cost($total_perpc_cost, $overhead){
@@ -58,8 +59,8 @@ return ($total_perpc / (100 - $profit - $commission)) * 100;
 
 }
 //----------------------------------------------------------------------------------------------
-function sale_price_in_FC($pkr_sale_price, $exchange_rate){
-    return $pkr_sale_price / $exchange_rate;
+function sale_price_in_FC($pkr_sale_price, $curr_rate){
+    return $pkr_sale_price / $curr_rate;
 }
 //----------------------------------------------------------------------------------------------
 function check_cost_status($cs_id){
@@ -84,12 +85,12 @@ function label_cell_text($label, $name) {
     </td>";
 }
 //----------------------cost sheet-------------------------------------------------------------
-function get_cost_data($unset = false){
+function get_cost_data($cs_id,$unset = false){
     if($unset){
 		unset($_SESSION['cost_data']);
         unset($_SESSION['fab_data']);
     }
-    $result = get_cost_detail('Yarn');
+    $result = get_cost_detail($cs_id, 'dye');
     $line_no = 1;
      while ($myrow = db_fetch($result)) {
         $cost_data['line_no'] = $line_no++;
@@ -100,7 +101,7 @@ function get_cost_data($unset = false){
         $cost_data['stk_code'] = $myrow['stk_code'];
         $cost_data['consume'] = $myrow['consume'];
         $cost_data['rate'] = $myrow['rate'];
-        $cost_data['processing'] = $myrow['processing'];
+        $cost_data['process'] = $myrow['process'];
         $cost_data['waste'] = $myrow['waste'];
 
         $existing_data[] = $cost_data;
